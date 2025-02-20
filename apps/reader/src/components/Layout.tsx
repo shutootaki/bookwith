@@ -10,6 +10,7 @@ import {
   MdToc,
   MdTimeline,
   MdOutlineLightMode,
+  MdChat,
 } from 'react-icons/md'
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
 import { useRecoilState } from 'recoil'
@@ -31,6 +32,7 @@ import { activeClass } from '../styles'
 import { SplitView, useSplitViewItem } from './base'
 import { Settings } from './pages'
 import { AnnotationView } from './viewlets/AnnotationView'
+import { ChatView } from './viewlets/ChatView'
 import { ImageView } from './viewlets/ImageView'
 import { SearchView } from './viewlets/SearchView'
 import { ThemeView } from './viewlets/ThemeView'
@@ -80,6 +82,13 @@ const viewActions: IViewAction[] = [
     title: 'toc',
     Icon: MdToc,
     View: TocView,
+    env: Env.Desktop | Env.Mobile,
+  },
+  {
+    name: 'chat',
+    title: 'chat',
+    Icon: MdChat,
+    View: ChatView,
     env: Env.Desktop | Env.Mobile,
   },
   {
