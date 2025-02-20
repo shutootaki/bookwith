@@ -32,19 +32,6 @@ const ChatMessage = ({ message }: { message: Message }) => {
         )}
       >
         <p className="whitespace-pre-wrap break-words">{message.text}</p>
-        {message.timestamp && (
-          <time
-            className={cn(
-              'mt-1 block text-[10px]',
-              isUser ? 'text-primary-foreground/70' : 'text-muted-foreground',
-            )}
-          >
-            {message.timestamp.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </time>
-        )}
       </div>
     </div>
   )
@@ -57,7 +44,6 @@ interface ChatViewProps {
 
 export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
   const [messages, setMessages] = React.useState<Message[]>([])
-  const [input, setInput] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const [text, setText] = React.useState('')
@@ -90,23 +76,24 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+
+    if (!text.trim()) return
 
     const userMessage = {
-      text: input,
+      text: text,
       sender: 'user',
       timestamp: new Date(),
     }
 
     setMessages((prev) => [...prev, userMessage])
-    setInput('')
+    setText('')
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/openai', {
+      const response = await fetch('/api/llm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input }),
+        body: JSON.stringify({ question: text }),
       })
 
       if (!response.ok) throw new Error('APIリクエストに失敗しました')
