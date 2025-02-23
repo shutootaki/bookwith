@@ -7,7 +7,12 @@ import { PaneViewProps } from '../base'
 import { PaneView } from '../base'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip'
 interface Message {
   text: string
   sender: 'user' | 'assistant'
@@ -53,6 +58,29 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     </div>
   )
 }
+const EmptyState = () => (
+  <div className="flex h-full flex-col justify-center px-2 text-gray-500">
+    <div className="mb-4">
+      <svg
+        className="mx-auto h-12 w-12"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+      </svg>
+    </div>
+    <h3 className="text-lg font-medium">チャットを始めましょう</h3>
+    <p className="text-start text-sm">
+      現在読書中の本の知識をもとにAIが回答します。
+    </p>
+  </div>
+)
 
 const useAutoResize = (
   text: string,
@@ -122,15 +150,19 @@ const ChatPane: React.FC = () => {
 
   return (
     <div className="flex h-full w-full max-w-2xl flex-col">
-      <div className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
-        {messages.map((msg, index) => (
-          <ChatMessage key={index} message={msg} />
-        ))}
-        {isLoading && (
-          <Loader className="flex h-4 w-4 animate-spin justify-start" />
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+      {messages.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
+          {messages.map((msg, index) => (
+            <ChatMessage key={index} message={msg} />
+          ))}
+          {isLoading && (
+            <Loader className="flex h-4 w-4 animate-spin justify-start" />
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      )}
 
       <div className="sticky bottom-0 border-t p-3">
         <form onSubmit={handleSend} className="flex w-full gap-1">
@@ -149,14 +181,24 @@ const ChatPane: React.FC = () => {
               className="max-h-[300px] min-h-[30px] resize-none overflow-y-auto border-0 shadow-none focus-visible:ring-0"
               style={{ overflow: text ? 'auto' : 'hidden' }}
             />
+
             <div className="mt-2 flex items-center justify-end">
-              <Button
-                size="icon"
-                disabled={isEmpty}
-                className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
-              >
-                <ArrowUpIcon className="h-4 w-4" />
-              </Button>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      disabled={isEmpty}
+                      className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
+                    >
+                      <ArrowUpIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cmd + Enter or Ctrl + Enterで送信</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </form>
