@@ -19,47 +19,44 @@ export default async function handler(
   try {
     const { question } = await req.body
     if (!question) {
-      return Response.json({ error: 'question is required' }, { status: 400 })
+      return res.status(400).json({ error: 'question is required' })
     }
 
-    // グローバルに保存している vector store を取得
-    const vectorStore = getSharedVectorStore()
-    if (!vectorStore) {
-      console.error('Vector store is not available')
-      return Response.json(
-        { error: 'Vector store is not initialized' },
-        { status: 500 },
-      )
-    }
+    // // グローバルに保存している vector store を取得
+    // const vectorStore = getSharedVectorStore()
+    // if (!vectorStore) {
+    //   console.error('Vector store is not available')
+    //   return res.status(500).json({ error: 'Vector store is not initialized' })
+    // }
 
-    console.log('vectorStore', vectorStore)
     // retriever を使って、質問に関連するドキュメントを取得する
-    const vectorStoreRetriever = vectorStore.asRetriever()
+    // const vectorStoreRetriever = vectorStore.asRetriever()
 
-    console.log('process.env.OPENAI_API_KEY', process.env.OPENAI_API_KEY)
     const model = new ChatOpenAI({
       model: 'gpt-4o-mini',
       apiKey: process.env.OPENAI_API_KEY,
     })
 
-    console.log('vectorStoreRetriever', vectorStoreRetriever)
-    const chain = RunnableSequence.from([
-      {
-        context: vectorStoreRetriever.pipe((docs: Document[]) =>
-          formatDocumentsAsString(docs),
-        ),
-        question: new RunnablePassthrough(),
-      },
-      ragPrompt,
-      model,
-      new StringOutputParser(),
-    ])
+    // const chain = RunnableSequence.from([
+    //   {
+    //     context: vectorStoreRetriever.pipe((docs: Document[]) =>
+    //       formatDocumentsAsString(docs),
+    //     ),
+    //     question: new RunnablePassthrough(),
+    //   },
+    //   ragPrompt,
+    //   model,
+    //   new StringOutputParser(),
+    // ])
 
-    console.log('chain', chain)
-    const answer = await chain.invoke(question)
+    const answer = await model.invoke(question)
+
+    // const answer = await chain.invoke(question)
     console.log('answer', answer)
 
-    return res.status(200).json({ answer })
+    const a = res.status(200).json({ answer })
+    console.log('リターン', a)
+    return a
   } catch (error) {
     console.error('OpenAI API error:', error)
     return res.status(500).json({ error: 'Internal Server Error' })
