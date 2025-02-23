@@ -1,8 +1,10 @@
-import { ArrowUpIcon, Copy, Loader } from 'lucide-react'
+// TODO: Chat履歴画面の作成
+
+import { ArrowUpIcon, Check, Copy, Loader } from 'lucide-react'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import React from 'react'
 
-import { FormattedText } from '../FormatedText'
+import { FormattedText } from '../FormattedText'
 import { PaneViewProps } from '../base'
 import { PaneView } from '../base'
 import { Button } from '../ui/button'
@@ -31,6 +33,18 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.text)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy text:', err)
+    }
+  }
+
   return message.sender === 'user' ? (
     <div className="flex justify-end">
       <div className="max-w-[80%]">
@@ -45,21 +59,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         <div className="leading-relaxed">
           <FormattedText text={message.text} />
         </div>
-        <div className="mt-1 flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 text-gray-500 hover:text-gray-900"
-          >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-gray-500 hover:text-gray-900"
+          onClick={handleCopy}
+        >
+          {isCopied ? (
+            <Check className="h-4 w-4" color="green" />
+          ) : (
             <Copy className="h-4 w-4" />
-          </Button>
-        </div>
+          )}
+        </Button>
       </div>
     </div>
   )
 }
 const EmptyState = () => (
-  <div className="flex h-full flex-col justify-center px-2 text-gray-500">
+  <div className="flex h-full flex-col justify-center px-2 text-center text-gray-500">
     <div className="mb-4">
       <svg
         className="mx-auto h-12 w-12"
@@ -76,9 +93,7 @@ const EmptyState = () => (
       </svg>
     </div>
     <h3 className="text-lg font-medium">チャットを始めましょう</h3>
-    <p className="text-start text-sm">
-      現在読書中の本の知識をもとにAIが回答します。
-    </p>
+    <p className="text-sm">現在読書中の本の知識をもとにAIが回答します。</p>
   </div>
 )
 
@@ -149,7 +164,7 @@ const ChatPane: React.FC = () => {
   }
 
   return (
-    <div className="flex h-full w-full max-w-2xl flex-col">
+    <div className="mx-auto flex h-full w-full max-w-4xl flex-col">
       {messages.length === 0 ? (
         <EmptyState />
       ) : (
@@ -166,7 +181,7 @@ const ChatPane: React.FC = () => {
 
       <div className="sticky bottom-0 border-t p-3">
         <form onSubmit={handleSend} className="flex w-full gap-1">
-          <div className="bg-background w-full max-w-2xl rounded-lg border p-2">
+          <div className="bg-background w-full rounded-lg border p-2">
             <Textarea
               ref={textareaRef}
               value={text}
@@ -206,5 +221,3 @@ const ChatPane: React.FC = () => {
     </div>
   )
 }
-
-export default ChatPane
