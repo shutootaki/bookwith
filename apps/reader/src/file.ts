@@ -11,12 +11,27 @@ export async function fileToEpub(file: File) {
   return ePub(data)
 }
 
+const indexEpub = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    await fetch('/api/rag', {
+      method: 'POST',
+      body: formData,
+    })
+  } catch (error) {
+    console.error('アップロード中のエラー:', error)
+  }
+}
+
 export async function handleFiles(files: Iterable<File>) {
   const books = await db?.books.toArray()
   const newBooks = []
 
   for (const file of files) {
     console.log(file)
+    await indexEpub(file)
 
     if (mapExtToMimes['.zip'].includes(file.type)) {
       unpack(file)
@@ -33,7 +48,6 @@ export async function handleFiles(files: Iterable<File>) {
     if (!book) {
       book = await addBook(file)
     }
-
     newBooks.push(book)
   }
 

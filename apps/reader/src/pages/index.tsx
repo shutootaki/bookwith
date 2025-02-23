@@ -317,6 +317,7 @@ const Library: React.FC = () => {
                     className="absolute inset-0 cursor-pointer opacity-0"
                     onChange={(e) => {
                       const files = e.target.files
+                      console.log('files', files)
                       if (files) handleFiles(files)
                     }}
                   />

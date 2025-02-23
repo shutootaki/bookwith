@@ -38,3 +38,6 @@ yarn-error.log*
 **/public/workbox-*
 **/public/sw.*
 **/public/fallback-*
+
+# worktree
+tmp-worktree/

@@ -2,6 +2,7 @@ import { atom, useRecoilState, useSetRecoilState } from 'recoil'
 
 export type Action =
   | 'toc'
+  | 'chat'
   | 'search'
   | 'annotation'
   | 'typography'

@@ -24,3 +24,11 @@ export function group<T>(array: T[], getKey: (item: T) => string | number) {
 export function copy(text: string) {
   return navigator.clipboard.writeText(text)
 }
+
+export function cleanUpText(str: string, strict = false): string {
+  str = str.replace(/^\s+|\s+$/g, '')
+  if (strict) {
+    str = str.replace(/\n{2,}/g, '\n')
+  }
+  return str
+}
