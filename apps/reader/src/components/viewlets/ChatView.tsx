@@ -1,91 +1,62 @@
-import { Loader2, ArrowUpIcon } from 'lucide-react'
-import * as React from 'react'
-import { useCallback } from 'react'
-import { useEffect } from 'react'
+import { ArrowUpIcon, Copy, Loader } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import React from 'react'
 
-import { cn } from '../../lib/utils'
+import { PaneViewProps } from '../base'
+import { PaneView } from '../base'
 import { Button } from '../ui/button'
-import { Card, CardContent, CardFooter } from '../ui/card'
-import { ScrollArea } from '../ui/scroll-area'
 import { Textarea } from '../ui/textarea'
 
 interface Message {
   text: string
-  sender: string
-  timestamp?: Date
+  sender: 'user' | 'assistant'
 }
 
-const ChatMessage = ({ message }: { message: Message }) => {
-  const isUser = message.sender === 'user'
-
+export const ChatView: React.FC<PaneViewProps> = (props) => {
   return (
-    <div
-      className={cn(
-        'mb-4 flex w-max max-w-[80%] items-end gap-2',
-        isUser ? 'ml-auto' : 'mr-auto',
-      )}
-    >
-      <div
-        className={cn(
-          'rounded-lg px-4 py-2 text-sm',
-          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
-        )}
-      >
-        <p className="whitespace-pre-wrap break-words">{message.text}</p>
-      </div>
-    </div>
+    <PaneView {...props}>
+      <ChatPane />
+    </PaneView>
   )
 }
 
-interface ChatViewProps {
-  className?: string
-  title?: string
-}
-
-export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
-  const [messages, setMessages] = React.useState<Message[]>([])
+const ChatPane: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [text, setText] = useState('')
+  const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = React.useState(false)
-  const scrollRef = React.useRef<HTMLDivElement>(null)
-  const [text, setText] = React.useState('')
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const is_empty = !text.trim()
 
-  const scrollToBottom = React.useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const adjustHeight = useCallback(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      // Reset height to auto to get the correct scrollHeight
-      textarea.style.height = 'auto'
-      // Set the height to match the content
-      textarea.style.height = `${textarea.scrollHeight}px`
-    }
-  }, [])
+  // メッセージが追加されたときに自動スクロール
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
 
   // Adjust height when text changes
   useEffect(() => {
-    adjustHeight()
-  }, [adjustHeight, text])
+    const textarea = textareaRef.current
+    if (!textarea) return
 
-  React.useEffect(() => {
-    scrollToBottom()
-  }, [scrollToBottom])
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [text])
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (is_empty) return
 
-    if (!text.trim()) return
-
-    const userMessage = {
-      text: text,
-      sender: 'user',
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: 'user',
+        text: text,
+      },
+    ])
     setText('')
     setIsLoading(true)
 
@@ -104,8 +75,7 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
         ...prev,
         {
           text: data.answer || 'エラーが発生しました。',
-          sender: 'bot',
-          timestamp: new Date(),
+          sender: 'assistant',
         },
       ])
     } catch (error) {
@@ -114,8 +84,7 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
         ...prev,
         {
           text: 'エラーが発生しました。',
-          sender: 'bot',
-          timestamp: new Date(),
+          sender: 'assistant',
         },
       ])
     } finally {
@@ -124,33 +93,56 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
   }
 
   return (
-    <Card
-      className={cn('flex h-full flex-col border-none shadow-none', className)}
-    >
-      <div className="p-4">{title}</div>
-      <CardContent className="flex-1 p-4">
-        <ScrollArea className="h-full pr-4">
-          <div className="space-y-4">
-            {messages.map((message, i) => (
-              <ChatMessage key={i} message={message} />
-            ))}
-            {isLoading && (
-              <div className="text-muted-foreground flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <p className="text-sm">入力中...</p>
+    <div className="flex h-full w-full max-w-2xl flex-col">
+      <div className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
+        {messages.map((message, i) => (
+          <div
+            key={i}
+            className={`flex ${
+              message.sender === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            {message.sender === 'user' ? (
+              <div className="max-w-[80%]">
+                <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">
+                  <div className="leading-relaxed">{message.text}</div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="leading-relaxed">{message.text}</div>
+                <div className="mt-1 flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-gray-500 hover:text-gray-900"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
-            <div ref={scrollRef} />
           </div>
-        </ScrollArea>
-      </CardContent>
-      <CardFooter className="border-t py-4 px-2">
+        ))}
+        {isLoading && (
+          <Loader className="flex h-4 w-4 animate-spin justify-start" />
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="sticky bottom-0 border-t p-3">
         <form onSubmit={handleSend} className="flex w-full gap-1">
-          <div className="bg-background w-full max-w-2xl rounded-lg border p-1">
+          <div className="bg-background w-full max-w-2xl rounded-lg border p-2">
             <Textarea
               ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault()
+                  handleSend(e)
+                }
+              }}
               placeholder="Type your message..."
               className="max-h-[300px] min-h-[30px] resize-none overflow-y-auto border-0 shadow-none focus-visible:ring-0"
               style={{ overflow: text ? 'auto' : 'hidden' }}
@@ -158,6 +150,7 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
             <div className="mt-2 flex items-center justify-end">
               <Button
                 size="icon"
+                disabled={is_empty}
                 className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
               >
                 <ArrowUpIcon className="h-4 w-4" />
@@ -165,7 +158,7 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
             </div>
           </div>
         </form>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
