@@ -1,91 +1,139 @@
-import { Loader2, ArrowUpIcon } from 'lucide-react'
-import * as React from 'react'
-import { useCallback } from 'react'
-import { useEffect } from 'react'
+// TODO: Chat履歴画面の作成
 
-import { cn } from '../../lib/utils'
+import { ArrowUpIcon, Check, Copy, Loader } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import React from 'react'
+
+import { FormattedText } from '../FormattedText'
+import { PaneViewProps } from '../base'
+import { PaneView } from '../base'
 import { Button } from '../ui/button'
-import { Card, CardContent, CardFooter } from '../ui/card'
-import { ScrollArea } from '../ui/scroll-area'
 import { Textarea } from '../ui/textarea'
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip'
 interface Message {
   text: string
-  sender: string
-  timestamp?: Date
+  sender: 'user' | 'assistant'
 }
 
-const ChatMessage = ({ message }: { message: Message }) => {
-  const isUser = message.sender === 'user'
-
+export const ChatView: React.FC<PaneViewProps> = (props) => {
   return (
-    <div
-      className={cn(
-        'mb-4 flex w-max max-w-[80%] items-end gap-2',
-        isUser ? 'ml-auto' : 'mr-auto',
-      )}
-    >
-      <div
-        className={cn(
-          'rounded-lg px-4 py-2 text-sm',
-          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
-        )}
-      >
-        <p className="whitespace-pre-wrap break-words">{message.text}</p>
+    <PaneView {...props}>
+      <ChatPane />
+    </PaneView>
+  )
+}
+
+interface ChatMessageProps {
+  message: Message
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.text)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy text:', err)
+    }
+  }
+
+  return message.sender === 'user' ? (
+    <div className="flex justify-end">
+      <div className="max-w-[80%]">
+        <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">
+          <FormattedText text={message.text} className="p-0 leading-relaxed" />
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="flex justify-start">
+      <div>
+        <div className="leading-relaxed">
+          <FormattedText text={message.text} />
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-gray-500 hover:text-gray-900"
+          onClick={handleCopy}
+        >
+          {isCopied ? (
+            <Check className="h-4 w-4" color="green" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+        </Button>
       </div>
     </div>
   )
 }
+const EmptyState = () => (
+  <div className="flex h-full flex-col justify-center px-2 text-center text-gray-500">
+    <div className="mb-4">
+      <svg
+        className="mx-auto h-12 w-12"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+      </svg>
+    </div>
+    <h3 className="text-lg font-medium">チャットを始めましょう</h3>
+    <p className="text-sm">現在読書中の本の知識をもとにAIが回答します。</p>
+  </div>
+)
 
-interface ChatViewProps {
-  className?: string
-  title?: string
+const useAutoResize = (
+  text: string,
+  textareaRef: React.RefObject<HTMLTextAreaElement>,
+) => {
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [text, textareaRef])
 }
 
-export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
-  const [messages, setMessages] = React.useState<Message[]>([])
-  const [isLoading, setIsLoading] = React.useState(false)
-  const scrollRef = React.useRef<HTMLDivElement>(null)
-  const [text, setText] = React.useState('')
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+const ChatPane: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [text, setText] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const scrollToBottom = React.useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const isEmpty = !text.trim()
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const adjustHeight = useCallback(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      // Reset height to auto to get the correct scrollHeight
-      textarea.style.height = 'auto'
-      // Set the height to match the content
-      textarea.style.height = `${textarea.scrollHeight}px`
-    }
-  }, [])
-
-  // Adjust height when text changes
   useEffect(() => {
-    adjustHeight()
-  }, [adjustHeight, text])
-
-  React.useEffect(() => {
     scrollToBottom()
-  }, [scrollToBottom])
+  }, [messages, scrollToBottom])
 
-  const handleSend = async (e: React.FormEvent) => {
+  useAutoResize(text, textareaRef)
+
+  const handleSend = async (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault()
+    if (isEmpty) return
 
-    if (!text.trim()) return
-
-    const userMessage = {
-      text: text,
-      sender: 'user',
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+    setMessages((prev) => [...prev, { sender: 'user', text }])
     setText('')
     setIsLoading(true)
 
@@ -102,21 +150,13 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
 
       setMessages((prev) => [
         ...prev,
-        {
-          text: data.answer || 'エラーが発生しました。',
-          sender: 'bot',
-          timestamp: new Date(),
-        },
+        { sender: 'assistant', text: data.answer || 'エラーが発生しました。' },
       ])
     } catch (error) {
       console.error('Error:', error)
       setMessages((prev) => [
         ...prev,
-        {
-          text: 'エラーが発生しました。',
-          sender: 'bot',
-          timestamp: new Date(),
-        },
+        { sender: 'assistant', text: 'エラーが発生しました。' },
       ])
     } finally {
       setIsLoading(false)
@@ -124,48 +164,60 @@ export function ChatView({ className, title = 'Chat' }: ChatViewProps) {
   }
 
   return (
-    <Card
-      className={cn('flex h-full flex-col border-none shadow-none', className)}
-    >
-      <div className="p-4">{title}</div>
-      <CardContent className="flex-1 p-4">
-        <ScrollArea className="h-full pr-4">
-          <div className="space-y-4">
-            {messages.map((message, i) => (
-              <ChatMessage key={i} message={message} />
-            ))}
-            {isLoading && (
-              <div className="text-muted-foreground flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <p className="text-sm">入力中...</p>
-              </div>
-            )}
-            <div ref={scrollRef} />
-          </div>
-        </ScrollArea>
-      </CardContent>
-      <CardFooter className="border-t py-4 px-2">
+    <div className="mx-auto flex h-full w-full max-w-4xl flex-col">
+      {messages.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
+          {messages.map((msg, index) => (
+            <ChatMessage key={index} message={msg} />
+          ))}
+          {isLoading && (
+            <Loader className="flex h-4 w-4 animate-spin justify-start" />
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      )}
+
+      <div className="sticky bottom-0 border-t p-3">
         <form onSubmit={handleSend} className="flex w-full gap-1">
-          <div className="bg-background w-full max-w-2xl rounded-lg border p-1">
+          <div className="bg-background w-full rounded-lg border p-2">
             <Textarea
               ref={textareaRef}
               value={text}
               onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault()
+                  handleSend(e)
+                }
+              }}
               placeholder="Type your message..."
               className="max-h-[300px] min-h-[30px] resize-none overflow-y-auto border-0 shadow-none focus-visible:ring-0"
               style={{ overflow: text ? 'auto' : 'hidden' }}
             />
+
             <div className="mt-2 flex items-center justify-end">
-              <Button
-                size="icon"
-                className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
-              >
-                <ArrowUpIcon className="h-4 w-4" />
-              </Button>
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      disabled={isEmpty}
+                      className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
+                    >
+                      <ArrowUpIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cmd + Enter or Ctrl + Enterで送信</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </form>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
