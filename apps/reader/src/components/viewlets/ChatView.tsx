@@ -1,7 +1,8 @@
 import { ArrowUpIcon, Copy, Loader } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import React from 'react'
 
+import { FormattedText } from '../FormatedText'
 import { PaneViewProps } from '../base'
 import { PaneView } from '../base'
 import { Button } from '../ui/button'
@@ -20,43 +21,76 @@ export const ChatView: React.FC<PaneViewProps> = (props) => {
   )
 }
 
+interface ChatMessageProps {
+  message: Message
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+  return message.sender === 'user' ? (
+    <div className="flex justify-end">
+      <div className="max-w-[80%]">
+        <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">
+          <FormattedText text={message.text} className="p-0 leading-relaxed" />
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="flex justify-start">
+      <div>
+        <div className="leading-relaxed">
+          <FormattedText text={message.text} />
+        </div>
+        <div className="mt-1 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-gray-500 hover:text-gray-900"
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const useAutoResize = (
+  text: string,
+  textareaRef: React.RefObject<HTMLTextAreaElement>,
+) => {
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [text, textareaRef])
+}
+
 const ChatPane: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
-  const is_empty = !text.trim()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const isEmpty = !text.trim()
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  // メッセージが追加されたときに自動スクロール
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  // Adjust height when text changes
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (!textarea) return
+  useAutoResize(text, textareaRef)
 
-    textarea.style.height = 'auto'
-    textarea.style.height = `${textarea.scrollHeight}px`
-  }, [text])
-
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault()
-    if (is_empty) return
+    if (isEmpty) return
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: 'user',
-        text: text,
-      },
-    ])
+    setMessages((prev) => [...prev, { sender: 'user', text }])
     setText('')
     setIsLoading(true)
 
@@ -73,19 +107,13 @@ const ChatPane: React.FC = () => {
 
       setMessages((prev) => [
         ...prev,
-        {
-          text: data.answer || 'エラーが発生しました。',
-          sender: 'assistant',
-        },
+        { sender: 'assistant', text: data.answer || 'エラーが発生しました。' },
       ])
     } catch (error) {
       console.error('Error:', error)
       setMessages((prev) => [
         ...prev,
-        {
-          text: 'エラーが発生しました。',
-          sender: 'assistant',
-        },
+        { sender: 'assistant', text: 'エラーが発生しました。' },
       ])
     } finally {
       setIsLoading(false)
@@ -95,34 +123,8 @@ const ChatPane: React.FC = () => {
   return (
     <div className="flex h-full w-full max-w-2xl flex-col">
       <div className="flex-1 space-y-2 overflow-y-auto p-4 text-sm">
-        {messages.map((message, i) => (
-          <div
-            key={i}
-            className={`flex ${
-              message.sender === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            {message.sender === 'user' ? (
-              <div className="max-w-[80%]">
-                <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">
-                  <div className="leading-relaxed">{message.text}</div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="leading-relaxed">{message.text}</div>
-                <div className="mt-1 flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-gray-500 hover:text-gray-900"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+        {messages.map((msg, index) => (
+          <ChatMessage key={index} message={msg} />
         ))}
         {isLoading && (
           <Loader className="flex h-4 w-4 animate-spin justify-start" />
@@ -150,7 +152,7 @@ const ChatPane: React.FC = () => {
             <div className="mt-2 flex items-center justify-end">
               <Button
                 size="icon"
-                disabled={is_empty}
+                disabled={isEmpty}
                 className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
               >
                 <ArrowUpIcon className="h-4 w-4" />
@@ -162,3 +164,5 @@ const ChatPane: React.FC = () => {
     </div>
   )
 }
+
+export default ChatPane
