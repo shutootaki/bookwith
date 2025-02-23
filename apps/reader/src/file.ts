@@ -15,12 +15,10 @@ const indexEpub = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
 
-  console.log('formData', formData)
-
   try {
-    await fetch('/api/index-doc', {
+    await fetch('/api/rag', {
       method: 'POST',
-      body: file,
+      body: formData,
     })
   } catch (error) {
     console.error('アップロード中のエラー:', error)

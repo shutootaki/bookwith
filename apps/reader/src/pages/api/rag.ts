@@ -8,6 +8,13 @@ import { MemoryVectorStore } from 'langchain/vectorstores/memory'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { setSharedVectorStore } from '../vector'
+import formidable from 'formidable'
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,31 +23,26 @@ export default async function handler(
   try {
     console.log('index-doc開始')
 
-    // const formData = await req.body
-    // console.log('formData読み込み')
-    // const file = formData.file
-    const file = req.body
-    console.log('ファイル読み込み')
+    // formidableでファイルを解析
+    const form = formidable({
+      keepExtensions: true,
+      // maxFileSize: 10 * 1024 * 1024, // 10MB
+    })
+
+    const [_, files] = await form.parse(req)
+    const file = files.file?.[0]
+
     if (!file) {
       return res
         .status(400)
         .json({ error: 'ファイルがアップロードされていません' })
     }
 
-    console.log('ファイル読み込み完了')
-    const buffer = Buffer.from(await (file as File).arrayBuffer())
-    console.log('バッファー作成完了')
-
     const tmpDir = path.join(process.cwd(), 'tmp')
-    if (!fs.existsSync(tmpDir)) {
-      fs.mkdirSync(tmpDir)
-    }
-    const fileName = (file as File).name
-    const filePath = path.join(tmpDir, fileName)
+    await fs.promises.mkdir(tmpDir, { recursive: true })
 
-    // 一時ファイルとして保存
-    await fs.promises.writeFile(filePath, new Uint8Array(buffer))
-    // await fs.promises.writeFile(filePath, buffer)
+    // formidableが一時保存したファイルを使用
+    const filePath = file.filepath
 
     const docs = await new EPubLoader(filePath).load()
     const splitter = new RecursiveCharacterTextSplitter({
