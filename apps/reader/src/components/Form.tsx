@@ -17,7 +17,7 @@ import { IconButton } from './Button'
 type Action = {
   title: string
   Icon: IconType
-  onClick: (el: HTMLInputElement | null) => void
+  onClick: (el: HTMLInputElement | null) => void | Promise<void>
 }
 
 export type TextFieldProps<T extends ElementType> = PolymorphicPropsWithoutRef<
@@ -26,7 +26,7 @@ export type TextFieldProps<T extends ElementType> = PolymorphicPropsWithoutRef<
     hideLabel?: boolean
     autoFocus?: boolean
     actions?: Action[]
-    onClear?: () => void
+    onClear?: () => void | Promise<void>
     // https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forward_and_create_ref/#generic-forwardrefs
     mRef?: RefObject<HTMLInputElement> | null
   },

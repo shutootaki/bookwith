@@ -11,28 +11,14 @@ export async function fileToEpub(file: File) {
   return ePub(data)
 }
 
-const indexEpub = async (file: File) => {
-  const formData = new FormData()
-  formData.append('file', file)
-
-  try {
-    await fetch('/api/rag', {
-      method: 'POST',
-      body: formData,
-    })
-  } catch (error) {
-    console.error('アップロード中のエラー:', error)
-  }
-}
-
-export async function handleFiles(files: Iterable<File>) {
+export async function handleFiles(
+  files: Iterable<File>,
+  setLoading?: (id: string | undefined) => void,
+) {
   const books = await db?.books.toArray()
   const newBooks = []
 
   for (const file of files) {
-    console.log(file)
-    await indexEpub(file)
-
     if (mapExtToMimes['.zip'].includes(file.type)) {
       unpack(file)
       continue
@@ -46,7 +32,7 @@ export async function handleFiles(files: Iterable<File>) {
     let book = books?.find((b) => b.name === file.name)
 
     if (!book) {
-      book = await addBook(file)
+      book = await addBook(file, setLoading)
     }
     newBooks.push(book)
   }
@@ -54,7 +40,10 @@ export async function handleFiles(files: Iterable<File>) {
   return newBooks
 }
 
-export async function addBook(file: File) {
+export async function addBook(
+  file: File,
+  setLoading?: (id: string | undefined) => void,
+) {
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
 
@@ -67,8 +56,11 @@ export async function addBook(file: File) {
     definitions: [],
     annotations: [],
   }
+  setLoading?.(book.id)
   db?.books.add(book)
-  addFile(book.id, file, epub)
+  await indexEpub(file)
+  await addFile(book.id, file, epub)
+  setLoading?.(undefined)
   return book
 }
 
@@ -100,7 +92,10 @@ async function toDataUrl(url: string) {
   return readBlob((r) => r.readAsDataURL(buffer))
 }
 
-export async function fetchBook(url: string) {
+export async function fetchBook(
+  url: string,
+  setLoading?: (id: string | undefined) => void,
+) {
   const filename = decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '')
   const books = await db?.books.toArray()
   const book = books?.find((b) => b.name === filename)
@@ -109,6 +104,20 @@ export async function fetchBook(url: string) {
     book ??
     fetch(url)
       .then((res) => res.blob())
-      .then((blob) => addBook(new File([blob], filename)))
+      .then((blob) => addBook(new File([blob], filename), setLoading))
   )
+}
+
+const indexEpub = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    await fetch('/api/rag', {
+      method: 'POST',
+      body: formData,
+    })
+  } catch (error) {
+    console.error('アップロード中のエラー:', error)
+  }
 }
