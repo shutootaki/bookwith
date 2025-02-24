@@ -203,8 +203,10 @@ const Library: React.FC = () => {
               {
                 title: t('download'),
                 Icon: MdOutlineFileDownload,
-                onClick(el) {
-                  if (el?.reportValidity()) fetchBook(el.value)
+                onClick: async (el) => {
+                  if (el?.reportValidity()) {
+                    await fetchBook(el.value, setLoading)
+                  }
                 },
               },
             ]}
@@ -220,8 +222,8 @@ const Library: React.FC = () => {
               <Button
                 variant="secondary"
                 disabled={!books}
-                onClick={() => {
-                  fetchBook(
+                onClick={async () => {
+                  await fetchBook(
                     'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
                   )
                 }}
@@ -315,10 +317,9 @@ const Library: React.FC = () => {
                     type="file"
                     accept="application/epub+zip,application/epub,application/zip"
                     className="absolute inset-0 cursor-pointer opacity-0"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const files = e.target.files
-                      console.log('files', files)
-                      if (files) handleFiles(files)
+                      if (files) await handleFiles(files, setLoading)
                     }}
                   />
                   {t('import')}
@@ -385,8 +386,12 @@ const Book: React.FC<BookProps> = ({
     <div className="relative flex flex-col">
       <div
         role="button"
-        className="border-inverse-on-surface relative border"
+        className={clsx(
+          'border-inverse-on-surface relative border',
+          loading && 'cursor-progress',
+        )}
         onClick={async () => {
+          if (loading) return
           if (select) {
             toggle(book.id)
           } else {

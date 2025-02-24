@@ -3,12 +3,12 @@ import path from 'path'
 
 import { EPubLoader } from '@langchain/community/document_loaders/fs/epub'
 import { OpenAIEmbeddings } from '@langchain/openai'
+import formidable from 'formidable'
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter'
 import { MemoryVectorStore } from 'langchain/vectorstores/memory'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { setSharedVectorStore } from '../vector'
-import formidable from 'formidable'
 
 export const config = {
   api: {
@@ -21,8 +21,6 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   try {
-    console.log('index-doc開始')
-
     // formidableでファイルを解析
     const form = formidable({
       keepExtensions: true,
