@@ -204,13 +204,13 @@ const ChatPane: React.FC = () => {
                     <Button
                       size="icon"
                       disabled={isEmpty}
-                      className="h-6 w-6 rounded-full bg-black text-white hover:bg-black/90"
+                      className="h-6 w-6 rounded-full"
                     >
                       <ArrowUpIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Cmd + Enter or Ctrl + Enterで送信</p>
+                    `Cmd + Enter` or `Ctrl + Enter` で送信
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
