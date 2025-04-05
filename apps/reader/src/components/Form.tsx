@@ -28,7 +28,7 @@ export type TextFieldProps<T extends ElementType> = PolymorphicPropsWithoutRef<
     actions?: Action[]
     onClear?: () => void | Promise<void>
     // https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/forward_and_create_ref/#generic-forwardrefs
-    mRef?: RefObject<HTMLInputElement> | null
+    mRef?: RefObject<HTMLInputElement | null> | null
   },
   T
 >

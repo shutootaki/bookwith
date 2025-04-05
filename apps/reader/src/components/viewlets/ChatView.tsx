@@ -99,7 +99,7 @@ const EmptyState = () => (
 
 const useAutoResize = (
   text: string,
-  textareaRef: React.RefObject<HTMLTextAreaElement>,
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>,
 ) => {
   useEffect(() => {
     const textarea = textareaRef.current

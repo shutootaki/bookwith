@@ -1,4 +1,3 @@
-import { StateLayer } from '@literal-ui/core'
 import clsx from 'clsx'
 import { ComponentProps, useEffect, useRef } from 'react'
 import { MdClose } from 'react-icons/md'
@@ -8,6 +7,7 @@ import { LIST_ITEM_SIZE, useTranslation } from '../hooks'
 import { scale } from '../platform'
 
 import { IconButton } from './Button'
+import { StateLayer } from './StateLayer'
 
 interface RowProps extends ComponentProps<'div'> {
   expanded?: boolean

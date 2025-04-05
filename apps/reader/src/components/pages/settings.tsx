@@ -1,4 +1,3 @@
-import { useEventListener } from '@literal-ui/hooks'
 import Dexie from 'dexie'
 import { useRouter } from 'next/router'
 import { parseCookies, destroyCookie } from 'nookies'
@@ -11,6 +10,7 @@ import {
 } from '@flow/reader/hooks'
 import { dbx, mapToToken, OAUTH_SUCCESS_MESSAGE } from '@flow/reader/sync'
 
+import { useEventListener } from '../../hooks'
 import { Button } from '../Button'
 import { Select } from '../Form'
 import { Page } from '../Page'

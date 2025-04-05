@@ -32,7 +32,7 @@ export function Tab({
     <div
       role="tab"
       className={clsx(
-        ' typescale-body-small relative flex cursor-pointer items-center gap-1 p-2 pr-1',
+        'typescale-body-small relative flex cursor-pointer items-center gap-1 p-2 pr-1',
         selected ? `text-outline ${bg}` : `text-outline/60 hover:${bg}`,
         focused && '!text-on-surface',
         className,
@@ -48,6 +48,7 @@ export function Tab({
       <IconButton
         title={t('action.close')}
         Icon={MdClose}
+        className="h-5 w-5"
         onClick={(e) => {
           e.stopPropagation()
           onDelete?.()

@@ -1,4 +1,3 @@
-import { Overlay } from '@literal-ui/core'
 import clsx from 'clsx'
 import { ComponentProps, useEffect, useState } from 'react'
 import { useMemo } from 'react'
@@ -13,7 +12,7 @@ import {
   MdChat,
 } from 'react-icons/md'
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
-import { useRecoilState } from 'recoil'
+import { useAtom } from 'jotai'
 
 import {
   Env,
@@ -230,17 +229,17 @@ function PageActionBar({ env }: EnvActionBarProps) {
 function NavigationBar() {
   const r = useReaderSnapshot()
   const readMode = r.focusedTab?.isBook
-  const [visible, setVisible] = useRecoilState(navbarState)
+  const [visible, setVisible] = useAtom(navbarState)
 
   return (
     <>
       {visible && (
-        <Overlay
-          className="!bg-transparent"
+        <div
+          className="fixed inset-0 z-40 bg-black/50"
           onClick={() => setVisible(false)}
         />
       )}
-      <div className="NavigationBar bg-surface border-surface-variant fixed inset-x-0 bottom-0 z-10 border-t">
+      <div className="NavigationBar bg-card border-border fixed inset-x-0 bottom-0 z-10 border-t">
         {readMode ? (
           <ViewActionBar
             env={Env.Mobile}
@@ -276,8 +275,8 @@ const Action: React.FC<ActionProps> = ({
     <button
       className={clsx(
         'Action relative flex h-12 w-12 flex-1 items-center justify-center sm:flex-initial',
-        active ? 'text-on-surface-variant' : 'text-outline/70',
-        props.disabled ? 'text-on-disabled' : 'hover:text-on-surface-variant ',
+        active ? 'text-foreground' : 'text-muted-foreground/70',
+        props.disabled ? 'text-muted-foreground/50' : 'hover:text-foreground',
         className,
       )}
       {...props}
@@ -306,10 +305,15 @@ const SideBar: React.FC = () => {
 
   return (
     <>
-      {action && mobile && <Overlay onClick={() => setAction(undefined)} />}
+      {action && mobile && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={() => setAction(undefined)}
+        />
+      )}
       <div
         className={clsx(
-          'SideBar bg-surface flex flex-col',
+          'SideBar bg-card flex flex-col',
           !action && '!hidden',
           mobile ? 'absolute inset-y-0 right-0 z-10' : '',
         )}

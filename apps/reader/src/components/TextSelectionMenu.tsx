@@ -1,4 +1,3 @@
-import { Overlay } from '@literal-ui/core'
 import clsx from 'clsx'
 import { useCallback, useRef, useState } from 'react'
 import FocusLock from 'react-focus-lock'
@@ -24,9 +23,9 @@ import { BookTab } from '../models'
 import { isTouchScreen, scale } from '../platform'
 import { copy, keys, last } from '../utils'
 
-import { Button, IconButton } from './Button'
 import { TextField } from './Form'
 import { layout, LayoutAnchorMode, LayoutAnchorPosition } from './base'
+import { Button } from './ui/button'
 
 interface TextSelectionMenuProps {
   tab: BookTab
@@ -144,9 +143,9 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
 
   return (
     <FocusLock disabled={mobile}>
-      <Overlay
+      <div
         // cover `sash`
-        className="!z-50 !bg-transparent"
+        className="fixed inset-0 z-50 bg-transparent"
         onMouseDown={hide}
       />
       <div
@@ -159,7 +158,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
           }
         }}
         className={clsx(
-          'bg-surface text-on-surface-variant shadow-1 absolute z-50 p-2 focus:outline-none',
+          'bg-card text-card-foreground absolute z-50 rounded-lg p-2 shadow-md focus:outline-none',
         )}
         style={{
           left: layout(containerRect.width, width, {
@@ -195,54 +194,69 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             />
           </div>
         ) : (
-          <div className="text-on-surface-variant -mx- mb-3 flex gap-1">
-            <IconButton
+          <div className="text-muted-foreground mb-3 flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-auto w-auto p-1"
               title={t('copy')}
-              Icon={MdCopyAll}
-              size={ICON_SIZE}
               onClick={() => {
                 hide()
                 copy(text)
               }}
-            />
-            <IconButton
+            >
+              <MdCopyAll size={ICON_SIZE} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-auto w-auto p-1"
               title={t('search_in_book')}
-              Icon={MdSearch}
-              size={ICON_SIZE}
               onClick={() => {
                 hide()
                 setAction('search')
                 tab.setKeyword(text)
               }}
-            />
-            <IconButton
+            >
+              <MdSearch size={ICON_SIZE} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-auto w-auto p-1"
               title={t('annotate')}
-              Icon={MdOutlineEdit}
-              size={ICON_SIZE}
               onClick={() => {
                 setAnnotate(true)
               }}
-            />
+            >
+              <MdOutlineEdit size={ICON_SIZE} />
+            </Button>
             {tab.isDefined(text) ? (
-              <IconButton
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-auto w-auto p-1"
                 title={t('undefine')}
-                Icon={MdOutlineIndeterminateCheckBox}
-                size={ICON_SIZE}
                 onClick={() => {
                   hide()
                   tab.undefine(text)
                 }}
-              />
+              >
+                <MdOutlineIndeterminateCheckBox size={ICON_SIZE} />
+              </Button>
             ) : (
-              <IconButton
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-auto w-auto p-1"
                 title={t('define')}
-                Icon={MdOutlineAddBox}
-                size={ICON_SIZE}
                 onClick={() => {
                   hide()
                   tab.define([text])
                 }}
-              />
+              >
+                <MdOutlineAddBox size={ICON_SIZE} />
+              </Button>
             )}
           </div>
         )}
@@ -259,7 +273,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
                     fontSize: scale(16, 20),
                   }}
                   className={clsx(
-                    'typescale-body-large text-on-surface-variant flex cursor-pointer items-center justify-center',
+                    'text-foreground flex cursor-pointer items-center justify-center',
                     typeMap[type].class,
                   )}
                   onClick={() => {
@@ -283,8 +297,8 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
           <div className="mt-3 flex">
             {annotation && (
               <Button
-                compact
                 variant="secondary"
+                size="sm"
                 onClick={() => {
                   tab.removeAnnotation(cfi)
                   hide()
@@ -295,7 +309,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             )}
             <Button
               className="ml-auto"
-              compact
+              size="sm"
               onClick={() => {
                 tab.putAnnotation(
                   annotation?.type ?? 'highlight',

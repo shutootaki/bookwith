@@ -1,4 +1,4 @@
-import { atom, useRecoilState, useSetRecoilState } from 'recoil'
+import { atom, useAtom, useSetAtom } from 'jotai'
 
 export type Action =
   | 'toc'
@@ -15,9 +15,9 @@ export const actionState = atom<Action | undefined>({
 })
 
 export function useSetAction() {
-  return useSetRecoilState(actionState)
+  return useSetAtom(actionState)
 }
 
 export function useAction() {
-  return useRecoilState(actionState)
+  return useAtom(actionState)
 }

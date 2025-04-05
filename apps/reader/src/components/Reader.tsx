@@ -1,4 +1,3 @@
-import { useEventListener } from '@literal-ui/hooks'
 import clsx from 'clsx'
 import React, {
   ComponentProps,
@@ -10,8 +9,8 @@ import React, {
 import { MdChevronRight, MdWebAsset } from 'react-icons/md'
 import { RiBookLine } from 'react-icons/ri'
 import { PhotoSlider } from 'react-photo-view'
-import { useSetRecoilState } from 'recoil'
-import useTilg from 'tilg'
+import { useSetAtom } from 'jotai'
+// import useTilg from 'tilg'
 import { useSnapshot } from 'valtio'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
@@ -19,6 +18,7 @@ import { navbarState } from '@flow/reader/state'
 
 import { db } from '../db'
 import { handleFiles } from '../file'
+import { useEventListener } from '../hooks'
 import {
   hasSelection,
   useBackground,
@@ -213,7 +213,7 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
 
   const { iframe, rendition, rendered, container } = useSnapshot(tab)
 
-  useTilg()
+  // useTilg()
 
   useEffect(() => {
     const el = ref.current
@@ -237,7 +237,7 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
 
   useSync(tab)
 
-  const setNavbar = useSetRecoilState(navbarState)
+  const setNavbar = useSetAtom(navbarState)
   const mobile = useMobile()
 
   const applyCustomStyle = useCallback(() => {

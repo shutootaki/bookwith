@@ -7,11 +7,6 @@ const { withSentryConfig } = require('@sentry/nextjs')
 const withPWA = require('next-pwa')({
   dest: 'public',
 })
-const withTM = require('next-transpile-modules')([
-  '@flow/internal',
-  '@flow/epubjs',
-  '@material/material-color-utilities',
-])
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 const IS_DOCKER = process.env.DOCKER
@@ -43,6 +38,14 @@ const config = {
     locales: ['en-US', 'zh-CN'],
     defaultLocale: 'en-US',
   },
+  // トランスパイルするパッケージのリストを直接指定
+  transpilePackages: [
+    '@flow/internal',
+    '@flow/epubjs',
+    '@material/material-color-utilities',
+  ],
+  reactStrictMode: true,
+  poweredByHeader: false,
   ...(IS_DOCKER && {
     output: 'standalone',
     experimental: {
@@ -51,12 +54,12 @@ const config = {
   }),
 }
 
-const base = withPWA(withTM(withBundleAnalyzer(config)))
+const baseConfig = withPWA(withBundleAnalyzer(config))
 
-const dev = base
-const docker = base
+const dev = baseConfig
+const docker = baseConfig
 const prod = withSentryConfig(
-  base,
+  baseConfig,
   // Make sure adding Sentry options is the last code to run before exporting, to
   // ensure that your source maps include changes from all other Webpack plugins
   sentryWebpackPluginOptions,
