@@ -1,4 +1,3 @@
-import { StateLayer } from '@literal-ui/core'
 import { useMemo } from 'react'
 import { VscCollapseAll, VscExpandAll } from 'react-icons/vsc'
 
@@ -18,6 +17,7 @@ import {
 } from '@flow/reader/models'
 
 import { Row } from '../Row'
+import { StateLayer } from '../StateLayer'
 import { PaneViewProps, PaneView, Pane } from '../base'
 
 export const TocView: React.FC<PaneViewProps> = (props) => {

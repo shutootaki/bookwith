@@ -36,12 +36,18 @@ export function useEventListener<K extends keyof WindowEventMap>(
   useEffect(() => {
     const _listener = (e: any) => listenerRef.current(e)
     const _target = typeof target === 'function' ? target() : target
-    _target === null || _target === void 0
-      ? void 0
-      : _target.addEventListener(type, _listener, options)
-    return () =>
-      _target === null || _target === void 0
-        ? void 0
-        : _target.removeEventListener(type, _listener, options)
+
+    // _targetがnullまたはundefinedでなく、addEventListenerメソッドを持っている場合のみ実行
+    if (_target && typeof _target.addEventListener === 'function') {
+      _target.addEventListener(type, _listener, options)
+
+      return () => {
+        if (_target && typeof _target.removeEventListener === 'function') {
+          _target.removeEventListener(type, _listener, options)
+        }
+      }
+    }
+
+    return undefined
   }, [options, target, type])
 }
