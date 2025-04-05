@@ -1,6 +1,8 @@
 import { ComponentProps, forwardRef } from 'react'
 import { IconType } from 'react-icons'
 
+import { cn } from '../lib/utils'
+
 import { Button as ShadcnButton } from './ui/button'
 
 // shadcn-uiのButtonを再エクスポートして既存コードとの互換性を保つ
@@ -18,7 +20,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       <Button
         variant="ghost"
         size="icon"
-        className={className}
+        className={cn('h-6 w-6', className)}
         ref={ref}
         {...props}
       >

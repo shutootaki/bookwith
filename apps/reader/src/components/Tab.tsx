@@ -48,7 +48,6 @@ export function Tab({
       <IconButton
         title={t('action.close')}
         Icon={MdClose}
-        // size={12}
         className="h-5 w-5"
         onClick={(e) => {
           e.stopPropagation()
