@@ -1,4 +1,3 @@
-import { useBoolean } from '@literal-ui/hooks'
 import clsx from 'clsx'
 import { useLiveQuery } from 'dexie-react-hooks'
 import Head from 'next/head'
@@ -17,6 +16,7 @@ import { usePrevious } from 'react-use'
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import { BookRecord, CoverRecord, db } from '../db'
 import { addFile, fetchBook, handleFiles } from '../file'
+import { useBoolean } from '../hooks'
 import {
   useDisablePinchZooming,
   useLibrary,

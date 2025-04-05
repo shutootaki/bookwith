@@ -32,3 +32,5 @@ export function cleanUpText(str: string, strict = false): string {
   }
   return str
 }
+
+export const IS_SERVER = typeof window === 'undefined'

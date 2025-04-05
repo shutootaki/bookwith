@@ -1,10 +1,9 @@
-import { useBoolean } from '@literal-ui/hooks'
 import React, { Fragment } from 'react'
 import { useMemo } from 'react'
 import { VscCopy } from 'react-icons/vsc'
 
 import { Annotation } from '@flow/reader/annotation'
-import { useTranslation } from '@flow/reader/hooks'
+import { useBoolean, useTranslation } from '@flow/reader/hooks'
 import { reader, useReaderSnapshot } from '@flow/reader/models'
 import { copy, group, keys } from '@flow/reader/utils'
 
