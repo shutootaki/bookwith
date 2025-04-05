@@ -1,32 +1,30 @@
-import { atom, AtomEffect, useRecoilState } from 'recoil'
+import { atom, useAtom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 
 import { IS_SERVER } from './utils'
 
-function localStorageEffect<T>(key: string, defaultValue: T): AtomEffect<T> {
-  return ({ setSelf, onSet }) => {
-    if (IS_SERVER) return
+// function localStorageEffect<T>(key: string, defaultValue: T): AtomEffect<T> {
+//   return ({ setSelf, onSet }) => {
+//     if (IS_SERVER) return
 
-    const savedValue = localStorage.getItem(key)
-    if (savedValue === null) {
-      localStorage.setItem(key, JSON.stringify(defaultValue))
-    } else {
-      setSelf(JSON.parse(savedValue))
-    }
+//     const savedValue = localStorage.getItem(key)
+//     if (savedValue === null) {
+//       localStorage.setItem(key, JSON.stringify(defaultValue))
+//     } else {
+//       setSelf(JSON.parse(savedValue))
+//     }
 
-    onSet((newValue, _, isReset) => {
-      isReset
-        ? localStorage.removeItem(key)
-        : localStorage.setItem(key, JSON.stringify(newValue))
-    })
-  }
-}
+//     onSet((newValue, _, isReset) => {
+//       isReset
+//         ? localStorage.removeItem(key)
+//         : localStorage.setItem(key, JSON.stringify(newValue))
+//     })
+//   }
+// }
 
-export const navbarState = atom<boolean>({
-  key: 'navbar',
-  default: false,
-})
+export const navbarState = atom<boolean>(false)
 
 export interface Settings extends TypographyConfiguration {
   theme?: ThemeConfiguration
@@ -48,12 +46,9 @@ interface ThemeConfiguration {
 
 export const defaultSettings: Settings = {}
 
-const settingsState = atom<Settings>({
-  key: 'settings',
-  default: defaultSettings,
-  effects: [localStorageEffect('settings', defaultSettings)],
-})
+// localStorageを使用したatomの作成
+const settingsState = atomWithStorage<Settings>('settings', defaultSettings)
 
 export function useSettings() {
-  return useRecoilState(settingsState)
+  return useAtom(settingsState)
 }

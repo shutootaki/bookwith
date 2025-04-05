@@ -12,7 +12,7 @@ import {
   MdChat,
 } from 'react-icons/md'
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
-import { useRecoilState } from 'recoil'
+import { useAtom } from 'jotai'
 
 import {
   Env,
@@ -229,7 +229,7 @@ function PageActionBar({ env }: EnvActionBarProps) {
 function NavigationBar() {
   const r = useReaderSnapshot()
   const readMode = r.focusedTab?.isBook
-  const [visible, setVisible] = useRecoilState(navbarState)
+  const [visible, setVisible] = useAtom(navbarState)
 
   return (
     <>

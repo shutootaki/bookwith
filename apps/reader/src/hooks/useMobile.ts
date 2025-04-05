@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { atom, useRecoilState } from 'recoil'
+import { atom, useAtom } from 'jotai'
 
 export const mobileState = atom<boolean | undefined>({
   key: 'mobile',
@@ -9,7 +9,7 @@ export const mobileState = atom<boolean | undefined>({
 let listened = false
 
 export function useMobile() {
-  const [mobile, setMobile] = useRecoilState(mobileState)
+  const [mobile, setMobile] = useAtom(mobileState)
 
   useEffect(() => {
     if (listened) return
