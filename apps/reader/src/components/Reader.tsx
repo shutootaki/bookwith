@@ -1,4 +1,3 @@
-import { useEventListener } from '@literal-ui/hooks'
 import clsx from 'clsx'
 import React, {
   ComponentProps,
@@ -19,6 +18,7 @@ import { navbarState } from '@flow/reader/state'
 
 import { db } from '../db'
 import { handleFiles } from '../file'
+import { useEventListener } from '../hooks'
 import {
   hasSelection,
   useBackground,

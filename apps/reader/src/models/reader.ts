@@ -1,5 +1,4 @@
 import { debounce } from '@github/mini-throttle/decorators'
-import { IS_SERVER } from '@literal-ui/hooks'
 import React from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { proxy, ref, snapshot, subscribe, useSnapshot } from 'valtio'
@@ -12,6 +11,7 @@ import { AnnotationColor, AnnotationType } from '../annotation'
 import { BookRecord, db } from '../db'
 import { fileToEpub } from '../file'
 import { defaultStyle } from '../styles'
+import { IS_SERVER } from '../utils'
 
 import { dfs, find, INode } from './tree'
 

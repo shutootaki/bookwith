@@ -1,4 +1,3 @@
-import { IS_SERVER } from '@literal-ui/hooks'
 import Dexie, { Table } from 'dexie'
 
 import { PackagingMetadataObject } from '@flow/epubjs/types/packaging'
@@ -6,6 +5,7 @@ import { PackagingMetadataObject } from '@flow/epubjs/types/packaging'
 import { Annotation } from './annotation'
 import { fileToEpub } from './file'
 import { TypographyConfiguration } from './state'
+import { IS_SERVER } from './utils'
 
 export interface FileRecord {
   id: string

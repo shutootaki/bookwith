@@ -1,50 +1,31 @@
-import { StateLayer } from '@literal-ui/core'
-import clsx from 'clsx'
-import { ComponentProps } from 'react'
+import { ComponentProps, forwardRef } from 'react'
 import { IconType } from 'react-icons'
 
-interface IconButtonProps extends ComponentProps<'button'> {
+import { Button as ShadcnButton } from './ui/button'
+
+// shadcn-uiのButtonを再エクスポートして既存コードとの互換性を保つ
+export const Button = ShadcnButton
+
+// IconButtonをshadcn-uiのButtonを使って実装
+interface IconButtonProps extends Omit<ComponentProps<typeof Button>, 'size'> {
   Icon: IconType
   size?: number
 }
-export function IconButton({
-  className,
-  Icon,
-  size = 16,
-  ...props
-}: IconButtonProps) {
-  return (
-    <button className={clsx('relative block p-0.5', className)} {...props}>
-      <StateLayer />
-      <Icon size={size} />
-    </button>
-  )
-}
 
-const variantMap = {
-  primary: 'bg-primary-container text-on-primary-container',
-  secondary: 'bg-outline/10 text-on-surface-variant',
-}
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+  ({ className, Icon, size = 16, ...props }, ref) => {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className={className}
+        ref={ref}
+        {...props}
+      >
+        <Icon size={size} />
+      </Button>
+    )
+  },
+)
 
-export interface ButtonProps extends ComponentProps<'button'> {
-  variant?: keyof typeof variantMap
-  compact?: boolean
-}
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  compact = false,
-  className,
-  ...props
-}) => {
-  return (
-    <button
-      className={clsx(
-        'typescale-label-large disabled:bg-disabled disabled:text-on-disabled',
-        variantMap[variant],
-        compact ? 'px-2 py-1' : 'px-3 py-1.5',
-        className,
-      )}
-      {...props}
-    />
-  )
-}
+IconButton.displayName = 'IconButton'

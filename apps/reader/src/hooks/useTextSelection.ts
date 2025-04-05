@@ -1,8 +1,8 @@
 // https://github.com/juliankrispel/use-text-selection
 
-import { useEventListener } from '@literal-ui/hooks'
 import { useState } from 'react'
 
+import { useEventListener } from '../hooks'
 import { isTouchScreen } from '../platform'
 
 import { useForceRender } from './useForceRender'
