@@ -1,5 +1,5 @@
 [project]
-name = "fastapi-app"
+name = "api"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -13,6 +13,11 @@ dependencies = [
     "langchain-text-splitters>=0.3.8",
     "mypy>=1.15.0",
     "pydantic>=2.11.2",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.34.0",
+    "unstructured-client (>=0.32.1,<0.33.0)",
+    "unstructured (>=0.17.2,<0.18.0)",
+    "pypandoc (>=1.15,<2.0)",
 ]
 
 [tool.poetry.dependencies]
@@ -23,6 +28,9 @@ langchain-community = {version = ">=0.3.21", python = ">=3.13,<4.0"}
 langchain-openai = {version = ">=0.3.12", python = ">=3.13,<4.0"}
 langchain-text-splitters = {version = ">=0.3.8", python = ">=3.13,<4.0"}
 pydantic = {version = ">=2.11.2", python = ">=3.13,<4.0"}
+python-multipart = {version = ">=0.0.20", python = ">=3.13,<4.0"}
+uvicorn = {version = ">=0.34.0", python = ">=3.13,<4.0"}
+mypy = {version = ">=1.15.0", python = ">=3.13,<4.0"}
 
 [tool.mypy]
 mypy_path = "."
@@ -33,4 +41,3 @@ check_untyped_defs = true
 strict_equality = true
 warn_unused_ignores = true
 warn_redundant_casts = true
-exclude = 'seed.py'

@@ -25,26 +25,24 @@
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "python.defaultInterpreterPath": "${workspaceFolder}/apps/fastapi-app/.venv/bin/python",
-  "ruff.path": ["${workspaceFolder}/apps/fastapi-app/.venv/bin/ruff"],
-  "mypy-type-checker.path": [
-    "${workspaceFolder}/apps/fastapi-app/.venv/bin/mypy"
-  ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/api/.venv/bin/python",
+  "ruff.path": ["${workspaceFolder}/apps/api/.venv/bin/ruff"],
+  "mypy-type-checker.path": ["${workspaceFolder}/apps/api/.venv/bin/mypy"],
   "mypy-type-checker.args": [
-    "--config=${workspaceFolder}/apps/fastapi-app/pyproject.toml"
+    "--config=${workspaceFolder}/apps/api/pyproject.toml"
   ],
-  "mypy.dmypyExecutable": "${workspaceFolder}/apps/fastapi-app/.venv/bin/dmypy",
+  "mypy.dmypyExecutable": "${workspaceFolder}/apps/api/.venv/bin/dmypy",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.completeFunctionParens": true,
   "python.analysis.extraPaths": [
-    "${workspaceFolder}/apps/fastapi-app/.venv/lib/python3.13/site-packages/"
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
   ],
   "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/apps/fastapi-app/.venv/lib/python3.13/site-packages/"
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
   ],
   "python.testing.pytestArgs": ["tests"],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
-  "mypy.configFile": "apps/fastapi-app/pyproject.toml",
+  "mypy.configFile": "apps/api/pyproject.toml",
   "mypy.enabled": true
 }

@@ -9,11 +9,11 @@
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",
-      "cwd": "${workspaceFolder}/apps/fastapi-app",
+      "cwd": "${workspaceFolder}/apps/api",
       "args": ["src.main:app", "--reload", "--host", "0.0.0.0"],
       "jinja": true,
       "justMyCode": false,
-      "envFile": "${workspaceFolder}/apps/fastapi-app/config/.env",
+      "envFile": "${workspaceFolder}/apps/api/config/.env",
       "env": { "PORT": "8000" }
     },
     {
@@ -22,11 +22,11 @@
       "request": "launch",
       "purpose": ["debug-test"],
       "module": "pytest",
-      "cwd": "${workspaceFolder}/apps/fastapi-app",
+      "cwd": "${workspaceFolder}/apps/api",
       "args": ["tests", "${file}"],
       "console": "integratedTerminal",
       "justMyCode": false,
-      "envFile": "${workspaceFolder}/apps/fastapi-app/config/.env.test",
+      "envFile": "${workspaceFolder}/apps/api/config/.env.test",
       "env": { "PORT": "8000" }
     }
   ]

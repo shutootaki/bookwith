@@ -13,8 +13,8 @@ from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from src.prompts import rag_prompt
 from pydantic import BaseModel
+from src.prompts import rag_prompt
 from src.utils import TOKEN_MAPPING, get_dropbox_client
 from src.vector import get_shared_vector_store, set_shared_vector_store
 
@@ -58,14 +58,16 @@ def format_documents_as_string(documents: List[Document]) -> str:
 
 
 # LLM APIエンドポイント
-@app.post("/api/llm", response_model=Answer)
+@app.post("/llm", response_model=Answer)
 async def process_llm(question: Question):
+    print("Received question:", question.question)
     try:
         # ベクトルストアを取得
         vector_store = get_shared_vector_store()
         if not vector_store:
             raise HTTPException(
-                status_code=500, detail="Vector store is not initialized"
+                status_code=500,
+                detail="Vector store is not initialized. Please upload a document via the /rag endpoint first.",
             )
 
         # リトリーバーを使って関連ドキュメントを取得
@@ -95,7 +97,7 @@ async def process_llm(question: Question):
 
 
 # RAG APIエンドポイント (ファイルアップロード)
-@app.post("/api/rag")
+@app.post("/rag")
 async def process_rag(file: UploadFile = File(...)):
     try:
         # 一時ファイルを作成
@@ -114,7 +116,7 @@ async def process_rag(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
 
         # EPubローダーでドキュメントを読み込み
-        docs = UnstructuredEPubLoader(str(file_path)).load()
+        docs = UnstructuredEPubLoader(file_path).load()
 
         # テキスト分割
         splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -140,11 +142,12 @@ async def process_rag(file: UploadFile = File(...)):
         }
 
     except Exception as e:
+        print("Error during RAG processing:", str(e))
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
 
 # Dropboxコールバック処理
-@app.get("/api/callback/{provider}")
+@app.get("/callback/{provider}")
 async def callback(provider: str, state: str, code: str, response: Response):
     if provider != "dropbox":
         raise HTTPException(status_code=400, detail="Unsupported provider")
@@ -177,7 +180,7 @@ async def callback(provider: str, state: str, code: str, response: Response):
 
 
 # リフレッシュトークン処理
-@app.get("/api/refresh", response_model=TokenResponse)
+@app.get("/refresh", response_model=TokenResponse)
 async def refresh(dropbox_refresh_token: str = Cookie(None)):
     if not dropbox_refresh_token:
         raise HTTPException(status_code=401, detail="Unauthorized")

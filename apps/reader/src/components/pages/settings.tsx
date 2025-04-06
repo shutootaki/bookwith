@@ -97,8 +97,7 @@ const Synchronization: React.FC = () => {
         ) : (
           <Button
             onClick={() => {
-              const redirectUri =
-                window.location.origin + '/api/callback/dropbox'
+              const redirectUri = `${process.env.NEXT_PUBLIC_API_BASE_URL}/callback/dropbox`
 
               dbx.auth
                 .getAuthenticationUrl(
