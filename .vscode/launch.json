@@ -1,0 +1,33 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "cwd": "${workspaceFolder}/apps/fastapi-app",
+      "args": ["src.main:app", "--reload", "--host", "0.0.0.0"],
+      "jinja": true,
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/apps/fastapi-app/config/.env",
+      "env": { "PORT": "8000" }
+    },
+    {
+      "name": "Python: Debug Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "purpose": ["debug-test"],
+      "module": "pytest",
+      "cwd": "${workspaceFolder}/apps/fastapi-app",
+      "args": ["tests", "${file}"],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "envFile": "${workspaceFolder}/apps/fastapi-app/config/.env.test",
+      "env": { "PORT": "8000" }
+    }
+  ]
+}
