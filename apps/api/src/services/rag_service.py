@@ -1,4 +1,4 @@
-import shutil
+import tempfile
 from pathlib import Path
 
 import weaviate
@@ -16,62 +16,54 @@ async def process_epub_file(file: UploadFile, user_id: str, book_id: str) -> dic
     Args:
         file: アップロードされたEPUBファイル
         user_id: ユーザーID（テナントを分離するために使用）
+        book_id: 書籍ID
 
     Returns:
         処理結果を含む辞書
     """
     try:
-        # 一時ファイルを作成
-        temp_dir = Path("tmp")
-        temp_dir.mkdir(exist_ok=True)
+        with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
+            # ファイルの内容を一度に読み込み、ディスクI/Oを最小化
+            file_content = await file.read()
+            temp_file.write(file_content)
+            temp_path = temp_file.name
 
-        if file.filename is None:
-            file_name = "uploaded_file.epub"
-        else:
-            file_name = file.filename
+        try:
+            # EPubローダーでドキュメントを読み込み
+            docs = UnstructuredEPubLoader(temp_path).load()
 
-        file_path = temp_dir / file_name
+            # テキスト分割
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=200
+            )
+            split_docs = splitter.split_documents(docs)
 
-        # アップロードされたファイルを保存
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            tenant_id = f"{user_id}_{book_id}"
 
-        # EPubローダーでドキュメントを読み込み
-        docs = UnstructuredEPubLoader(file_path).load()
+            # Weaviateベクトルストアを作成（テナントIDを指定）
+            WeaviateVectorStore.from_documents(
+                documents=split_docs,
+                embedding=OpenAIEmbeddings(
+                    model="text-embedding-3-large",
+                    max_retries=2,
+                ),
+                client=weaviate.connect_to_local(),
+                index_name="BookContentIndex",
+                text_key="content",
+                tenant=tenant_id,  # テナントを指定
+            )
 
-        # テキスト分割
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        split_docs = splitter.split_documents(docs)
-
-        # 埋め込みとベクトルストアの作成
-        embeddings = OpenAIEmbeddings(
-            model="text-embedding-3-large",
-            max_retries=2,
-        )
-
-        tenant_id = f"{user_id}_{book_id}"
-
-        # Weaviateベクトルストアを作成（テナントIDを指定）
-        WeaviateVectorStore.from_documents(
-            documents=split_docs,
-            embedding=embeddings,
-            client=weaviate.connect_to_local(),
-            index_name="BookContentIndex",
-            text_key="content",
-            tenant=tenant_id,  # テナントを指定
-        )
-
-        # 一時ファイルを削除
-        file_path.unlink(missing_ok=True)
-
-        return {
-            "message": "アップロードと処理が正常に完了しました",
-            "file_name": file_name,
-            "chunk_count": len(split_docs),
-            "index_name": "BookContentIndex",
-            "tenant_id": tenant_id,
-            "success": True,
-        }
+            return {
+                "message": "アップロードと処理が正常に完了しました",
+                "file_name": file.filename,
+                "chunk_count": len(split_docs),
+                "index_name": "BookContentIndex",
+                "tenant_id": tenant_id,
+                "success": True,
+            }
+        finally:
+            # 処理が終わったら必ず一時ファイルを削除
+            Path(temp_path).unlink(missing_ok=True)
 
     except Exception as e:
         # エラーを発生元に伝播させる

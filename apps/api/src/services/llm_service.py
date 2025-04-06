@@ -25,13 +25,13 @@ def process_question(question: str, tenant_id: Optional[str] = None) -> str:
     Returns:
         回答文字列
     """
+    model = ChatOpenAI(model="gpt-4o-mini")
+
     # インデックス名とテナントIDを使用してベクトルストアを取得
     vector_store = get_vector_store("BookContentIndex")
-    if not vector_store:
-        return f"インデックス '{f'BookContent_{tenant_id}'}' が見つかりませんでした。"
-
-    # OpenAIモデルの設定
-    model = ChatOpenAI(model="gpt-4o-mini")
+    if tenant_id is None:
+        chain = RunnablePassthrough() | model | StrOutputParser()
+        return chain.invoke(question)
 
     # ベクトルストアからリトリーバーを作成（テナントを指定）
     vector_store_retriever = vector_store.as_retriever(
@@ -52,5 +52,4 @@ def process_question(question: str, tenant_id: Optional[str] = None) -> str:
         | StrOutputParser()
     )
 
-    # 質問を処理して回答を返す
     return chain.invoke(question)
