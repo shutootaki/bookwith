@@ -69,6 +69,7 @@ class Question(BaseModel):
     """質問リクエストモデル"""
 
     question: str
+    tenant_id: Optional[str] = None  # テナントIDを追加
 
 
 class Answer(BaseModel):
@@ -84,6 +85,7 @@ class RagUploadRequest(BaseModel):
     # FastAPIのFile依存関係を使用するため、実際のリクエストボディでは使用されない
     # このモデルはドキュメント生成用
     file: Any = Field(..., description="アップロードするEPUBファイル")
+    user_id: str = Field(..., description="ユーザーID (テナント分離に使用)")
 
 
 class RagChunk(BaseModel):
@@ -98,4 +100,6 @@ class RagProcessResponse(BaseResponse):
 
     file_name: str
     chunk_count: int
+    tenant_id: Optional[str] = None
+    index_name: Optional[str] = None
     chunks: Optional[List[RagChunk]] = None

@@ -1,18 +1,33 @@
-from typing import Any, Optional
-
-from langchain_core.vectorstores import InMemoryVectorStore
-
-# 共有ベクトルストアを保持する変数
-shared_vector_store: Optional[InMemoryVectorStore] = None
+import weaviate
+from langchain_openai import OpenAIEmbeddings
+from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 
-def set_shared_vector_store(vector_store: Any) -> None:
-    """共有ベクトルストアを設定します"""
-    global shared_vector_store
-    shared_vector_store = vector_store
+def get_vector_store(index_name: str) -> WeaviateVectorStore:
+    """
+    特定のインデックス名に基づいてベクトルストアを取得します
+    インデックスが存在しない場合はNoneを返します
 
+    Args:
+        index_name: Weaviateのインデックス名
 
-def get_shared_vector_store() -> Optional[Any]:
-    """共有ベクトルストアを取得します"""
-    global shared_vector_store
-    return shared_vector_store
+    Returns:
+        WeaviateVectorStoreインスタンス、または存在しない場合はNone
+    """
+
+    # インデックス（コレクション）が存在するか確認
+    try:
+        # 既存のインデックスに接続するWeaviateVectorStoreを作成
+        return WeaviateVectorStore(
+            client=weaviate.connect_to_local(),
+            text_key="content",
+            index_name=index_name,
+            embedding=OpenAIEmbeddings(
+                model="text-embedding-3-large",
+                max_retries=2,
+            ),
+        )
+    except Exception as e:
+        # エラーが発生した場合はログに記録し、Noneを返す
+        print(f"ベクトルストアの取得中にエラーが発生しました: {str(e)}")
+        return None

@@ -1,0 +1,17 @@
+{
+  "BookContent_8eb3eeea": {
+    "tenant_id": "tmp_user_id_alice",
+    "file_name": "alice.epub",
+    "created_at": "11b137d4-b230-4156-9af2-b4fab5a84ede"
+  },
+  "BookContent_729bd4be": {
+    "tenant_id": "tmp_user_id_3a98e39b-173a-48ae-91a5-4d89b729e113",
+    "file_name": "Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub",
+    "created_at": "49f41bfb-90d4-4870-a5f2-0b3b2ddb8623"
+  },
+  "BookContent_6d92e688": {
+    "tenant_id": "tmp_user_id_58263899-d6bb-4ec6-905a-9e6e97269e03",
+    "file_name": "alice.epub",
+    "created_at": "f949d1e9-55e6-4b91-bfb9-15a3a6952ef4"
+  }
+}

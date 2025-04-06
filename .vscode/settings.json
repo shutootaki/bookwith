@@ -34,15 +34,17 @@
   "mypy.dmypyExecutable": "${workspaceFolder}/apps/api/.venv/bin/dmypy",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.completeFunctionParens": true,
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
-  ],
-  "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
-  ],
   "python.testing.pytestArgs": ["tests"],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "mypy.configFile": "apps/api/pyproject.toml",
-  "mypy.enabled": true
+  "mypy.enabled": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/apps/api/src",
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/apps/api/src",
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages"
+  ]
 }

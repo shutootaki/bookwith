@@ -1,16 +1,25 @@
 import shutil
 from pathlib import Path
 
+import weaviate
 from fastapi import UploadFile
 from langchain_community.document_loaders import UnstructuredEPubLoader
-from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from src.vector import set_shared_vector_store
+from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 
-async def process_epub_file(file: UploadFile) -> dict:
-    """EPUBファイルを処理しベクトルストアを設定するサービス関数"""
+async def process_epub_file(file: UploadFile, user_id: str, book_id: str) -> dict:
+    """
+    EPUBファイルを処理しベクトルストアを設定するサービス関数
+
+    Args:
+        file: アップロードされたEPUBファイル
+        user_id: ユーザーID（テナントを分離するために使用）
+
+    Returns:
+        処理結果を含む辞書
+    """
     try:
         # 一時ファイルを作成
         temp_dir = Path("tmp")
@@ -40,10 +49,17 @@ async def process_epub_file(file: UploadFile) -> dict:
             max_retries=2,
         )
 
-        vector_store = InMemoryVectorStore.from_documents(split_docs, embeddings)
+        tenant_id = f"{user_id}_{book_id}"
 
-        # グローバル変数にベクトルストアを保存
-        set_shared_vector_store(vector_store)
+        # Weaviateベクトルストアを作成（テナントIDを指定）
+        WeaviateVectorStore.from_documents(
+            documents=split_docs,
+            embedding=embeddings,
+            client=weaviate.connect_to_local(),
+            index_name="BookContentIndex",
+            text_key="content",
+            tenant=tenant_id,  # テナントを指定
+        )
 
         # 一時ファイルを削除
         file_path.unlink(missing_ok=True)
@@ -52,6 +68,8 @@ async def process_epub_file(file: UploadFile) -> dict:
             "message": "アップロードと処理が正常に完了しました",
             "file_name": file_name,
             "chunk_count": len(split_docs),
+            "index_name": "BookContentIndex",
+            "tenant_id": tenant_id,
             "success": True,
         }
 
