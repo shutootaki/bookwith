@@ -44,7 +44,6 @@ const config = {
     '@flow/epubjs',
     '@material/material-color-utilities',
   ],
-  reactStrictMode: true,
   poweredByHeader: false,
   ...(IS_DOCKER && {
     output: 'standalone',

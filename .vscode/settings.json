@@ -14,5 +14,35 @@
     "/apps/website/src/components",
     "/apps/reader/src/hooks/theme",
     "/apps/reader/src/models"
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true,
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit",
+      "source.fixAll.ruff": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/apps/api/.venv/bin/python",
+  "ruff.path": ["${workspaceFolder}/apps/api/.venv/bin/ruff"],
+  "mypy-type-checker.path": ["${workspaceFolder}/apps/api/.venv/bin/mypy"],
+  "mypy-type-checker.args": [
+    "--config=${workspaceFolder}/apps/api/pyproject.toml"
+  ],
+  "mypy.dmypyExecutable": "${workspaceFolder}/apps/api/.venv/bin/dmypy",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages/"
+  ],
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "mypy.configFile": "apps/api/pyproject.toml",
+  "mypy.enabled": true
 }

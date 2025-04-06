@@ -44,3 +44,6 @@ tmp-worktree/
 
 # cursor
 .cursor
+
+# repomix
+repomix-output.xml

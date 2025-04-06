@@ -113,7 +113,7 @@ const indexEpub = async (file: File) => {
   formData.append('file', file)
 
   try {
-    await fetch('/api/rag', {
+    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {
       method: 'POST',
       body: formData,
     })
