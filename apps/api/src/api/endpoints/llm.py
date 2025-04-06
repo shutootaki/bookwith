@@ -1,17 +1,21 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from src.models import Answer, Question
 from src.services import process_question
+from src.utils import BadRequestException, ServiceUnavailableException
 
 router = APIRouter()
 
 
 @router.post("/llm", response_model=Answer)
 async def process_llm(question: Question):
-    print("Received question:", question.question)
     try:
         answer = process_question(question.question)
         return Answer(answer=answer)
     except ValueError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # 入力値に関するエラーの場合
+        raise BadRequestException(str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        # その他のエラーの場合
+        raise ServiceUnavailableException(
+            f"Error occurred while processing question: {str(e)}"
+        )

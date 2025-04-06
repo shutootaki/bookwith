@@ -1,6 +1,11 @@
-from fastapi import APIRouter, Cookie, HTTPException, Response
+from fastapi import APIRouter, Cookie, Response
 from src.models import CallbackResponse, TokenResponse
 from src.services import handle_dropbox_callback, refresh_dropbox_token
+from src.utils import (
+    BadRequestException,
+    ServiceUnavailableException,
+    UnauthorizedException,
+)
 
 router = APIRouter()
 
@@ -8,7 +13,7 @@ router = APIRouter()
 @router.get("/callback/{provider}", response_model=CallbackResponse)
 async def callback(provider: str, state: str, code: str, response: Response):
     if provider != "dropbox":
-        raise HTTPException(status_code=400, detail="Unsupported provider")
+        raise BadRequestException("Unsupported provider")
 
     try:
         # サービス関数を呼び出し
@@ -16,13 +21,15 @@ async def callback(provider: str, state: str, code: str, response: Response):
         return CallbackResponse(success=True, redirect_url=redirect_url)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Authentication error: {str(e)}")
+        raise ServiceUnavailableException(
+            f"Error occurred during authentication: {str(e)}"
+        )
 
 
 @router.get("/refresh", response_model=TokenResponse)
 async def refresh(dropbox_refresh_token: str = Cookie(None)):
     if not dropbox_refresh_token:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+        raise UnauthorizedException("Authentication required")
 
     try:
         # サービス関数を呼び出し
@@ -33,4 +40,6 @@ async def refresh(dropbox_refresh_token: str = Cookie(None)):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Token refresh error: {str(e)}")
+        raise ServiceUnavailableException(
+            f"Error occurred while refreshing token: {str(e)}"
+        )

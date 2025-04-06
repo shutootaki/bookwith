@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api import setup_routes
+from src.utils import setup_exception_handlers
 
 # FastAPIアプリケーションの作成
 app = FastAPI(title="BookWith API", description="Book related API service")
@@ -16,3 +17,6 @@ app.add_middleware(
 
 # ルートのセットアップ
 setup_routes(app)
+
+# エラーハンドラーのセットアップ
+setup_exception_handlers(app)

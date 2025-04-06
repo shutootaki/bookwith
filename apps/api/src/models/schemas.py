@@ -11,6 +11,24 @@ class BaseResponse(BaseModel):
     message: Optional[str] = None
 
 
+# エラーモデル
+class ErrorDetail(BaseModel):
+    """エラー詳細モデル"""
+
+    loc: Optional[List[str]] = None
+    msg: str
+    type: str
+
+
+class ErrorResponse(BaseModel):
+    """標準エラーレスポンスモデル"""
+
+    success: bool = False
+    detail: str
+    status_code: int
+    errors: Optional[List[ErrorDetail]] = None
+
+
 # Root エンドポイント用モデル
 class RootResponse(BaseResponse):
     """ルートエンドポイントのレスポンスモデル"""
