@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip'
+import { useReaderSnapshot } from '../../models'
 
 interface Message {
   text: string
@@ -111,6 +112,7 @@ const useAutoResize = (
 }
 
 const ChatPane: React.FC = () => {
+  const { focusedTab } = useReaderSnapshot()
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -144,7 +146,10 @@ const ChatPane: React.FC = () => {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: text }),
+          body: JSON.stringify({
+            question: text,
+            tenant_id: focusedTab ? `tmp_user_id_${focusedTab?.id}` : undefined,
+          }),
         },
       )
 

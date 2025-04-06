@@ -1,44 +1,55 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_openai import ChatOpenAI
 from src.prompts import rag_prompt
-from src.vector import get_shared_vector_store
+from src.vector import get_vector_store
 
 
 # ドキュメントをフォーマット
 def format_documents_as_string(documents: List[Document]) -> str:
-    return "\n\n".join([doc.page_content for doc in documents])
+    """ドキュメントリストを文字列にフォーマット"""
+    return "\n\n".join(doc.page_content for doc in documents)
 
 
-def process_question(question: str) -> str:
-    """質問処理のためのサービス関数"""
-    # ベクトルストアを取得
-    vector_store = get_shared_vector_store()
+def process_question(question: str, tenant_id: Optional[str] = None) -> str:
+    """
+    質問処理のためのサービス関数
 
-    # OpenAIモデルの設定
+    Args:
+        question: 処理する質問文
+        tenant_id: 使用するテナントID
+
+    Returns:
+        回答文字列
+    """
     model = ChatOpenAI(model="gpt-4o-mini")
 
-    if vector_store:
-        # ベクトルストアが存在する場合はRAGを使用
-        # リトリーバーを使って関連ドキュメントを取得
-        vector_store_retriever = vector_store.as_retriever()
-
-        # RAGチェーンの構築
-        chain: RunnableSerializable[Any, str] = (
-            {
-                "context": vector_store_retriever | format_documents_as_string,
-                "question": RunnablePassthrough(),
-            }
-            | rag_prompt
-            | model
-            | StrOutputParser()
-        )
-    else:
-        # ベクトルストアが存在しない場合は直接LLMにリクエスト
+    # インデックス名とテナントIDを使用してベクトルストアを取得
+    vector_store = get_vector_store("BookContentIndex")
+    if tenant_id is None:
         chain = RunnablePassthrough() | model | StrOutputParser()
+        return chain.invoke(question)
 
-    # 質問を処理して回答を返す
+    # ベクトルストアからリトリーバーを作成（テナントを指定）
+    vector_store_retriever = vector_store.as_retriever(
+        search_kwargs={
+            "k": 4,  # 取得するドキュメント数
+            "tenant": tenant_id,  # テナントを指定
+        }
+    )
+
+    # RAGチェーンの構築
+    chain: RunnableSerializable[Any, str] = (
+        {
+            "context": vector_store_retriever | format_documents_as_string,
+            "question": RunnablePassthrough(),
+        }
+        | rag_prompt
+        | model
+        | StrOutputParser()
+    )
+
     return chain.invoke(question)

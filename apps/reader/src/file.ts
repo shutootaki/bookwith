@@ -58,7 +58,7 @@ export async function addBook(
   }
   setLoading?.(book.id)
   db?.books.add(book)
-  await indexEpub(file)
+  await indexEpub(file, book.id)
   await addFile(book.id, file, epub)
   setLoading?.(undefined)
   return book
@@ -108,9 +108,11 @@ export async function fetchBook(
   )
 }
 
-const indexEpub = async (file: File) => {
+const indexEpub = async (file: File, bookId: string) => {
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('user_id', 'tmp_user_id')
+  formData.append('book_id', bookId)
 
   try {
     await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {

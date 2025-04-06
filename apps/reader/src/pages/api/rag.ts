@@ -49,7 +49,7 @@ export default async function handler(
     })
     const splitDocs = await splitter.splitDocuments(docs)
     const embeddings = new OpenAIEmbeddings({
-      model: 'text-embedding-3-large',
+      model: 'text-embedding-3-small',
       apiKey: process.env.OPENAI_API_KEY,
       maxRetries: 2,
     })
