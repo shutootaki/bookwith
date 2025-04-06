@@ -1,6 +1,5 @@
-from dropbox import Dropbox
-
 from config.app_config import AppConfig
+from dropbox import Dropbox
 
 
 def get_dropbox_client() -> Dropbox:

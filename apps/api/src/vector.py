@@ -1,6 +1,6 @@
-from langchain_core.vectorstores import InMemoryVectorStore
+from typing import Any, Optional
 
-from typing import Optional, Any
+from langchain_core.vectorstores import InMemoryVectorStore
 
 # 共有ベクトルストアを保持する変数
 shared_vector_store: Optional[InMemoryVectorStore] = None
