@@ -1,7 +1,16 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api import setup_routes
+from src.db import get_db, init_db
 from src.utils import setup_exception_handlers
+
+# ロギング設定
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 # FastAPIアプリケーションの作成
 app = FastAPI(title="BookWith API", description="Book related API service")
@@ -14,6 +23,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# データベースの初期化
+@app.on_event("startup")
+async def startup_db_client():
+    """アプリケーション起動時にデータベースを初期化します"""
+    try:
+        init_db()
+        logging.info("データベース接続が確立されました")
+    except Exception as e:
+        logging.error(f"データベース初期化エラー: {e}")
+
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    """アプリケーション終了時の処理"""
+    logging.info("データベース接続を閉じています")
+
+
+# DBセッションの依存関係
+def get_db_session():
+    with get_db() as session:
+        yield session
+
 
 # ルートのセットアップ
 setup_routes(app)

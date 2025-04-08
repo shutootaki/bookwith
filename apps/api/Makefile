@@ -14,6 +14,11 @@ endif
 export DROPBOX_CLIENT_ID
 export DROPBOX_CLIENT_SECRET
 export OPENAI_API_KEY
+export ENV
+export PORT
+export DATABASE_URL
+
+
 
 default: help
 
