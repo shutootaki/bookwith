@@ -10,6 +10,7 @@ class AppConfig(BaseSettings):
     dropbox_client_secret: str = Field(
         min_length=1, description="Dropbox Client Secret"
     )
+    database_url: str = Field(description="データベースURL")
 
     @classmethod
     def get_config(cls) -> Self:
