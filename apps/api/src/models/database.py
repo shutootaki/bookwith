@@ -50,6 +50,7 @@ class Book(Base):
     name = Column(String, index=True)
     author = Column(String, index=True, nullable=True)
     file_path = Column(String)
+    cover_path = Column(String, nullable=True)
     size = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -15,7 +15,7 @@ import { usePrevious } from 'react-use'
 
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import { BookRecord, CoverRecord, db } from '../db'
-import { addFile, fetchBook, handleFiles } from '../file'
+import { fetchBook, handleFiles } from '../file'
 import { useBoolean } from '../hooks'
 import {
   useDisablePinchZooming,
@@ -137,28 +137,28 @@ const Library: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteBooks])
 
-  useEffect(() => {
-    if (!remoteFiles || !readyToSync) return
+  // useEffect(() => {
+  //   if (!remoteFiles || !readyToSync) return
 
-    db?.books.toArray().then(async (books) => {
-      for (const remoteFile of remoteFiles) {
-        const book = books.find((b) => b.name === remoteFile.name)
-        if (!book) continue
+  //   db?.books.toArray().then(async (books) => {
+  //     for (const remoteFile of remoteFiles) {
+  //       const book = books.find((b) => b.name === remoteFile.name)
+  //       if (!book) continue
 
-        const file = await db?.files.get(book.id)
-        if (file) continue
+  //       const file = await db?.files.get(book.id)
+  //       if (file) continue
 
-        setLoading(book.id)
-        await dbx
-          .filesDownload({ path: `/files/${remoteFile.name}` })
-          .then((d) => {
-            const blob: Blob = (d.result as any).fileBlob
-            return addFile(book.id, new File([blob], book.name))
-          })
-        setLoading(undefined)
-      }
-    })
-  }, [readyToSync, remoteFiles])
+  //       setLoading(book.id)
+  //       await dbx
+  //         .filesDownload({ path: `/files/${remoteFile.name}` })
+  //         .then((d) => {
+  //           const blob: Blob = (d.result as any).fileBlob
+  //           return addFile(book.id, new File([blob], book.name))
+  //         })
+  //       setLoading(undefined)
+  //     }
+  //   })
+  // }, [readyToSync, remoteFiles])
 
   useEffect(() => {
     if (!select) reset()
