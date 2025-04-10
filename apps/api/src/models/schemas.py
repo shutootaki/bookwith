@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, validator
 
 
 # 共通モデル
@@ -62,6 +62,64 @@ class TokenResponse(BaseModel):
 
     access_token: str
     access_token_expires_at: Optional[int] = None
+
+
+# Book エンドポイント用モデル
+class BookBase(BaseModel):
+    """書籍の基本情報モデル"""
+
+    id: str
+    name: str
+    author: Optional[str] = None
+    size: int
+    percentage: int = 0
+    cfi: Optional[str] = None
+    has_cover: bool = False
+
+    @validator("has_cover", pre=True, always=True)
+    def set_has_cover(cls, v, values):
+        # cover_pathがあればhas_coverをTrue、なければFalseに設定
+        return "cover_path" in values and values["cover_path"] is not None
+
+
+class BookDetail(BookBase):
+    """書籍の詳細情報モデル"""
+
+    book_metadata: Optional[Dict[str, Any]] = None
+    definitions: List[str] = []
+    configuration: Optional[Dict[str, Any]] = None
+    cover_path: Optional[str] = None
+    created_at: Any
+    updated_at: Any
+
+    class Config:
+        orm_mode = True
+
+
+class BookResponse(BaseResponse):
+    """書籍レスポンスモデル"""
+
+    data: BookDetail
+
+
+class BooksResponse(BaseResponse):
+    """複数書籍レスポンスモデル"""
+
+    data: List[BookBase]
+    count: int
+
+
+class BookCreateRequest(BaseModel):
+    """書籍作成リクエストモデル"""
+
+    file_data: str
+    file_name: str
+    file_type: str
+    user_id: str
+    book_id: Optional[str]
+    book_name: Optional[str]
+    book_metadata: Optional[str]
+    cover_image: Optional[str]
 
 
 # LLM エンドポイント用モデル
