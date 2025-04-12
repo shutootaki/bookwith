@@ -11,6 +11,7 @@ class AppConfig(BaseSettings):
         min_length=1, description="Dropbox Client Secret"
     )
     database_url: str = Field(description="データベースURL")
+    cloud_storage_emulator_host: str = Field(description="Cloud Storage Emulator Host")
 
     @classmethod
     def get_config(cls) -> Self:
