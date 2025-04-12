@@ -1,20 +1,28 @@
+import { Annotation } from '@flow/epubjs/types/annotations'
+import { PackagingMetadataObject } from '@flow/epubjs/types/packaging'
 import useSWR from 'swr'
+import { TypographyConfiguration } from '../state'
 
-// バックエンドのBookBase型に合わせた型定義
-interface BookBase {
+export interface BookDetail {
   id: string
-  name: string
+  annotations: Annotation[]
   author?: string
-  size: number
-  percentage: number
+  book_metadata: PackagingMetadataObject
   cfi?: string
+  configuration?: { typography?: TypographyConfiguration }
+  cover_path: string | null
+  definitions: string[]
   has_cover: boolean
+  name: string
+  percentage?: number
+  size: number
+  createdAt: number
+  updatedAt?: number
 }
 
-// APIレスポンスの型
 interface BooksResponse {
   success: boolean
-  data: BookBase[]
+  data: BookDetail[]
   count: number
   message?: string
 }

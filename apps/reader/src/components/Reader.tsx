@@ -1,6 +1,8 @@
 import clsx from 'clsx'
 import React, {
   ComponentProps,
+  FC,
+  PropsWithChildren,
   useCallback,
   useEffect,
   useRef,
@@ -10,7 +12,6 @@ import { MdChevronRight, MdWebAsset } from 'react-icons/md'
 import { RiBookLine } from 'react-icons/ri'
 import { PhotoSlider } from 'react-photo-view'
 import { useSetAtom } from 'jotai'
-// import useTilg from 'tilg'
 import { useSnapshot } from 'valtio'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
@@ -24,7 +25,6 @@ import {
   useColorScheme,
   useDisablePinchZooming,
   useMobile,
-  useSync,
   useTranslation,
   useTypography,
 } from '../hooks'
@@ -71,8 +71,9 @@ export function ReaderGridView() {
   if (!groups.length) return null
   return (
     <SplitView className={clsx('ReaderGridView')}>
-      {groups.map(({ id }, i) => (
-        <ReaderGroup key={id} index={i} />
+      {/* @ts-ignore */}
+      {groups.map((group, i) => (
+        <ReaderGroup key={group.id.toString()} index={i} />
       ))}
     </SplitView>
   )
@@ -82,7 +83,9 @@ interface ReaderGroupProps {
   index: number
 }
 function ReaderGroup({ index }: ReaderGroupProps) {
-  const group = reader.groups[index]!
+  const group = reader.groups[index]
+  if (!group) return null
+
   const { focusedIndex } = useReaderSnapshot()
   const { tabs, selectedIndex } = useSnapshot(group)
   const t = useTranslation()
@@ -210,7 +213,10 @@ function ReaderGroup({ index }: ReaderGroupProps) {
 interface PaneContainerProps {
   active: boolean
 }
-const PaneContainer: React.FC<PaneContainerProps> = ({ active, children }) => {
+const PaneContainer: FC<PropsWithChildren<PaneContainerProps>> = ({
+  active,
+  children,
+}) => {
   return <div className={clsx('h-full', active || 'hidden')}>{children}</div>
 }
 
@@ -227,8 +233,6 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
   const [background] = useBackground()
 
   const { iframe, rendition, rendered, container } = useSnapshot(tab)
-
-  // useTilg()
 
   useEffect(() => {
     const el = ref.current
@@ -249,8 +253,6 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
       observer.disconnect()
     }
   }, [])
-
-  useSync(tab)
 
   const setNavbar = useSetAtom(navbarState)
   const mobile = useMobile()
@@ -437,7 +439,7 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
 interface ReaderPaneHeaderProps {
   tab: BookTab
 }
-const ReaderPaneHeader: React.FC<ReaderPaneHeaderProps> = ({ tab }) => {
+const ReaderPaneHeader: FC<ReaderPaneHeaderProps> = ({ tab }) => {
   const { location } = useSnapshot(tab)
   const navPath = tab.getNavPath()
 
@@ -470,7 +472,7 @@ const ReaderPaneHeader: React.FC<ReaderPaneHeaderProps> = ({ tab }) => {
 interface FooterProps {
   tab: BookTab
 }
-const ReaderPaneFooter: React.FC<FooterProps> = ({ tab }) => {
+const ReaderPaneFooter: FC<FooterProps> = ({ tab }) => {
   const { locationToReturn, location, book } = useSnapshot(tab)
 
   return (
@@ -505,7 +507,7 @@ const ReaderPaneFooter: React.FC<FooterProps> = ({ tab }) => {
 }
 
 interface LineProps extends ComponentProps<'div'> {}
-const Bar: React.FC<LineProps> = ({ className, ...props }) => {
+const Bar: FC<LineProps> = ({ className, ...props }) => {
   return (
     <div
       className={clsx(

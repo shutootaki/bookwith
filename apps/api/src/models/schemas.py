@@ -64,36 +64,29 @@ class TokenResponse(BaseModel):
     access_token_expires_at: Optional[int] = None
 
 
-# Book エンドポイント用モデル
-class BookBase(BaseModel):
-    """書籍の基本情報モデル"""
+class BookDetail(BaseModel):
+    """書籍の詳細情報モデル"""
 
     id: str
-    name: str
+    annotations: List[Dict[str, Any]] = []
     author: Optional[str] = None
-    size: int
-    percentage: int = 0
+    book_metadata: Optional[Dict[str, Any]] = None
     cfi: Optional[str] = None
+    configuration: Optional[Dict[str, Any]] = None
+    cover_path: Optional[str] = None
+    definitions: List[str] = []
     has_cover: bool = False
+    name: str
+    percentage: int = 0
+    size: int
+
+    created_at: Any
+    updated_at: Any
 
     @validator("has_cover", pre=True, always=True)
     def set_has_cover(cls, v, values):
         # cover_pathがあればhas_coverをTrue、なければFalseに設定
         return "cover_path" in values and values["cover_path"] is not None
-
-    class Config:
-        from_attributes = True
-
-
-class BookDetail(BookBase):
-    """書籍の詳細情報モデル"""
-
-    book_metadata: Optional[Dict[str, Any]] = None
-    definitions: List[str] = []
-    configuration: Optional[Dict[str, Any]] = None
-    cover_path: Optional[str] = None
-    created_at: Any
-    updated_at: Any
 
     class Config:
         from_attributes = True
@@ -108,7 +101,7 @@ class BookResponse(BaseResponse):
 class BooksResponse(BaseResponse):
     """複数書籍レスポンスモデル"""
 
-    data: List[BookBase]
+    data: List[BookDetail]
     count: int
 
 
@@ -142,6 +135,8 @@ class BookUpdateRequest(BaseModel):
     definitions: Optional[List[str]] = None
     configuration: Optional[Dict[str, Any]] = None
     cover_path: Optional[str] = None
+    is_deleted: Optional[bool] = None  # 論理削除フラグ
+    deleted_at: Optional[str] = None  # 削除日時
 
     @validator("percentage")
     def validate_percentage(cls, v):

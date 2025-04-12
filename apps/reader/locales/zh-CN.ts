@@ -11,6 +11,10 @@ export default {
   'home.import': '导入',
   'home.upload': '上传',
   'home.delete': '删除',
+  'home.delete_success': '图书删除成功',
+  'home.delete_confirmation': '确认删除',
+  'home.delete_confirmation_message':
+    '您确定要删除选中的图书吗？此操作无法撤销。',
 
   'toc.title': '目录',
   'toc.library': '图书馆',

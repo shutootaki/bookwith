@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from src.db import get_db
@@ -11,11 +11,10 @@ from src.models.schemas import BookCreateRequest, BookFileResponse, BookUpdateRe
 from src.services.book_service import (
     add_book,
     all_books,
+    bulk_delete_books,
     get_all_covers,
     get_book_file_signed_url,
-)
-from src.services.book_service import (
-    update_book as service_update_book,
+    update_book,
 )
 
 router = APIRouter(prefix="/books", tags=["book"])
@@ -45,6 +44,14 @@ async def get_covers(user_id: str = "test_user_id", db: Session = Depends(get_db
             status_code=500,
             detail=f"書籍カバー画像の取得中にエラーが発生しました: {str(e)}",
         )
+
+
+@router.delete("/bulk-delete", response_model=dict)
+async def bulk_delete_books_endpoint(
+    book_ids: list[str] = Body(..., embed=True), db: Session = Depends(get_db)
+):
+    """複数の書籍を一括削除するエンドポイント"""
+    return bulk_delete_books(book_ids, db)
 
 
 @router.get("/{book_id}", response_model=BookResponse)
@@ -139,9 +146,16 @@ async def post_book(body: BookCreateRequest, db: Session = Depends(get_db)):
 
 
 @router.put("/{book_id}", response_model=BookResponse)
-async def update_book(
+async def put_book(
     book_id: str, changes: BookUpdateRequest, db: Session = Depends(get_db)
 ):
     """書籍情報を更新するエンドポイント"""
     changes_dict = changes.model_dump(exclude_unset=True)
-    return service_update_book(book_id, changes_dict, db)
+    return update_book(book_id, changes_dict, db)
+
+
+# @router.delete("/{book_id}", response_model=BookResponse)
+# async def delete_book(book_id: str, db: Session = Depends(get_db)):
+#     """書籍を削除するエンドポイント"""
+#     changes_dict = {"is_deleted": True}
+#     return update_book(book_id, changes_dict, db)

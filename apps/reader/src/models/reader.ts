@@ -10,7 +10,7 @@ import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
 import { BookRecord } from '../db'
-import { fileToEpub } from '../file'
+import { fileToEpub, getBookFile } from '../file'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
@@ -148,17 +148,24 @@ export class BookTab extends BaseTab {
   }
 
   define(def: string[]) {
-    this.updateBook({ definitions: [...this.book.definitions, ...def] })
+    const currentDefinitions = Array.isArray(this.book.definitions)
+      ? this.book.definitions
+      : []
+    this.updateBook({ definitions: [...currentDefinitions, ...def] })
   }
   undefine(def: string) {
+    const currentDefinitions = Array.isArray(this.book.definitions)
+      ? this.book.definitions
+      : []
     this.updateBook({
-      definitions: this.book.definitions.filter(
-        (d) => !compareDefinition(d, def),
-      ),
+      definitions: currentDefinitions.filter((d) => !compareDefinition(d, def)),
     })
   }
   isDefined(def: string) {
-    return this.book.definitions?.some((d) => compareDefinition(d, def))
+    return (
+      Array.isArray(this.book.definitions) &&
+      this.book.definitions.some((d) => compareDefinition(d, def))
+    )
   }
 
   rangeToCfi(range: Range) {
@@ -351,7 +358,7 @@ export class BookTab extends BaseTab {
     if (el === this._el) return
     this._el = ref(el)
 
-    const file = await getBookFileFromAPI(this.book.id)
+    const file = await getBookFile(this.book.id)
     if (!file) return
 
     this.epub = ref(await fileToEpub(file.file))
@@ -617,48 +624,4 @@ declare global {
 
 if (!IS_SERVER) {
   window.reader = reader
-}
-
-interface BookFileResponse {
-  success: boolean
-  url?: string
-  error?: string
-}
-
-interface BookFileData {
-  id: string
-  file: File
-}
-
-const getBookFileFromAPI = async (
-  bookId: string,
-): Promise<BookFileData | undefined> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=test_user_id`,
-    )
-    if (!response.ok)
-      throw new Error(
-        `書籍ファイルの取得に失敗しました: ${response.statusText}`,
-      )
-
-    const data: BookFileResponse = await response.json()
-    if (!data.success || !data.url)
-      throw new Error('ブックファイルのURLが取得できませんでした')
-
-    const fileResponse = await fetch(data.url)
-    if (!fileResponse.ok)
-      throw new Error(
-        `ファイルのダウンロードに失敗しました: ${fileResponse.statusText}`,
-      )
-
-    const blob = await fileResponse.blob()
-    const fileName = data.url.split('/').pop() || 'book.epub'
-    const file = new File([blob], fileName, { type: 'application/epub+zip' })
-
-    return { id: bookId, file }
-  } catch (error) {
-    console.error('書籍ファイルの取得に失敗しました:', error)
-    return undefined
-  }
 }

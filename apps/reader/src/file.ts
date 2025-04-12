@@ -125,23 +125,6 @@ export async function fetchBookById(
   }
 }
 
-// 書籍のEPUBファイルURLを取得する関数
-export function getBookFileUrl(bookId: string): string {
-  return `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file`
-}
-
-// 書籍のEPUBファイルを取得してEPUBオブジェクトを作成する関数
-export async function getBookEpub(bookId: string): Promise<any> {
-  const fileUrl = getBookFileUrl(bookId)
-  const response = await fetch(fileUrl)
-  if (!response.ok) {
-    throw new Error(`EPUBファイルの取得に失敗しました: ${response.statusText}`)
-  }
-
-  const arrayBuffer = await response.arrayBuffer()
-  return ePub(arrayBuffer)
-}
-
 export async function addBook(
   file: File,
   setLoading?: (id: string | undefined) => void,
@@ -182,8 +165,7 @@ export async function addBook(
       return null
     }
 
-    // RAGインデックス化
-    await indexEpub(file, bookData.id)
+    // await indexEpub(file, bookData.id)
 
     setLoading?.(undefined)
     return bookData
@@ -320,5 +302,75 @@ const indexEpub = async (file: File, bookId: string) => {
     })
   } catch (error) {
     console.error('アップロード中のエラー:', error)
+  }
+}
+
+interface BookFileResponse {
+  success: boolean
+  url?: string
+  error?: string
+}
+
+interface BookFileData {
+  id: string
+  file: File
+}
+
+export const getBookFile = async (
+  bookId: string,
+): Promise<BookFileData | undefined> => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=test_user_id`,
+    )
+    if (!response.ok)
+      throw new Error(
+        `書籍ファイルの取得に失敗しました: ${response.statusText}`,
+      )
+
+    const data: BookFileResponse = await response.json()
+    if (!data.success || !data.url)
+      throw new Error('ブックファイルのURLが取得できませんでした')
+
+    const fileResponse = await fetch(data.url)
+    if (!fileResponse.ok)
+      throw new Error(
+        `ファイルのダウンロードに失敗しました: ${fileResponse.statusText}`,
+      )
+
+    const blob = await fileResponse.blob()
+    const fileName = data.url.split('/').pop() || 'book.epub'
+    const file = new File([blob], fileName, { type: 'application/epub+zip' })
+
+    return { id: bookId, file }
+  } catch (error) {
+    console.error('書籍ファイルの取得に失敗しました:', error)
+    return undefined
+  }
+}
+
+export async function deleteBooksFromAPI(bookIds: string[]): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/bulk-delete`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ book_ids: bookIds }),
+      },
+    )
+
+    if (!response.ok) {
+      console.error('書籍一括削除エラー:', await response.json())
+      return []
+    }
+
+    const data = await response.json()
+    return data.deletedIds || []
+  } catch (error) {
+    console.error('書籍一括削除中のエラー:', error)
+    return []
   }
 }

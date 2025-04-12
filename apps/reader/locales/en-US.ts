@@ -11,6 +11,10 @@ export default {
   'home.import': 'Import',
   'home.upload': 'Upload',
   'home.delete': 'Delete',
+  'home.delete_success': 'Books successfully deleted',
+  'home.delete_confirmation': 'Confirm Deletion',
+  'home.delete_confirmation_message':
+    'Are you sure you want to delete the selected books? This action cannot be undone.',
 
   'toc.title': 'TOC',
   'toc.library': 'Library',

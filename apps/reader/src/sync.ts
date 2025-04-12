@@ -1,92 +1,28 @@
-import { Dropbox } from 'dropbox'
 import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
-import { parseCookies } from 'nookies'
 
 import { BookRecord, db } from './db'
-import { readBlob } from './file'
-
-export const mapToToken = {
-  dropbox: 'dropbox-refresh-token',
-}
-
-export const OAUTH_SUCCESS_MESSAGE = 'oauth_success'
-
-export const dbx = new Dropbox({
-  clientId: process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID,
-  refreshToken: '__fake_token__',
-})
-let _req: Promise<void> | undefined
-dbx.auth.refreshAccessToken = () => {
-  const cookies = parseCookies()
-  const refreshToken = cookies[mapToToken['dropbox']]
-  if (!refreshToken) {
-    // `reject` to skip subsequent api requests
-    return Promise.reject()
-  }
-  _req ??= fetch(`/api/refresh`)
-    .then((res) => res.json())
-    .then((data) => {
-      dbx.auth.setAccessToken(data.accessToken)
-      dbx.auth.setAccessTokenExpiresAt(data.accessTokenExpiresAt)
-    })
-    .finally(() => {
-      // will fail if no refresh token
-      _req = undefined
-    })
-  return _req
-}
+import { BookDetail } from './hooks'
 
 interface SerializedBooks {
   version: number
-  dbVersion: number
-  books: BookRecord[]
+  books: BookDetail[]
 }
 
 const VERSION = 1
 export const DATA_FILENAME = 'data.json'
 
-function serializeData(books?: BookRecord[]) {
+function serializeData(books?: BookDetail[]) {
   return JSON.stringify({
     version: VERSION,
-    dbVersion: db?.verno,
     books,
   })
 }
 
 function deserializeData(text: string) {
-  const { version, dbVersion, books } = JSON.parse(text) as SerializedBooks
-
-  if (version < VERSION) {
-    // migrate `data.json`
-  }
-  if (db && dbVersion < db.verno) {
-    // migrate `BookRecord`
-  }
+  const { version, books } = JSON.parse(text) as SerializedBooks
 
   return books
-}
-
-export async function uploadData(books: BookRecord[]) {
-  return dbx.filesUpload({
-    path: `/${DATA_FILENAME}`,
-    mode: { '.tag': 'overwrite' },
-    contents: serializeData(books),
-  })
-}
-
-export const dropboxFilesFetcher = (path: string) => {
-  return dbx.filesListFolder({ path }).then((d) => d.result.entries)
-}
-
-export const dropboxBooksFetcher = (path: string) => {
-  return dbx
-    .filesDownload({ path })
-    .then((d) => {
-      const blob: Blob = (d.result as any).fileBlob
-      return readBlob((r) => r.readAsText(blob))
-    })
-    .then((d) => deserializeData(d))
 }
 
 export async function pack() {
@@ -95,7 +31,8 @@ export async function pack() {
   const files = await db?.files.toArray()
 
   const zip = new JSZip()
-  zip.file(DATA_FILENAME, serializeData(books))
+  // 型の問題を回避するために型アサーションを使用
+  zip.file(DATA_FILENAME, serializeData(books as unknown as BookDetail[]))
   zip.file('covers.json', JSON.stringify(covers))
 
   const folder = zip.folder('files')
@@ -118,7 +55,8 @@ export async function unpack(file: File) {
 
   const books = deserializeData(await booksJSON.async('text'))
 
-  db?.books.bulkPut(books)
+  // 型の問題を回避するために型アサーションを使用
+  db?.books.bulkPut(books as unknown as BookRecord[])
 
   const coversText = await coversJSON.async('text')
   db?.covers.bulkPut(JSON.parse(coversText))

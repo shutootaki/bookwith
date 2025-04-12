@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from src.infra.external.gcs import GCSClient
-from src.models import BookBase, BookDetail, BookResponse
+from src.models import BookDetail, BookResponse
 from src.models.database import Book
 from src.models.schemas import BookCreateRequest
 
@@ -86,8 +86,10 @@ def get_all_covers(user_id: str, db: Session):
 
 
 def all_books(db: Session):
-    books = db.query(Book).all()
-    book_list = [BookBase.model_validate(book, from_attributes=True) for book in books]
+    books = db.query(Book).filter(Book.deleted_at == None).all()
+    book_list = [
+        BookDetail.model_validate(book, from_attributes=True) for book in books
+    ]
     return book_list
 
 
@@ -200,4 +202,58 @@ def update_book(book_id: str, changes_dict: dict, db: Session) -> BookResponse:
         db.rollback()
         raise HTTPException(
             status_code=500, detail=f"書籍の更新中にエラーが発生しました: {str(e)}"
+        )
+
+
+def bulk_delete_books(book_ids: list[str], db: Session) -> dict:
+    """複数の書籍を一括削除する処理を行う関数"""
+    if not book_ids:
+        return {"success": True, "deletedIds": [], "count": 0}
+
+    try:
+        now = datetime.now()
+        existing_books = db.query(Book).filter(Book.id.in_(book_ids)).all()
+
+        if not existing_books:
+            return {"success": True, "deletedIds": [], "count": 0}
+
+        existing_ids = [book.id for book in existing_books]
+        mappings = [
+            {"id": book_id, "is_deleted": True, "deleted_at": now, "updated_at": now}
+            for book_id in existing_ids
+        ]
+
+        db.bulk_update_mappings(Book, mappings)
+
+        gcs_client = GCSClient()
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+
+        for book in existing_books:
+            print("パス", book.file_path)
+            if book.file_path:
+                file_path = book.file_path.replace(
+                    f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+                )
+                blob = bucket.blob(file_path)
+                try:
+                    blob.delete()
+                except Exception as e:
+                    print(f"書籍ファイルの削除中にエラーが発生しました: {str(e)}")
+
+            if book.cover_path:
+                cover_path = book.cover_path.replace(
+                    f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+                )
+                blob = bucket.blob(cover_path)
+                try:
+                    blob.delete()
+                except Exception as e:
+                    print(f"カバー画像の削除中にエラーが発生しました: {str(e)}")
+        db.commit()
+
+        return {"success": True, "deletedIds": existing_ids, "count": len(existing_ids)}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"書籍の一括削除中にエラーが発生しました: {str(e)}"
         )

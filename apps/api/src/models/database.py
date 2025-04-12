@@ -52,13 +52,15 @@ class Book(Base):
     file_path = Column(String)
     cover_path = Column(String, nullable=True)
     size = Column(Integer)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     cfi = Column(String, nullable=True)
     percentage = Column(Integer, default=0)
     book_metadata = Column(JSON, nullable=True)
     definitions = Column(JSON, default=list)
     configuration = Column(JSON, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True)  # 論理削除用のタイムスタンプ
 
     user = relationship("User", back_populates="books")
     annotations = relationship(
