@@ -2,11 +2,11 @@ import base64
 import json
 import uuid
 
-from infra.external.gcs import BUCKET_NAME, GCSClient
-from models.schemas import BookCreateRequest
 from requests import Session
+from src.infra.external.gcs import BUCKET_NAME, GCSClient
 from src.models import BookDetail, BookResponse
 from src.models.database import Book
+from src.models.schemas import BookCreateRequest
 
 
 def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
@@ -86,7 +86,7 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
 
         return BookResponse(
             success=True,
-            data=BookDetail.from_orm(new_book),
+            data=BookDetail.model_validate(new_book, from_attributes=True),
             message="書籍が正常に追加されました",
         )
     except Exception:

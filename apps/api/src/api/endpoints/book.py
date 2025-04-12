@@ -2,15 +2,18 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from infra.external.gcs import BUCKET_NAME
-from services.book_service import add_book
 from sqlalchemy.orm import Session
 from src.db import get_db
+from src.infra.external.gcs import BUCKET_NAME, GCSClient
 from src.models import BookBase, BookDetail, BookResponse, BooksResponse
 from src.models.database import Book
 from src.models.schemas import BookCreateRequest
+from src.services.book_service import add_book
 
 router = APIRouter(prefix="/books", tags=["book"])
+
+# GCSクライアントの初期化
+storage_client = GCSClient().get_client()
 
 
 @router.get("", response_model=BooksResponse)
@@ -18,9 +21,12 @@ async def all_books(db: Session = Depends(get_db)):
     """全ての書籍を取得するエンドポイント"""
     try:
         books = db.query(Book).all()
-        book_list = [BookBase.from_orm(book) for book in books]
+        book_list = [
+            BookBase.model_validate(book, from_attributes=True) for book in books
+        ]
         return BooksResponse(success=True, data=book_list, count=len(books))
     except Exception as e:
+        print(f"エラーが発生しました: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"書籍の取得中にエラーが発生しました: {str(e)}"
         )
@@ -35,7 +41,9 @@ async def get_book(book_id: str, db: Session = Depends(get_db)):
             status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
         )
 
-    return BookResponse(success=True, data=BookDetail.from_orm(book))
+    return BookResponse(
+        success=True, data=BookDetail.model_validate(book, from_attributes=True)
+    )
 
 
 @router.get("/{book_id}/cover")

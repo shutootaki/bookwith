@@ -81,6 +81,9 @@ class BookBase(BaseModel):
         # cover_pathがあればhas_coverをTrue、なければFalseに設定
         return "cover_path" in values and values["cover_path"] is not None
 
+    class Config:
+        from_attributes = True
+
 
 class BookDetail(BookBase):
     """書籍の詳細情報モデル"""
