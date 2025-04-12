@@ -9,7 +9,7 @@ import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
-import { BookRecord, db } from '../db'
+import { BookRecord } from '../db'
 import { fileToEpub } from '../file'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
@@ -128,7 +128,17 @@ export class BookTab extends BaseTab {
     }
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
-    db?.books.update(this.book.id, changes)
+
+    // バックエンドAPIを使用して更新（Promiseを待たない）
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(changes),
+    }).catch((error) => {
+      console.error('書籍の更新に失敗しました:', error)
+    })
   }
 
   annotationRange?: Range
@@ -148,7 +158,7 @@ export class BookTab extends BaseTab {
     })
   }
   isDefined(def: string) {
-    return this.book.definitions.some((d) => compareDefinition(d, def))
+    return this.book.definitions?.some((d) => compareDefinition(d, def))
   }
 
   rangeToCfi(range: Range) {
@@ -163,6 +173,10 @@ export class BookTab extends BaseTab {
   ) {
     const spine = this.section
     if (!spine?.navitem) return
+
+    if (!this.book.annotations) {
+      this.book.annotations = []
+    }
 
     const i = this.book.annotations.findIndex((a) => a.cfi === cfi)
     let annotation = this.book.annotations[i]
@@ -186,7 +200,6 @@ export class BookTab extends BaseTab {
       }
 
       this.updateBook({
-        // DataCloneError: Failed to execute 'put' on 'IDBObjectStore': #<Object> could not be cloned.
         annotations: [...snapshot(this.book.annotations), annotation],
       })
     } else {
@@ -205,6 +218,11 @@ export class BookTab extends BaseTab {
     }
   }
   removeAnnotation(cfi: string) {
+    if (!this.book.annotations) {
+      this.book.annotations = []
+      return
+    }
+
     return this.updateBook({
       annotations: snapshot(this.book.annotations).filter((a) => a.cfi !== cfi),
     })

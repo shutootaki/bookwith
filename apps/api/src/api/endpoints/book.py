@@ -7,12 +7,15 @@ from src.db import get_db
 from src.infra.external.gcs import GCSClient
 from src.models import BookDetail, BookResponse, BooksResponse
 from src.models.database import Book
-from src.models.schemas import BookCreateRequest, BookFileResponse
+from src.models.schemas import BookCreateRequest, BookFileResponse, BookUpdateRequest
 from src.services.book_service import (
     add_book,
     all_books,
     get_all_covers,
     get_book_file_signed_url,
+)
+from src.services.book_service import (
+    update_book as service_update_book,
 )
 
 router = APIRouter(prefix="/books", tags=["book"])
@@ -133,3 +136,12 @@ async def post_book(body: BookCreateRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500, detail=f"書籍の作成中にエラーが発生しました: {str(e)}"
         )
+
+
+@router.put("/{book_id}", response_model=BookResponse)
+async def update_book(
+    book_id: str, changes: BookUpdateRequest, db: Session = Depends(get_db)
+):
+    """書籍情報を更新するエンドポイント"""
+    changes_dict = changes.model_dump(exclude_unset=True)
+    return service_update_book(book_id, changes_dict, db)

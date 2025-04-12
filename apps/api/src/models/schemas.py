@@ -131,6 +131,26 @@ class BookFileResponse(BaseResponse):
     url: str
 
 
+class BookUpdateRequest(BaseModel):
+    """書籍更新リクエストモデル"""
+
+    name: Optional[str] = None
+    author: Optional[str] = None
+    percentage: Optional[float] = None
+    cfi: Optional[str] = None
+    book_metadata: Optional[Dict[str, Any]] = None
+    definitions: Optional[List[str]] = None
+    configuration: Optional[Dict[str, Any]] = None
+    cover_path: Optional[str] = None
+
+    @validator("percentage")
+    def validate_percentage(cls, v):
+        if v is not None:
+            # 小数値が送信された場合、内部的には整数として扱う
+            return int(v)
+        return v
+
+
 # LLM エンドポイント用モデル
 class Question(BaseModel):
     """質問リクエストモデル"""

@@ -1,7 +1,7 @@
 import base64
 import json
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -149,7 +149,6 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
             except json.JSONDecodeError:
                 pass
 
-        # 書籍モデルを作成
         new_book = Book(
             id=book_id,
             user_id=body.user_id,
@@ -162,7 +161,7 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
             configuration={},
             author=metadata.get("creator", None),
         )
-        # データベースに保存
+
         db.add(new_book)
         db.commit()
         db.refresh(new_book)
@@ -174,3 +173,31 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
         )
     except Exception:
         db.rollback()
+
+
+def update_book(book_id: str, changes_dict: dict, db: Session) -> BookResponse:
+    """書籍情報を更新する処理を行う関数"""
+    try:
+        book = db.query(Book).filter(Book.id == book_id).first()
+        if not book:
+            raise HTTPException(
+                status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
+            )
+
+        changes_dict["updated_at"] = datetime.now()
+
+        for key, value in changes_dict.items():
+            if hasattr(book, key):
+                setattr(book, key, value)
+
+        db.commit()
+        db.refresh(book)
+
+        return BookResponse(
+            success=True, data=BookDetail.model_validate(book, from_attributes=True)
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"書籍の更新中にエラーが発生しました: {str(e)}"
+        )
