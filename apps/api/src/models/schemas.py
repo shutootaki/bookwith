@@ -125,6 +125,12 @@ class BookCreateRequest(BaseModel):
     cover_image: Optional[str]
 
 
+class BookFileResponse(BaseResponse):
+    """書籍ファイルのレスポンスモデル"""
+
+    url: str
+
+
 # LLM エンドポイント用モデル
 class Question(BaseModel):
     """質問リクエストモデル"""

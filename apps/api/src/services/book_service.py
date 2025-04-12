@@ -3,11 +3,52 @@ import json
 import uuid
 from datetime import timedelta
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from src.infra.external.gcs import GCSClient
 from src.models import BookBase, BookDetail, BookResponse
 from src.models.database import Book
 from src.models.schemas import BookCreateRequest
+
+
+def get_book_file_signed_url(book_id: str, user_id: str, db: Session):
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if not book:
+        raise HTTPException(
+            status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
+        )
+
+    if not book.file_path:
+        raise HTTPException(
+            status_code=404, detail="この書籍のファイルが見つかりません"
+        )
+
+    # 所有権の検証
+    if book.user_id != user_id:
+        raise HTTPException(
+            status_code=403, detail="この書籍へのアクセス権限がありません"
+        )
+
+    gcs_client = GCSClient()
+
+    if gcs_client.use_emulator:
+        return book.file_path
+    else:
+        path = book.file_path.replace(
+            f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+        )
+
+        # 署名付きURLを生成
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+        blob = bucket.blob(path)
+        signed_url = (
+            blob.generate_signed_url(
+                version="v4", expiration=timedelta(minutes=15), method="GET"
+            )
+            if not gcs_client.use_emulator
+            else book.file_path
+        )
+        return str(signed_url)
 
 
 def get_all_covers(user_id: str, db: Session):

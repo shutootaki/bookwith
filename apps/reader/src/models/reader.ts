@@ -2,6 +2,7 @@ import { debounce } from '@github/mini-throttle/decorators'
 import React from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { proxy, ref, snapshot, subscribe, useSnapshot } from 'valtio'
+import useSWR from 'swr'
 
 import type { Rendition, Location, Book } from '@flow/epubjs'
 import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
@@ -332,7 +333,7 @@ export class BookTab extends BaseTab {
     if (el === this._el) return
     this._el = ref(el)
 
-    const file = await db?.files.get(this.book.id)
+    const file = await getBookFileFromAPI(this.book.id)
     if (!file) return
 
     this.epub = ref(await fileToEpub(file.file))
@@ -598,4 +599,48 @@ declare global {
 
 if (!IS_SERVER) {
   window.reader = reader
+}
+
+interface BookFileResponse {
+  success: boolean
+  url?: string
+  error?: string
+}
+
+interface BookFileData {
+  id: string
+  file: File
+}
+
+const getBookFileFromAPI = async (
+  bookId: string,
+): Promise<BookFileData | undefined> => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=test_user_id`,
+    )
+    if (!response.ok)
+      throw new Error(
+        `書籍ファイルの取得に失敗しました: ${response.statusText}`,
+      )
+
+    const data: BookFileResponse = await response.json()
+    if (!data.success || !data.url)
+      throw new Error('ブックファイルのURLが取得できませんでした')
+
+    const fileResponse = await fetch(data.url)
+    if (!fileResponse.ok)
+      throw new Error(
+        `ファイルのダウンロードに失敗しました: ${fileResponse.statusText}`,
+      )
+
+    const blob = await fileResponse.blob()
+    const fileName = data.url.split('/').pop() || 'book.epub'
+    const file = new File([blob], fileName, { type: 'application/epub+zip' })
+
+    return { id: bookId, file }
+  } catch (error) {
+    console.error('書籍ファイルの取得に失敗しました:', error)
+    return undefined
+  }
 }
