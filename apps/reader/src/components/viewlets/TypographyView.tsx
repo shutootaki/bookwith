@@ -30,7 +30,7 @@ export const TypographyView: React.FC<PaneViewProps> = (props) => {
 
   const { fontFamily, fontSize, fontWeight, lineHeight, zoom, spread } =
     scope === TypographyScope.Book
-      ? focusedBookTab?.book.configuration?.typography ?? defaultSettings
+      ? focusedBookTab?.book?.configuration?.typography ?? defaultSettings
       : settings
 
   const setTypography = useCallback(
@@ -41,9 +41,9 @@ export const TypographyView: React.FC<PaneViewProps> = (props) => {
       if (scope === TypographyScope.Book) {
         reader.focusedBookTab?.updateBook({
           configuration: {
-            ...reader.focusedBookTab.book.configuration,
+            ...reader.focusedBookTab?.book?.configuration,
             typography: {
-              ...reader.focusedBookTab.book.configuration?.typography,
+              ...reader.focusedBookTab?.book?.configuration?.typography,
               [k]: v,
             },
           },

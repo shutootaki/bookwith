@@ -497,7 +497,7 @@ const ReaderPaneFooter: React.FC<FooterProps> = ({ tab }) => {
       ) : (
         <>
           <div>{location?.start.href}</div>
-          <div>{((book.percentage ?? 0) * 100).toFixed()}%</div>
+          <div>{((book?.percentage ?? 0) * 100).toFixed()}%</div>
         </>
       )}
     </Bar>

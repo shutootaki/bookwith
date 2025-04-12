@@ -23,9 +23,12 @@ const DefinitionPane: React.FC = () => {
   const { focusedBookTab } = useReaderSnapshot()
   const t = useTranslation('annotation')
 
+  // 定義リストを取得（存在しない場合は空配列を使用）
+  const definitions = focusedBookTab?.book?.definitions || []
+
   return (
     <Pane headline={t('definitions')} preferredSize={120}>
-      {focusedBookTab?.book.definitions.map((d) => {
+      {definitions.map((d) => {
         return (
           <Row
             key={d}
@@ -46,8 +49,8 @@ const AnnotationPane: React.FC = () => {
   const t = useTranslation('annotation')
 
   const annotations = useMemo(
-    () => (focusedBookTab?.book.annotations as Annotation[]) ?? [],
-    [focusedBookTab?.book.annotations],
+    () => (focusedBookTab?.book?.annotations as Annotation[]) ?? [],
+    [focusedBookTab?.book?.annotations],
   )
 
   const groupedAnnotation = useMemo(() => {

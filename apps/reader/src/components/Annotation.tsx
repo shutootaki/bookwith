@@ -150,17 +150,20 @@ interface AnnotationsProps {
 export const Annotations: React.FC<AnnotationsProps> = ({ tab }) => {
   const { book, section } = useSnapshot(tab)
 
+  const annotations = book?.annotations || []
+  const definitions = book?.definitions || []
+
   return (
     <>
       <FindMatches tab={tab} />
       {/* with `key`, react will mount/unmount it automatically */}
-      {book.annotations
+      {annotations
         // seems to fix annotation flash when executing `next()` and `display()`
         .filter((a) => a.spine.index === section?.index)
         .map((annotation) => (
           <Annotation key={annotation.id} tab={tab} annotation={annotation} />
         ))}
-      {book.definitions.map((definition) => (
+      {definitions.map((definition) => (
         <Definition key={definition} tab={tab} definition={definition} />
       ))}
     </>

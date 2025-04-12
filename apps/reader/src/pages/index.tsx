@@ -409,9 +409,9 @@ const Book: React.FC<BookProps> = ({
             loading && 'progress-bit w-[5%]',
           )}
         />
-        {book.percentage !== undefined && (
+        {book?.percentage !== undefined && (
           <div className="typescale-body-large absolute right-0 bg-gray-500/60 px-2 text-gray-100">
-            {(book.percentage * 100).toFixed()}%
+            {(book?.percentage * 100).toFixed()}%
           </div>
         )}
         <img

@@ -124,7 +124,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
   const t = useTranslation('menu')
 
   const cfi = tab.rangeToCfi(range)
-  const annotation = tab.book.annotations.find((a) => a.cfi === cfi)
+  const annotation = (tab.book?.annotations || []).find((a) => a.cfi === cfi)
   const [annotate, setAnnotate] = useState(!!annotation)
 
   const position = forward
