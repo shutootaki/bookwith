@@ -93,7 +93,7 @@ class BookDetail(BookBase):
     updated_at: Any
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class BookResponse(BaseResponse):

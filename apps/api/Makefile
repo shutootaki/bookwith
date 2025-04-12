@@ -6,9 +6,9 @@ ifneq ($(filter $(MAKECMDGOALS),test test.coverage),)
 endif
 
 # Load specific dotenv files based on precedence
--include config/.env
--include config/.env.$(ENV)
--include config/.env.$(ENV).local
+-include src/config/.env
+-include src/config/.env.$(ENV)
+-include src/config/.env.$(ENV).local
 
 # Exported variables will be visible in external scripts
 export DROPBOX_CLIENT_ID
@@ -17,7 +17,7 @@ export OPENAI_API_KEY
 export ENV
 export PORT
 export DATABASE_URL
-
+export CLOUD_STORAGE_EMULATOR_HOST
 
 
 default: help
@@ -34,6 +34,7 @@ help: ## Show this help message.
 	@echo '  OPENAI_API_KEY                             OpenAI API Key'
 	@echo '  ENV                                        sets the environment. .env.${ENV} and .env.${ENV}.local will be automatically loaded.'
 	@echo '  PORT                                       Run server on the specified port'
+	@echo '  CLOUD_STORAGE_EMULATOR_HOST                Cloud Storage Emulator Host'
 
 configure: ## Installs packages using poetry
 	poetry install --no-root

@@ -101,6 +101,7 @@ class Chat(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="chats")
+    book = relationship("Book", back_populates="chats")
     messages = relationship(
         "Message",
         back_populates="chat",
@@ -123,7 +124,6 @@ class Message(Base):
     chat_id = Column(String, ForeignKey("chats.id"), index=True, nullable=False)
 
     sender_type = Column(SQLAlchemyEnum(SenderTypeEnum), index=True, nullable=False)
-    sender_type = Column(String(10), index=True, nullable=False)
     content = Column(Text, nullable=False)
     related_message_id = Column(
         Integer, ForeignKey("messages.id"), nullable=True, index=True

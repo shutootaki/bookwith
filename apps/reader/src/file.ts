@@ -33,7 +33,7 @@ export async function handleFiles(
     let book = existingBooks?.find((b) => b.name === file.name)
 
     if (!book) {
-      book = await addBook(file, setLoading)
+      book = (await addBook(file, setLoading)) || undefined
     }
 
     if (book) {
@@ -313,24 +313,15 @@ export async function fetchBook(
 }
 
 const indexEpub = async (file: File, bookId: string) => {
-  // ファイルをBase64エンコードに変換
-  const fileBase64 = await fileToBase64(file)
-
-  const requestData = {
-    file_data: fileBase64,
-    file_name: file.name,
-    file_type: file.type,
-    user_id: 'tmp_user_id',
-    book_id: bookId,
-  }
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('user_id', 'tmp_user_id')
+  formData.append('book_id', bookId)
 
   try {
     await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData),
+      body: formData,
     })
   } catch (error) {
     console.error('アップロード中のエラー:', error)

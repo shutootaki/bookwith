@@ -1,10 +1,9 @@
-import base64
-import json
-import os
-import uuid
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+from infra.external.gcs import BUCKET_NAME
+from services.book_service import add_book
 from sqlalchemy.orm import Session
 from src.db import get_db
 from src.models import BookBase, BookDetail, BookResponse, BooksResponse
@@ -40,128 +39,98 @@ async def get_book(book_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{book_id}/cover")
-async def get_book_cover(book_id: str, db: Session = Depends(get_db)):
-    """書籍のカバー画像を取得するエンドポイント"""
+async def get_book_cover(
+    book_id: str, current_user_id: str, db: Session = Depends(get_db)
+):
+    """書籍のカバー画像を取得するエンドポイント（署名付きURL）"""
     book = db.query(Book).filter(Book.id == book_id).first()
     if not book:
         raise HTTPException(
             status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
         )
 
-    if not book.cover_path or not os.path.exists(book.cover_path):
+    if not book.cover_path:
         raise HTTPException(
             status_code=404, detail="この書籍にはカバー画像がありません"
         )
 
-    return FileResponse(book.cover_path, media_type="image/jpeg")
+    # 所有権の検証
+    if book.user_id != current_user_id:
+        raise HTTPException(
+            status_code=403, detail="この書籍へのアクセス権限がありません"
+        )
+
+    try:
+        # GCSのパスからバケット名とオブジェクト名を抽出
+        path = book.cover_path.replace(
+            f"https://storage.googleapis.com/{BUCKET_NAME}/", ""
+        )
+
+        # 署名付きURLを生成
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(path)
+        signed_url = blob.generate_signed_url(
+            version="v4", expiration=timedelta(minutes=15), method="GET"
+        )
+
+        return JSONResponse(content={"success": True, "url": signed_url})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"署名付きURLの生成中にエラーが発生しました: {str(e)}",
+        )
 
 
 @router.get("/{book_id}/file")
-async def get_book_file(book_id: str, db: Session = Depends(get_db)):
-    """書籍のEPUBファイルを取得するエンドポイント"""
+async def get_book_file(
+    book_id: str, current_user_id: str, db: Session = Depends(get_db)
+):
+    """書籍のEPUBファイルを取得するエンドポイント（署名付きURL）"""
     book = db.query(Book).filter(Book.id == book_id).first()
     if not book:
         raise HTTPException(
             status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
         )
 
-    if not book.file_path or not os.path.exists(book.file_path):
+    if not book.file_path:
         raise HTTPException(
             status_code=404, detail="この書籍のファイルが見つかりません"
         )
 
-    return FileResponse(
-        book.file_path, media_type="application/epub+zip", filename=f"{book.name}"
-    )
+    # 所有権の検証
+    if book.user_id != current_user_id:
+        raise HTTPException(
+            status_code=403, detail="この書籍へのアクセス権限がありません"
+        )
+
+    try:
+        # GCSのパスからバケット名とオブジェクト名を抽出
+        path = book.file_path.replace(
+            f"https://storage.googleapis.com/{BUCKET_NAME}/", ""
+        )
+
+        # 署名付きURLを生成
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(path)
+        signed_url = blob.generate_signed_url(
+            version="v4", expiration=timedelta(minutes=15), method="GET"
+        )
+
+        return JSONResponse(content={"success": True, "url": signed_url})
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"署名付きURLの生成中にエラーが発生しました: {str(e)}",
+        )
 
 
 @router.post("", response_model=BookResponse)
-async def create_book(body: BookCreateRequest, db: Session = Depends(get_db)):
+async def post_book(body: BookCreateRequest, db: Session = Depends(get_db)):
     """新しい書籍を作成するエンドポイント"""
     try:
-        # ユーザーディレクトリを作成
-        user_dir = os.path.join("tmp", "books", body.user_id)
-        os.makedirs(user_dir, exist_ok=True)
-
-        # book_idが指定されていない場合は生成
-        if not body.book_id:
-            book_id = str(uuid.uuid4())
-        else:
-            book_id = body.book_id
-
-        # ファイル名が指定されていない場合はアップロードされたファイル名を使用
-        if not body.book_name:
-            book_name = body.file_name
-        else:
-            book_name = body.book_name
-
-        # 書籍ディレクトリを作成
-        book_dir = os.path.join(user_dir, book_id)
-        os.makedirs(book_dir, exist_ok=True)
-
-        # EPUBファイルパス
-        file_path = os.path.join(book_dir, "book.epub")
-
-        # Base64からファイルデータをデコードして保存
-        file_data = base64.b64decode(body.file_data)
-        with open(file_path, "wb") as f:
-            f.write(file_data)
-
-        # カバー画像を保存（もし提供されていれば）
-        cover_path = None
-        if body.cover_image and body.cover_image.startswith("data:image/"):
-            try:
-                # Base64データURLからデータを抽出
-                image_data = body.cover_image.split(",")[1]
-                image_binary = base64.b64decode(image_data)
-
-                # カバー画像のパス
-                cover_path = os.path.join(book_dir, "cover.jpg")
-
-                # 画像を保存
-                with open(cover_path, "wb") as cover_file:
-                    cover_file.write(image_binary)
-            except Exception as e:
-                print(f"カバー画像の保存中にエラーが発生しました: {str(e)}")
-
-        # ファイルサイズを取得
-        file_size = os.path.getsize(file_path)
-
-        # メタデータがJSONとして渡された場合はパース
-        metadata = {}
-        if body.book_metadata:
-            try:
-                metadata = json.loads(body.book_metadata)
-            except json.JSONDecodeError:
-                pass
-
-        # 書籍モデルを作成
-        new_book = Book(
-            id=book_id,
-            user_id=body.user_id,
-            name=book_name,
-            file_path=file_path,
-            cover_path=cover_path,
-            size=file_size,
-            book_metadata=metadata,
-            definitions=[],
-            configuration={},
-            author=metadata.get("creator", None),
-        )
-
-        # データベースに保存
-        db.add(new_book)
-        db.commit()
-        db.refresh(new_book)
-
-        return BookResponse(
-            success=True,
-            data=BookDetail.from_orm(new_book),
-            message="書籍が正常に追加されました",
-        )
+        return await add_book(body, db)
     except Exception as e:
-        # エラー発生時はロールバック
-        db.rollback()
+        print(f"エラーが発生しました: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"書籍の作成中にエラーが発生しました: {str(e)}"
         )

@@ -1,10 +1,9 @@
 import logging
-from contextlib import contextmanager
 
-from config.app_config import AppConfig
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from src.config.app_config import AppConfig
 
 # 設定の取得
 config = AppConfig()
@@ -20,7 +19,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-@contextmanager
 def get_db():
     """データベースセッションを取得するコンテキストマネージャー"""
     db = SessionLocal()

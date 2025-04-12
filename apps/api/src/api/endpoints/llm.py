@@ -7,12 +7,10 @@ router = APIRouter()
 
 
 @router.post("/llm", response_model=Answer)
-async def process_llm(question: Question):
+async def process_llm(body: Question):
     try:
         # テナントIDが指定されている場合は、それを使用して質問を処理
-        answer = process_question(
-            question=question.question, tenant_id=question.tenant_id
-        )
+        answer = process_question(question=body.question, tenant_id=body.tenant_id)
         return Answer(answer=answer)
     except ValueError as e:
         # 入力値に関するエラーの場合
