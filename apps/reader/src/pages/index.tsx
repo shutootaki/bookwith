@@ -23,8 +23,10 @@ import {
   useMobile,
   useRemoteBooks,
   useRemoteFiles,
+  useRemoteCovers,
   useTranslation,
 } from '../hooks'
+import { CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { dbx, pack, uploadData } from '../sync'
@@ -97,7 +99,7 @@ export default function Index() {
 
 const Library: React.FC = () => {
   const books = useLibrary()
-  const covers = useLiveQuery(() => db?.covers.toArray() ?? [])
+  const { data: covers } = useRemoteCovers()
   const t = useTranslation('home')
 
   const { data: remoteBooks, mutate: mutateRemoteBooks } = useRemoteBooks()
@@ -358,7 +360,7 @@ const Library: React.FC = () => {
 
 interface BookProps {
   book: BookRecord
-  covers?: CoverRecord[]
+  covers?: CoversResponse
   select?: boolean
   selected?: boolean
   loading?: boolean
@@ -377,7 +379,8 @@ const Book: React.FC<BookProps> = ({
   const router = useRouter()
   const mobile = useMobile()
 
-  const cover = covers?.find((c) => c.id === book.id)?.cover
+  const coverData = covers?.data?.find((c) => c.book_id === book.id)
+  const cover = coverData?.cover_url
   const remoteFile = remoteFiles.data?.find((f) => f.name === book.name)
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank

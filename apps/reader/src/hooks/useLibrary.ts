@@ -33,3 +33,30 @@ export function useLibrary() {
 
   return data?.data || []
 }
+
+export interface CoverData {
+  book_id: string
+  title: string
+  cover_url: string
+}
+
+export interface CoversResponse {
+  success: boolean
+  data: CoverData[]
+}
+
+export function useRemoteCovers() {
+  return useSWR<CoversResponse>(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/covers`,
+    async (url) => {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error('Failed to fetch book covers')
+      }
+      return response.json()
+    },
+    {
+      shouldRetryOnError: false,
+    },
+  )
+}

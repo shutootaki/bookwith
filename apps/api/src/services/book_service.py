@@ -1,12 +1,53 @@
 import base64
 import json
 import uuid
+from datetime import timedelta
 
-from requests import Session
-from src.infra.external.gcs import BUCKET_NAME, GCSClient
-from src.models import BookDetail, BookResponse
+from sqlalchemy.orm import Session
+from src.infra.external.gcs import GCSClient
+from src.models import BookBase, BookDetail, BookResponse
 from src.models.database import Book
 from src.models.schemas import BookCreateRequest
+
+
+def get_all_covers(user_id: str, db: Session):
+    gcs_client = GCSClient()
+
+    # ユーザーが所有する書籍を取得
+    books = db.query(Book).filter(Book.user_id == user_id).all()
+
+    result = {"success": True, "data": []}
+
+    for book in books:
+        if not book.cover_path:
+            continue
+
+        path = book.cover_path.replace(
+            f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+        )
+
+        # 署名付きURLを生成
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+        blob = bucket.blob(path)
+        cover_url = (
+            blob.generate_signed_url(
+                version="v4", expiration=timedelta(minutes=15), method="GET"
+            )
+            if not gcs_client.use_emulator
+            else book.cover_path
+        )
+
+        result["data"].append(
+            {"book_id": book.id, "name": book.name, "cover_url": cover_url}
+        )
+
+    return result
+
+
+def all_books(db: Session):
+    books = db.query(Book).all()
+    book_list = [BookBase.model_validate(book, from_attributes=True) for book in books]
+    return book_list
 
 
 def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
@@ -25,15 +66,18 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
 
         # Base64からファイルデータをデコード
         file_data = base64.b64decode(body.file_data)
+        gcs_client = GCSClient()
 
         # GCSにアップロード
-        bucket = GCSClient().get_client().bucket(BUCKET_NAME)
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
         epub_blob_name = f"books/{body.user_id}/{book_id}/book.epub"
         blob = bucket.blob(epub_blob_name)
         blob.upload_from_string(file_data, content_type="application/epub+zip")
 
         # ファイルパスを保存（GCSバケット上の実際のパスを保存）
-        file_path = f"https://storage.googleapis.com/{BUCKET_NAME}/{epub_blob_name}"
+        file_path = (
+            f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/{epub_blob_name}"
+        )
 
         # ファイルサイズを取得
         file_size = len(file_data)
@@ -52,9 +96,7 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
                 cover_blob.upload_from_string(image_binary, content_type="image/jpeg")
 
                 # カバー画像のURLを設定
-                cover_path = (
-                    f"https://storage.googleapis.com/{BUCKET_NAME}/{cover_blob_name}"
-                )
+                cover_path = f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/{cover_blob_name}"
             except Exception as e:
                 print(f"カバー画像の保存中にエラーが発生しました: {str(e)}")
 

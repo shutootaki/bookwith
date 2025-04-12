@@ -125,11 +125,6 @@ export async function fetchBookById(
   }
 }
 
-// 書籍のカバー画像URLを取得する関数
-export function getBookCoverUrl(bookId: string): string {
-  return `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/cover`
-}
-
 // 書籍のEPUBファイルURLを取得する関数
 export function getBookFileUrl(bookId: string): string {
   return `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file`
@@ -212,7 +207,7 @@ export async function createBookInAPI(
     file_data: fileBase64,
     file_name: file.name,
     file_type: file.type,
-    user_id: 'tmp_user_id', // 実際のユーザーID管理に合わせて変更
+    user_id: 'test_user_id', // 実際のユーザーID管理に合わせて変更
     book_id: book.id,
     book_name: book.name,
     book_metadata: book.metadata ? JSON.stringify(book.metadata) : null,
@@ -315,7 +310,7 @@ export async function fetchBook(
 const indexEpub = async (file: File, bookId: string) => {
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('user_id', 'tmp_user_id')
+  formData.append('user_id', 'test_user_id')
   formData.append('book_id', bookId)
 
   try {

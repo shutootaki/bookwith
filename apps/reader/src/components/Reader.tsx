@@ -16,7 +16,6 @@ import { useSnapshot } from 'valtio'
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 import { navbarState } from '@flow/reader/state'
 
-import { db } from '../db'
 import { handleFiles } from '../file'
 import { useEventListener } from '../hooks'
 import {
@@ -159,7 +158,23 @@ function ReaderGroup({ index }: ReaderGroupProps) {
               const id = text
               const tabParam =
                 Object.values(pages).find((p) => p.displayName === id) ??
-                (await db?.books.get(id))
+                (await fetch(
+                  `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${id}`,
+                )
+                  .then((response) => {
+                    if (!response.ok) {
+                      throw new Error(
+                        `本の取得に失敗しました: ${response.status}`,
+                      )
+                    }
+                    return response.json()
+                  })
+                  .then((data) => {
+                    if (data.success && data.data) {
+                      return data.data
+                    }
+                    throw new Error('APIレスポンスの形式が正しくありません')
+                  }))
               if (tabParam) tabs.push(tabParam)
             }
           }

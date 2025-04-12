@@ -19,7 +19,6 @@ export PORT
 export DATABASE_URL
 export CLOUD_STORAGE_EMULATOR_HOST
 
-
 default: help
 
 help: ## Show this help message.
