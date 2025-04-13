@@ -23,7 +23,6 @@ const DefinitionPane: React.FC = () => {
   const { focusedBookTab } = useReaderSnapshot()
   const t = useTranslation('annotation')
 
-  // 定義リストを取得（存在しない場合は空配列を使用）
   const definitions = focusedBookTab?.book?.definitions || []
 
   return (
