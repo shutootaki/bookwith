@@ -111,7 +111,7 @@ export default function Index() {
 
 const Library: React.FC = () => {
   const { books, mutate: booksMutate } = useLibrary()
-  const { data: covers, mutate: coversMutate } = useRemoteCovers()
+  const { covers, mutate: coversMutate } = useRemoteCovers()
   const t = useTranslation('home')
 
   const [select, toggleSelect] = useBoolean(false)
