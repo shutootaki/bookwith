@@ -58,7 +58,7 @@ export interface CoversResponse {
 }
 
 export function useRemoteCovers() {
-  return useSWR<CoversResponse>(
+  const { data, mutate } = useSWR<CoversResponse>(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/covers`,
     async (url) => {
       const response = await fetch(url)
@@ -71,4 +71,8 @@ export function useRemoteCovers() {
       shouldRetryOnError: false,
     },
   )
+  return {
+    covers: data || [],
+    mutate,
+  }
 }
