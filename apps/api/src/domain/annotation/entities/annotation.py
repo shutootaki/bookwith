@@ -21,8 +21,8 @@ class Annotation:
         color: AnnotationColor | None = None,
         type: AnnotationType | None = None,
         spine: dict[str, Any] | None = None,
-        created_at: datetime = None,
-        updated_at: datetime = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
     ) -> None:
         self._id = id
         self._book_id = book_id
@@ -41,7 +41,6 @@ class Annotation:
             return self._id == obj._id
         return False
 
-    # プロパティ
     @property
     def id(self) -> AnnotationId:
         return self._id

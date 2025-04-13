@@ -7,13 +7,13 @@ from src.domain.book.entities.book import Book
 
 
 class BookCreateRequest(BaseModel):
-    user_id: str = Field(..., description="ユーザーID")
-    file_data: str = Field(..., description="Base64エンコードされたファイルデータ")
-    file_name: str = Field(..., description="ファイル名")
-    book_id: str | None = Field(None, description="書籍ID（指定がない場合は自動生成）")
-    book_name: str | None = Field(None, description="書籍名（指定がない場合はファイル名）")
-    cover_image: str | None = Field(None, description="Base64エンコードされたカバー画像データ")
-    book_metadata: str | None = Field(None, description="書籍のメタデータ（JSON文字列）")
+    user_id: str = Field(..., description="User ID")
+    file_data: str = Field(..., description="Base64 encoded file data")
+    file_name: str = Field(..., description="File name")
+    book_id: str | None = Field(None, description="Book ID (auto-generated if not specified)")
+    book_name: str | None = Field(None, description="Book name (file name is used if not specified)")
+    cover_image: str | None = Field(None, description="Base64 encoded cover image data")
+    book_metadata: str | None = Field(None, description="Book metadata (JSON string)")
 
 
 class AnnotationSchemaTmp(BaseModel):
@@ -41,14 +41,14 @@ class AnnotationSchemaTmp(BaseModel):
 
 
 class BookUpdateRequest(BaseModel):
-    name: str | None = Field(None, description="書籍名")
-    author: str | None = Field(None, description="著者名")
-    cfi: str | None = Field(None, description="現在の読書位置（CFI）")
-    percentage: float | None = Field(None, description="読書進捗率（%）")
-    annotations: list[AnnotationSchemaTmp] | None = Field(None, description="注釈情報")
-    book_metadata: dict[str, Any] | None = Field(None, description="書籍のメタデータ")
-    definitions: list[str] | None = Field(None, description="ユーザー定義情報")
-    configuration: dict[str, Any] | None = Field(None, description="書籍設定情報")
+    name: str | None = Field(None, description="Book name")
+    author: str | None = Field(None, description="Author name")
+    cfi: str | None = Field(None, description="Current reading position (CFI)")
+    percentage: float | None = Field(None, description="Reading progress percentage (%)")
+    annotations: list[AnnotationSchemaTmp] | None = Field(None, description="Annotation information")
+    book_metadata: dict[str, Any] | None = Field(None, description="Book metadata")
+    definitions: list[dict[str, Any]] | None = Field(None, description="User defined information")
+    configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
 
 
 class BookDetail(BaseModel):
@@ -101,10 +101,8 @@ class BulkDeleteResponse(BaseModel):
 def entity_to_detail(book: Book) -> BookDetail:
     return BookDetail(
         id=book.id.value,
-        user_id=book.user_id,
         name=book.title.value,
         author=book.author,
-        file_path=book.file_path,
         cover_path=book.cover_path,
         size=book.size,
         cfi=book.cfi,
@@ -114,6 +112,5 @@ def entity_to_detail(book: Book) -> BookDetail:
         configuration=book.configuration,
         created_at=book.created_at,
         updated_at=book.updated_at,
-        deleted_at=book.deleted_at,
         annotations=book.annotations,
     )

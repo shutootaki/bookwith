@@ -17,10 +17,6 @@ from src.infrastructure.database.models import TimestampMixin
 
 
 class AnnotationDTO(Base, TimestampMixin):
-    """アノテーション（注釈、ハイライト）モデル.
-    アノテーションデータとORM（SQLAlchemy）モデル間の変換を行うDTOクラス.
-    """
-
     class AnnotationTypeEnum(enum.Enum):
         highlight = "highlight"
 
@@ -47,5 +43,5 @@ class AnnotationDTO(Base, TimestampMixin):
     )
     spine = Column(JSON, nullable=True)
 
-    book = relationship("BookDTO", back_populates="annotations")
-    user = relationship("User", back_populates="annotations")
+    book = relationship("BookDTO", back_populates="annotations", uselist=False)
+    user = relationship("User", back_populates="annotations", uselist=False)

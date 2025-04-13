@@ -45,16 +45,16 @@ class BookDTO(Base, TimestampMixin):
     def to_entity(self) -> Book:
         book_id = BookId(self.id)
         book_title = BookTitle(self.name)
-        book_description = BookDescription(None)  # 現在のモデルでは説明フィールドがないため
+        book_description = BookDescription(None)  # No description field in current model
 
-        # ステータスの決定（現状のモデルにstatusフィールドがないため、完了日に基づいて設定）
+        # Determine status (based on percentage as there's no status field in current model)
         status = BookStatusEnum.NOT_STARTED
         if self.percentage > 0:
             status = BookStatusEnum.IN_PROGRESS
 
         book_status = BookStatus(status)
 
-        # アノテーションの変換
+        # Convert annotations
         annotations_data = []
         if self.annotations:
             for annotation in self.annotations:

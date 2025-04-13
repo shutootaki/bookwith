@@ -56,9 +56,11 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
             book._author = author
 
         if cfi is not None or percentage is not None:
-            current_cfi = cfi if cfi is not None else book.cfi
+            current_cfi = "" if book.cfi is None and cfi is None else cfi if cfi is not None else book.cfi
+
             current_percentage = percentage if percentage is not None else book.percentage
-            book.update_reading_progress(current_cfi, current_percentage)
+            if current_cfi is not None:
+                book.update_reading_progress(current_cfi, current_percentage)
 
         if book_metadata is not None:
             book._book_metadata = book_metadata

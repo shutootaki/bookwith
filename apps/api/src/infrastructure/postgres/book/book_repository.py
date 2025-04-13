@@ -13,7 +13,7 @@ class PostgresBookRepository(BookRepository):
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def save(self, book: Book) -> None:
+    def save(self, book: Book) -> None:  # noqa: C901
         try:
             existing_book = self._session.query(BookDTO).filter(BookDTO.id == book.id.value).first()
 
@@ -22,34 +22,26 @@ class PostgresBookRepository(BookRepository):
                 for key, value in orm_dict.items():
                     setattr(existing_book, key, value)
 
-                # アノテーションの更新処理
                 if hasattr(book, "_annotations") and book._annotations is not None:
-                    # 既存のアノテーションを取得
                     existing_annotations = self._session.query(AnnotationDTO).filter(AnnotationDTO.book_id == book.id.value).all()
                     existing_ids = {a.id for a in existing_annotations}
                     new_ids = {a.get("id") for a in book._annotations if a.get("id")}
 
-                    # 削除対象のアノテーションを削除
                     if existing_ids - new_ids:
                         self._session.query(AnnotationDTO).filter(AnnotationDTO.id.in_(existing_ids - new_ids)).delete(synchronize_session=False)
 
-                    # 更新対象のアノテーションを更新
                     to_update = [a for a in book._annotations if a.get("id") and a.get("id") in existing_ids]
                     for annotation in to_update:
                         self._session.query(AnnotationDTO).filter(AnnotationDTO.id == annotation.get("id")).update(annotation)
 
-                    # 新規作成対象のアノテーションを作成
                     to_create = [a for a in book._annotations if not (a.get("id") and a.get("id") in existing_ids)]
                     if to_create:
                         self._session.bulk_save_objects([AnnotationDTO(**a) for a in to_create])
             else:
                 book_orm = BookDTO.from_entity(book)
                 self._session.add(book_orm)
-
-                # 新規作成時にアノテーションも一緒に作成
                 if hasattr(book, "_annotations") and book._annotations is not None and book._annotations:
                     for annotation in book._annotations:
-                        # book_idが設定されていない場合は設定する
                         if "book_id" not in annotation:
                             annotation["book_id"] = book.id.value
                         self._session.add(AnnotationDTO(**annotation))
@@ -112,7 +104,6 @@ class PostgresBookRepository(BookRepository):
             now = datetime.now()
             id_values = [book_id.value for book_id in book_ids]
 
-            # 更新対象のレコード数を取得
             update_count = (
                 self._session.query(BookDTO)
                 .filter(BookDTO.id.in_(id_values), BookDTO.deleted_at == None)
@@ -122,9 +113,6 @@ class PostgresBookRepository(BookRepository):
                 )
             )
 
-            # 削除された書籍IDを特定（実際に更新されたIDを取得する方法は複雑になるため、
-            # ここではupdate_count > 0 かどうかで判断し、引数のIDリストを基に返す）
-            # 厳密に削除されたIDのみ返したい場合は、更新前にIDを取得するなどの工夫が必要
             deleted_ids = []
             if update_count > 0:
                 deleted_ids = [BookId(bid) for bid in id_values]

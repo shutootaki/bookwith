@@ -30,7 +30,7 @@ class TimestampMixin:
 
 
 class User(Base, TimestampMixin):
-    """ユーザーモデル"""
+    """User model"""
 
     __tablename__ = "users"
 
@@ -40,13 +40,13 @@ class User(Base, TimestampMixin):
     email = Column(String, unique=True, index=True)
     deleted_at = Column(DateTime, nullable=True)
 
-    books = relationship("BookDTO", back_populates="user", cascade="all, delete-orphan")
-    annotations = relationship("AnnotationDTO", back_populates="user", cascade="all, delete-orphan")
-    chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan")
+    books = relationship("BookDTO", back_populates="user", cascade="all, delete-orphan", uselist=True)
+    annotations = relationship("AnnotationDTO", back_populates="user", cascade="all, delete-orphan", uselist=True)
+    chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan", uselist=True)
 
 
 # class BookDTO(Base, TimestampMixin):
-#     """書籍モデル"""
+#     """Book model"""
 
 #     __tablename__ = "books"
 
@@ -73,15 +73,15 @@ class User(Base, TimestampMixin):
 
 
 # class Annotation(Base, TimestampMixin):
-#     """アノテーション（注釈、ハイライト）モデル"""
+#     """Annotation (notes, highlights) model"""
 
 #     class AnnotationTypeEnum(enum.Enum):
-#         """アノテーションタイプ列挙型"""
+#         """Annotation type enumeration"""
 
 #         highlight = "highlight"
 
 #     class AnnotationColorEnum(enum.Enum):
-#         """アノテーション色列挙型"""
+#         """Annotation color enumeration"""
 
 #         yellow = "yellow"
 #         red = "red"
@@ -110,7 +110,7 @@ class User(Base, TimestampMixin):
 
 
 class Chat(Base, TimestampMixin):
-    """チャットセッションモデル"""
+    """Chat session model"""
 
     __tablename__ = "chats"
 
@@ -120,18 +120,13 @@ class Chat(Base, TimestampMixin):
 
     title = Column(String(255), nullable=True, index=True)
 
-    user = relationship("User", back_populates="chats")
-    book = relationship("BookDTO", back_populates="chats")
-    messages = relationship(
-        "Message",
-        back_populates="chat",
-        cascade="all, delete-orphan",
-        order_by="Message.created_at",
-    )
+    user = relationship("User", back_populates="chats", uselist=False)
+    book = relationship("BookDTO", back_populates="chats", uselist=False)
+    messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan", order_by="Message.created_at", uselist=True)
 
 
 class Message(Base, TimestampMixin):
-    """チャットメッセージモデル"""
+    """Chat message model"""
 
     class SenderTypeEnum(enum.Enum):
         user = "user"
@@ -147,10 +142,5 @@ class Message(Base, TimestampMixin):
     related_message_id = Column(Integer, ForeignKey("messages.id"), nullable=True, index=True)
     is_active = Column(Boolean, default=True, nullable=False, index=True)
 
-    chat = relationship("Chat", back_populates="messages")
-    replaced_message = relationship(
-        "Message",
-        remote_side=[id],
-        backref="replacing_message",
-        foreign_keys=[related_message_id],
-    )
+    chat = relationship("Chat", back_populates="messages", uselist=False)
+    replaced_message = relationship("Message", remote_side=[id], backref="replacing_message", foreign_keys=[related_message_id], uselist=False)

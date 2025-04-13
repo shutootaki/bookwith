@@ -54,11 +54,11 @@ from src.usecase.book.find_books_usecase import (
 )
 from src.usecase.book.update_book_usecase import UpdateBookUseCase
 
-# ルーターの設定
+# Router configuration
 router = APIRouter(prefix="/books", tags=["book"])
 
 
-# エラーハンドリングのユーティリティ関数
+# Error handling utility function
 def handle_domain_exception(e: Exception) -> HTTPException:
     if isinstance(e, BookNotFoundException):
         return HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
@@ -177,19 +177,19 @@ async def get_book_cover(
         if not book.cover_path:
             raise HTTPException(status_code=404, detail=BOOK_COVER_NOT_FOUND)
 
-        # 所有権の検証
+        # Ownership verification
         if book.user_id != user_id:
-            raise BookPermissionDeniedException()
+            raise BookPermissionDeniedException
 
         gcs_client = GCSClient()
 
         if gcs_client.use_emulator:
-            # エミュレーター環境では直接URLを返す
+            # Return direct URL in emulator environment
             return JSONResponse(content={"cover_path": book.cover_path})
-        # 本番環境では署名付きURLを生成
+        # Generate signed URL in production environment
         path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
-        # 署名付きURLを生成
+        # Generate signed URL
         bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
         blob = bucket.blob(path)
         signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
@@ -217,11 +217,11 @@ async def get_book_file(
         book = find_book_by_id_usecase.execute(book_id)
 
         if not book.file_path:
-            raise BookFileNotFoundException()
+            raise BookFileNotFoundException
 
-        # 所有権の検証
+        # Ownership verification
         if book.user_id != user_id:
-            raise BookPermissionDeniedException()
+            raise BookPermissionDeniedException
 
         gcs_client = GCSClient()
 
@@ -229,7 +229,7 @@ async def get_book_file(
             return BookFileResponse(success=True, url=book.file_path)
         path = book.file_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
-        # 署名付きURLを生成
+        # Generate signed URL
         bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
         blob = bucket.blob(path)
         signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
@@ -255,7 +255,6 @@ async def post_book(
     create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
 ):
     try:
-        print(f"post_book: {body}")
         book = create_book_usecase.execute(
             user_id=body.user_id,
             file_name=body.file_name,
@@ -268,7 +267,7 @@ async def post_book(
         return BookResponse(
             success=True,
             data=entity_to_detail(book),
-            message="書籍が正常に追加されました",
+            message="Book successfully added",
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -301,7 +300,7 @@ async def put_book(
         return BookResponse(
             success=True,
             data=entity_to_detail(book),
-            message="書籍が正常に更新されました",
+            message="Book successfully updated",
         )
     except BookNotFoundException:
         raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
@@ -324,7 +323,7 @@ async def delete_book(
         return JSONResponse(
             content={
                 "success": True,
-                "message": "書籍が正常に削除されました",
+                "message": "Book successfully deleted",
             }
         )
     except BookNotFoundException:

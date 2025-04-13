@@ -28,12 +28,12 @@ class Book:
         book_metadata: dict[str, Any] | None = None,
         definitions: list[dict[str, Any]] | None = None,
         configuration: dict[str, Any] | None = None,
-        created_at: datetime = datetime.now(),
-        updated_at: datetime = datetime.now(),
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
         completed_at: datetime | None = None,
         deleted_at: datetime | None = None,
         annotations: list[dict[str, Any]] | None = None,
-    ):
+    ) -> None:
         self._id = id
         self._title = title
         self._description = description
@@ -48,8 +48,8 @@ class Book:
         self._book_metadata = book_metadata or {}
         self._definitions = definitions or []
         self._configuration = configuration or {}
-        self._created_at = created_at
-        self._updated_at = updated_at
+        self._created_at = created_at if created_at is not None else datetime.now()
+        self._updated_at = updated_at if updated_at is not None else datetime.now()
         self._completed_at = completed_at
         self._deleted_at = deleted_at
         self._annotations = annotations or []
