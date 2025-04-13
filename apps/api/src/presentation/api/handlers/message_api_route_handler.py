@@ -63,7 +63,7 @@ async def get_all_messages(
     }
 
 
-@router.get("/chat/{chat_id}", response_model=MessageListResponse)
+@router.get("/{chat_id}", response_model=MessageListResponse)
 async def get_messages_by_chat_id(
     chat_id: str = Path(..., description="メッセージを検索するチャットID"),
     db: Session = Depends(get_db),

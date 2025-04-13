@@ -16,6 +16,7 @@ interface ChatPaneProps {
   setText: React.Dispatch<React.SetStateAction<string>>
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  chatId?: string | null
 }
 
 export const ChatPane: React.FC<ChatPaneProps> = ({
@@ -25,6 +26,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   setText,
   isLoading,
   setIsLoading,
+  chatId,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const t = useTranslation()
@@ -56,7 +58,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             content: text,
-            chat_id: uuidv4(),
+            chat_id: chatId || uuidv4(),
             sender_id: TEST_USER_ID,
             book_id: focusedBookTab?.book.id,
             tenant_id: focusedBookTab?.book?.tenant_id ?? undefined,

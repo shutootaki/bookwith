@@ -26,7 +26,7 @@ class ChatRepository(ABC):
         """本IDに紐づくChatをすべて取得する"""
 
     @abstractmethod
-    def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> Chat | None:
+    def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> list[Chat]:
         """ユーザーIDと本IDに紐づくChatを検索する"""
 
     @abstractmethod

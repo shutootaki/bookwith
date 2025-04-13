@@ -43,9 +43,9 @@ class ChatRepositoryImpl(ChatRepository):
         chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.book_id == book_id.value).all()
         return [dto.to_entity() for dto in chat_dtos]
 
-    def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> Chat | None:
-        chat_dto = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value, ChatDTO.book_id == book_id.value).first()
-        return chat_dto.to_entity() if chat_dto else None
+    def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> list[Chat]:
+        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value, ChatDTO.book_id == book_id.value).all()
+        return [dto.to_entity() for dto in chat_dtos]
 
     def delete(self, chat_id: ChatId) -> None:
         try:

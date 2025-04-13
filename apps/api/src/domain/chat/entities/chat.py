@@ -11,7 +11,7 @@ class Chat:
         self,
         id: ChatId,
         user_id: UserId,
-        title: ChatTitle | None = None,
+        title: ChatTitle,
         book_id: BookId | None = None,
         created_at: datetime | None = None,
         updated_at: datetime | None = None,
@@ -34,7 +34,7 @@ class Chat:
         return self._user_id
 
     @property
-    def title(self) -> ChatTitle | None:
+    def title(self) -> ChatTitle:
         return self._title
 
     @property
@@ -67,7 +67,7 @@ class Chat:
         self._updated_at = datetime.now()
 
     @classmethod
-    def create(cls, user_id: UserId, title: ChatTitle | None = None, book_id: BookId | None = None) -> "Chat":
+    def create(cls, user_id: UserId, title: ChatTitle, book_id: BookId | None = None) -> "Chat":
         from uuid import uuid4
 
         return cls(

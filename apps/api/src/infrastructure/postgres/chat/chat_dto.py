@@ -22,7 +22,7 @@ class ChatDTO(Base, TimestampMixin):
     user_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
     book_id = Column(String, ForeignKey("books.id"), index=True, nullable=True)
 
-    title = Column(String(255), nullable=True, index=True)
+    title = Column(String(255), index=True)
     deleted_at = Column(DateTime, nullable=True)
 
     user = relationship("UserDTO", back_populates="chats", uselist=False)
@@ -33,7 +33,7 @@ class ChatDTO(Base, TimestampMixin):
         return Chat(
             id=ChatId(value=self.id),
             user_id=UserId(value=self.user_id),
-            title=ChatTitle(value=self.title) if self.title else None,
+            title=ChatTitle(value=self.title),
             book_id=BookId(value=self.book_id) if self.book_id else None,
             created_at=self.created_at,
             updated_at=self.updated_at,
@@ -45,7 +45,7 @@ class ChatDTO(Base, TimestampMixin):
         return ChatDTO(
             id=chat.id.value,
             user_id=chat.user_id.value,
-            title=chat.title.value if chat.title else None,
+            title=chat.title.value,
             book_id=chat.book_id.value if chat.book_id else None,
             created_at=chat.created_at,
             updated_at=chat.updated_at,

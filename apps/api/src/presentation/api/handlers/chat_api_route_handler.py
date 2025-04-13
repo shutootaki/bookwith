@@ -13,6 +13,7 @@ from src.infrastructure.di.injection import (
     get_create_chat_usecase,
     get_delete_chat_usecase,
     get_find_chat_by_id_usecase,
+    get_find_chats_by_user_id_and_book_id_usecase,
     get_find_chats_by_user_id_usecase,
     get_update_chat_title_usecase,
 )
@@ -25,6 +26,7 @@ from src.presentation.api.schemas.chat_schema import (
 from src.usecase.chat.create_chat_usecase import CreateChatUseCase
 from src.usecase.chat.delete_chat_usecase import DeleteChatUseCase
 from src.usecase.chat.find_chat_by_id_usecase import FindChatByIdUseCase
+from src.usecase.chat.find_chats_by_user_id_and_book_id_usecase import FindChatsByUserIdAndBookIdUseCase
 from src.usecase.chat.find_chats_by_user_id_usecase import FindChatsByUserIdUseCase
 from src.usecase.chat.update_chat_title_usecase import UpdateChatTitleUseCase
 
@@ -109,6 +111,33 @@ async def get_chats_by_user_id(
     try:
         chats = find_chats_by_user_id_usecase.execute(UserId(value=user_id))
 
+        return [
+            ChatResponse(
+                id=chat.id.value,
+                user_id=chat.user_id.value,
+                title=chat.title.value if chat.title else None,
+                book_id=chat.book_id.value if chat.book_id else None,
+                created_at=chat.created_at,
+                updated_at=chat.updated_at,
+            )
+            for chat in chats
+        ]
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ChatErrorMessage.USER_ID_INVALID,
+        )
+
+
+@router.get("/user/{user_id}/book/{book_id}", response_model=list[ChatResponse])
+async def get_chats_by_user_id_and_book_id(
+    user_id: str,
+    book_id: str,
+    find_chats_by_user_id_and_book_id_usecase: FindChatsByUserIdAndBookIdUseCase = Depends(get_find_chats_by_user_id_and_book_id_usecase),
+):
+    """ユーザーIDと本IDに紐づくチャットをすべて取得する"""
+    try:
+        chats = find_chats_by_user_id_and_book_id_usecase.execute(UserId(value=user_id), BookId(value=book_id))
         return [
             ChatResponse(
                 id=chat.id.value,

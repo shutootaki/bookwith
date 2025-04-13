@@ -2,11 +2,13 @@ from typing import TYPE_CHECKING, Any
 
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
+from src.domain.chat.value_objects.chat_title import ChatTitle
 from src.infrastructure.prompts import rag_prompt
 from src.infrastructure.vector import get_vector_store
 
@@ -62,7 +64,8 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
         if chat is None:
-            new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), book_id=BookId(book_id) if book_id else None)
+            chat_title = self._get_chat_title(content)
+            new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), title=ChatTitle(chat_title), book_id=BookId(book_id) if book_id else None)
             self.chat_repository.save(new_chat)
 
         message_content = MessageContent(content)
@@ -120,3 +123,19 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
 
         return chain.invoke(question)
+
+    def _get_chat_title(self, question: str) -> str:
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """You are the chat title generation AI.
+Based on the user's initial question, generate a concise and precise chat title.
+The title should be no longer than 30 characters.
+It should be in a format that summarises the content of the question.""",
+                ),
+                ("human", "{question}"),
+            ]
+        )
+
+        return (prompt | ChatOpenAI(name="gpt-4o-mini") | StrOutputParser()).invoke({"question": question})

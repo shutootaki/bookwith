@@ -16,7 +16,7 @@ class ChatUpdateTitleRequest(BaseModel):
 class ChatResponse(BaseModel):
     id: str = Field(..., description="チャットID")
     user_id: str = Field(..., description="ユーザーID")
-    title: str | None = Field(None, description="チャットのタイトル")
+    title: str = Field(..., description="チャットのタイトル")
     book_id: str | None = Field(None, description="関連する本のID")
     created_at: datetime = Field(..., description="作成日時")
     updated_at: datetime = Field(..., description="更新日時")
