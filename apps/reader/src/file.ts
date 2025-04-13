@@ -4,10 +4,10 @@ export {
   fetchAllBooks,
   fetchBookById,
   getBookFile,
-  createBookInAPI,
+  createBook,
   deleteBooksFromAPI,
 } from './bookApi'
 
-export { addBook, fetchBook, handleFiles } from './importHandlers'
+export { fetchBook, handleFiles } from './importHandlers'
 
 export { readBlob, toDataUrl, fileToBase64 } from './fileUtils'

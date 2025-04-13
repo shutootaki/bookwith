@@ -8,12 +8,12 @@ import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
-import { BookRecord } from '../db'
 import { fileToEpub, getBookFile } from '../file'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
 import { dfs, find, INode } from './tree'
+import { BookDetail } from '../hooks'
 
 function updateIndex(array: any[], deletedItemIndex: number) {
   const last = array.length - 1
@@ -120,7 +120,7 @@ export class BookTab extends BaseTab {
     this.rendition?.next()
   }
 
-  updateBook(changes: Partial<BookRecord>) {
+  updateBook(changes: Partial<BookDetail>) {
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
@@ -446,7 +446,7 @@ export class BookTab extends BaseTab {
     })
   }
 
-  constructor(public book: BookRecord) {
+  constructor(public book: BookDetail) {
     super(book.id, book.name)
 
     // don't subscribe `db.books` in `constructor`, it will

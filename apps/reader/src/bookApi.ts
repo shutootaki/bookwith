@@ -1,8 +1,8 @@
-import { BookRecord } from './db'
 import { fileToBase64 } from './fileUtils'
+import { BookDetail } from './hooks/useLibrary'
 import { TEST_USER_ID } from './pages/_app'
 
-export async function fetchAllBooks(): Promise<BookRecord[]> {
+export async function fetchAllBooks(): Promise<BookDetail[]> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
@@ -41,7 +41,7 @@ export async function fetchAllBooks(): Promise<BookRecord[]> {
 
 export async function fetchBookById(
   bookId: string,
-): Promise<BookRecord | null> {
+): Promise<BookDetail | null> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}`,
@@ -123,11 +123,11 @@ export const getBookFile = async (
   }
 }
 
-export async function createBookInAPI(
+export async function createBook(
   file: File,
-  book: BookRecord,
+  book: BookDetail,
   coverDataUrl: string | null = null,
-): Promise<BookRecord | null> {
+): Promise<BookDetail | null> {
   const fileBase64 = await fileToBase64(file)
 
   const requestData = {
@@ -175,6 +175,7 @@ export async function createBookInAPI(
         annotations: responseData.data.annotations || [],
         configuration: responseData.data.configuration,
         hasCover: !!responseData.data.cover_path,
+        tenant_id: responseData.data.tenant_id,
       }
     }
     return null

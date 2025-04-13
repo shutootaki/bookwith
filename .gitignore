@@ -46,7 +46,7 @@ tmp-worktree/
 .cursor
 
 # roo
-# .roo
+.roo
 
 # repomix
 repomix-output.xml

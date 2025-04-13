@@ -1,15 +1,13 @@
 import ePub from '@flow/epubjs'
-import { TEST_USER_ID } from './pages/_app'
 export async function fileToEpub(file: File) {
   const data = await file.arrayBuffer()
   return ePub(data)
 }
 
-export const indexEpub = async (file: File, bookId: string) => {
+export const indexEpub = async (file: File, tenantId: string) => {
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('user_id', TEST_USER_ID)
-  formData.append('book_id', bookId)
+  formData.append('tenant_id', tenantId)
 
   try {
     await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {

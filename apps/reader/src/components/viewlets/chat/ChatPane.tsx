@@ -30,6 +30,8 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
 
+  console.log({ tenant_id: focusedBookTab?.book?.tenant_id })
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
@@ -57,9 +59,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
             chat_id: uuidv4(),
             sender_id: TEST_USER_ID,
             book_id: focusedBookTab?.book.id,
-            tenant_id: focusedBookTab
-              ? `tenant_${focusedBookTab.book.id}`
-              : undefined,
+            tenant_id: focusedBookTab?.book?.tenant_id ?? undefined,
             metadata: {},
           }),
         },

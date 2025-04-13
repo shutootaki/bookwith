@@ -102,7 +102,22 @@ def entity_to_detail(book: Book) -> BookDetail:
         book_metadata=book.book_metadata,
         definitions=book.definitions,
         configuration=book.configuration,
+        tenant_id=book.tenant_id.value if book.tenant_id else None,
         created_at=book.created_at,
         updated_at=book.updated_at,
         annotations=book.annotations,
     )
+
+
+class RagProcessResponse(BaseModel):
+    class RagChunk(BaseModel):
+        text: str
+        metadata: dict[str, Any] = Field(default_factory=dict)
+
+    success: bool
+    message: str | None = None
+    file_name: str
+    chunk_count: int
+    tenant_id: str | None = None
+    index_name: str | None = None
+    chunks: list[RagChunk] | None = None

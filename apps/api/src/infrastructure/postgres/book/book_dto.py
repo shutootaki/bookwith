@@ -17,6 +17,7 @@ from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_status import BookStatus, BookStatusEnum
 from src.domain.book.value_objects.book_title import BookTitle
+from src.domain.book.value_objects.tennant_id import TenantId
 from src.infrastructure.postgres.db_util import TimestampMixin
 
 
@@ -47,6 +48,7 @@ class BookDTO(Base, TimestampMixin):
         book_id = BookId(self.id)
         book_title = BookTitle(self.name)
         book_description = BookDescription(None)  # No description field in current model
+        tenant_id = TenantId(self.tenant_id) if self.tenant_id else None
 
         # Determine status (based on percentage as there's no status field in current model)
         status = BookStatusEnum.NOT_STARTED
@@ -82,7 +84,7 @@ class BookDTO(Base, TimestampMixin):
             file_path=self.file_path,
             description=book_description,
             status=book_status,
-            tenant_id=self.tenant_id,
+            tenant_id=tenant_id,
             author=self.author,
             cover_path=self.cover_path,
             size=self.size,
@@ -102,7 +104,7 @@ class BookDTO(Base, TimestampMixin):
         return {
             "id": book.id.value,
             "user_id": book.user_id,
-            "tenant_id": book.tenant_id,
+            "tenant_id": book.tenant_id.value if book.tenant_id else None,
             "name": book.title.value,
             "author": book.author,
             "file_path": book.file_path,
@@ -123,7 +125,7 @@ class BookDTO(Base, TimestampMixin):
         return BookDTO(
             id=book.id.value,
             user_id=book.user_id,
-            tenant_id=book.tenant_id,
+            tenant_id=book.tenant_id.value if book.tenant_id else None,
             name=book.title.value,
             author=book.author,
             file_path=book.file_path,

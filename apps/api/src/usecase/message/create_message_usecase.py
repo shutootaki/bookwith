@@ -95,7 +95,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         def _format_documents_as_string(documents: list[Document]) -> str:
             return "\n\n".join(doc.page_content for doc in documents)
 
-        model = ChatOpenAI(model="gpt-4o-mini")
+        model = ChatOpenAI(name="gpt-4o-mini")
 
         vector_store = get_vector_store("BookContentIndex")
         if tenant_id is None:
