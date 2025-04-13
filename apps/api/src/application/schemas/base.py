@@ -8,32 +8,6 @@ class BaseResponse(BaseModel):
     message: str | None = None
 
 
-class ErrorDetail(BaseModel):
-    loc: list[str | int] | None = None
-    msg: str
-    type: str
-
-
-class ErrorResponse(BaseModel):
-    success: bool = False
-    detail: str
-    status_code: int
-    errors: list[ErrorDetail] | None = None
-
-
-class RootResponse(BaseResponse):
-    message: str = "BookWith FastAPI Server"
-
-
-class Question(BaseModel):
-    question: str
-    tenant_id: str | None = None
-
-
-class Answer(BaseModel):
-    answer: str
-
-
 class RagUploadRequest(BaseModel):
     file: Any = Field(..., description="アップロードするEPUBファイル")
     user_id: str = Field(..., description="ユーザーID (テナント分離に使用)")

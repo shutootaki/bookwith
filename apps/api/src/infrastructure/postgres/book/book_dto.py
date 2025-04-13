@@ -17,7 +17,7 @@ from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_status import BookStatus, BookStatusEnum
 from src.domain.book.value_objects.book_title import BookTitle
-from src.infrastructure.database.models import TimestampMixin
+from src.infrastructure.postgres.db_util import TimestampMixin
 
 
 class BookDTO(Base, TimestampMixin):
@@ -38,9 +38,9 @@ class BookDTO(Base, TimestampMixin):
     configuration = Column(JSON, nullable=True)
     deleted_at = Column(DateTime, nullable=True)
 
-    user = relationship("User", back_populates="books")
+    user = relationship("UserDTO", back_populates="books")
     annotations = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
-    chats = relationship("Chat", back_populates="book", cascade="all, delete-orphan")
+    chats = relationship("ChatDTO", back_populates="book", cascade="all, delete-orphan")
 
     def to_entity(self) -> Book:
         book_id = BookId(self.id)

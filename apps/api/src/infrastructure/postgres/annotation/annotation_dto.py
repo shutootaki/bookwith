@@ -7,13 +7,11 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy import (
-    Enum as SQLAlchemyEnum,
-)
+from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
 
 from src.db import Base
-from src.infrastructure.database.models import TimestampMixin
+from src.infrastructure.postgres.db_util import TimestampMixin
 
 
 class AnnotationDTO(Base, TimestampMixin):
@@ -44,4 +42,4 @@ class AnnotationDTO(Base, TimestampMixin):
     spine = Column(JSON, nullable=True)
 
     book = relationship("BookDTO", back_populates="annotations", uselist=False)
-    user = relationship("User", back_populates="annotations", uselist=False)
+    user = relationship("UserDTO", back_populates="annotations", uselist=False)
