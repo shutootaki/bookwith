@@ -9,7 +9,9 @@ def seed_data():
     session = SessionLocal()
     try:
         # シードデータの作成例
-        seed_items = [User(id="1", username="testuser", email="example@example.com")]
+        seed_items = [
+            User(id="test_user_id", username="testuser", email="example@example.com")
+        ]
 
         # 複数のシードデータを一括で追加
         session.add_all(seed_items)

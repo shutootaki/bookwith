@@ -1,4 +1,3 @@
-# from src.api.routes import setup_routes # 削除
-from src.presentation.api.routes import setup_routes  # 追加
+from src.presentation.api.routes import setup_routes
 
 __all__ = ["setup_routes"]

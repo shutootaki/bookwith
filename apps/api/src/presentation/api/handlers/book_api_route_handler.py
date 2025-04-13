@@ -1,0 +1,379 @@
+"""
+書籍APIエンドポイントのハンドラ
+クライアントリクエストを受け取り、ユースケースを呼び出して結果を返す
+"""
+
+from typing import List
+
+from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi.responses import JSONResponse
+
+from src.domain.book.exceptions.book_exceptions import (
+    BookAlreadyCompletedException,
+    BookAlreadyStartedException,
+    BookDomainException,
+    BookFileNotFoundException,
+    BookNotFoundException,
+    BookPermissionDeniedException,
+)
+from src.infrastructure.di.injection import (
+    get_bulk_delete_books_usecase,
+    get_create_book_usecase,
+    get_delete_book_usecase,
+    get_find_book_by_id_usecase,
+    get_find_books_by_user_id_usecase,
+    get_find_books_usecase,
+    get_update_book_usecase,
+)
+from src.infrastructure.external.gcs import GCSClient
+from src.presentation.api.error_messages.book_error_message import (
+    BOOK_ACCESS_DENIED,
+    BOOK_ALREADY_COMPLETED,
+    BOOK_ALREADY_STARTED,
+    BOOK_BULK_DELETE_ERROR,
+    BOOK_COVER_FETCH_ERROR,
+    BOOK_COVER_NOT_FOUND,
+    BOOK_CREATE_ERROR,
+    BOOK_DELETE_ERROR,
+    BOOK_FILE_NOT_FOUND,
+    BOOK_NOT_FOUND,
+    BOOK_UPDATE_ERROR,
+    SIGNED_URL_GENERATION_ERROR,
+)
+from src.presentation.api.schemas.book_schema import (
+    BookCreateRequest,
+    BookFileResponse,
+    BookResponse,
+    BooksResponse,
+    BookUpdateRequest,
+    BulkDeleteResponse,
+    entity_to_detail,
+)
+from src.usecase.book.create_book_usecase import CreateBookUseCase
+from src.usecase.book.delete_book_usecase import (
+    BulkDeleteBooksUseCase,
+    DeleteBookUseCase,
+)
+from src.usecase.book.find_book_by_id_usecase import FindBookByIdUseCase
+from src.usecase.book.find_books_usecase import (
+    FindBooksByUserIdUseCase,
+    FindBooksUseCase,
+)
+from src.usecase.book.update_book_usecase import UpdateBookUseCase
+
+# ルーターの設定
+router = APIRouter(prefix="/books", tags=["book"])
+
+
+# エラーハンドリングのユーティリティ関数
+def handle_domain_exception(e: Exception) -> HTTPException:
+    """ドメイン例外をHTTPExceptionに変換する"""
+    if isinstance(e, BookNotFoundException):
+        return HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+    elif isinstance(e, BookPermissionDeniedException):
+        return HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
+    elif isinstance(e, BookFileNotFoundException):
+        return HTTPException(status_code=404, detail=BOOK_FILE_NOT_FOUND)
+    elif isinstance(e, BookAlreadyStartedException):
+        return HTTPException(status_code=400, detail=BOOK_ALREADY_STARTED)
+    elif isinstance(e, BookAlreadyCompletedException):
+        return HTTPException(status_code=400, detail=BOOK_ALREADY_COMPLETED)
+    elif isinstance(e, BookDomainException):
+        return HTTPException(status_code=400, detail=str(e))
+    else:
+        return HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("", response_model=BooksResponse)
+async def get_books(
+    find_books_usecase: FindBooksUseCase = Depends(get_find_books_usecase),
+):
+    """全ての書籍を取得するエンドポイント"""
+    try:
+        books = find_books_usecase.execute()
+        book_details = [entity_to_detail(book) for book in books]
+        return BooksResponse(success=True, data=book_details, count=len(book_details))
+    except Exception as e:
+        raise handle_domain_exception(e)
+
+
+@router.get("/user/{user_id}", response_model=BooksResponse)
+async def get_books_by_user(
+    user_id: str,
+    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(
+        get_find_books_by_user_id_usecase
+    ),
+):
+    """特定ユーザーの全ての書籍を取得するエンドポイント"""
+    try:
+        books = find_books_by_user_id_usecase.execute(user_id)
+        book_details = [entity_to_detail(book) for book in books]
+        return BooksResponse(success=True, data=book_details, count=len(book_details))
+    except Exception as e:
+        raise handle_domain_exception(e)
+
+
+@router.get("/covers")
+async def get_covers(
+    user_id: str = "test_user_id",
+    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(
+        get_find_books_by_user_id_usecase
+    ),
+):
+    """ユーザーが所有するすべての書籍のカバー画像を取得するエンドポイント"""
+    try:
+        books = find_books_by_user_id_usecase.execute(user_id)
+        gcs_client = GCSClient()
+
+        result = {"success": True, "data": []}
+
+        for book in books:
+            if not book.cover_path:
+                continue
+
+            path = book.cover_path.replace(
+                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+            )
+
+            # 署名付きURLを生成
+            bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+            blob = bucket.blob(path)
+            cover_url = (
+                blob.generate_signed_url(version="v4", expiration=3600, method="GET")
+                if not gcs_client.use_emulator
+                else book.cover_path
+            )
+
+            result["data"].append(
+                {
+                    "book_id": book.id.value,
+                    "name": book.title.value,
+                    "cover_url": cover_url,
+                }
+            )
+
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_COVER_FETCH_ERROR.format(error=str(e)),
+        )
+
+
+@router.delete("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_books_endpoint(
+    book_ids: List[str] = Body(..., embed=True),
+    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(
+        get_bulk_delete_books_usecase
+    ),
+):
+    """複数の書籍を一括削除するエンドポイント"""
+    try:
+        deleted_ids = bulk_delete_books_usecase.execute(book_ids)
+        return BulkDeleteResponse(
+            success=True, deletedIds=deleted_ids, count=len(deleted_ids)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_BULK_DELETE_ERROR.format(error=str(e)),
+        )
+
+
+@router.get("/{book_id}", response_model=BookResponse)
+async def get_book(
+    book_id: str,
+    find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
+):
+    """特定の書籍を取得するエンドポイント"""
+    try:
+        book = find_book_by_id_usecase.execute(book_id)
+        return BookResponse(success=True, data=entity_to_detail(book))
+    except Exception as e:
+        raise handle_domain_exception(e)
+
+
+@router.get("/{book_id}/cover")
+async def get_book_cover(
+    book_id: str,
+    user_id: str,
+    find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
+):
+    """書籍のカバー画像を取得するエンドポイント（署名付きURL）"""
+    try:
+        book = find_book_by_id_usecase.execute(book_id)
+
+        if not book.cover_path:
+            raise HTTPException(status_code=404, detail=BOOK_COVER_NOT_FOUND)
+
+        # 所有権の検証
+        if book.user_id != user_id:
+            raise BookPermissionDeniedException()
+
+        gcs_client = GCSClient()
+
+        if gcs_client.use_emulator:
+            # エミュレーター環境では直接URLを返す
+            return JSONResponse(content={"cover_path": book.cover_path})
+        else:
+            # 本番環境では署名付きURLを生成
+            path = book.cover_path.replace(
+                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+            )
+
+            # 署名付きURLを生成
+            bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+            blob = bucket.blob(path)
+            signed_url = blob.generate_signed_url(
+                version="v4", expiration=3600, method="GET"
+            )
+
+            return JSONResponse(content={"cover_path": signed_url})
+
+    except BookPermissionDeniedException:
+        raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
+    except BookNotFoundException:
+        raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
+        )
+
+
+@router.get("/{book_id}/file", response_model=BookFileResponse)
+async def get_book_file(
+    book_id: str,
+    user_id: str,
+    find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
+):
+    """書籍のEPUBファイルを取得するエンドポイント（署名付きURL）"""
+    try:
+        book = find_book_by_id_usecase.execute(book_id)
+
+        if not book.file_path:
+            raise BookFileNotFoundException()
+
+        # 所有権の検証
+        if book.user_id != user_id:
+            raise BookPermissionDeniedException()
+
+        gcs_client = GCSClient()
+
+        if gcs_client.use_emulator:
+            return BookFileResponse(success=True, url=book.file_path)
+        else:
+            path = book.file_path.replace(
+                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
+            )
+
+            # 署名付きURLを生成
+            bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+            blob = bucket.blob(path)
+            signed_url = blob.generate_signed_url(
+                version="v4", expiration=3600, method="GET"
+            )
+
+            return BookFileResponse(success=True, url=signed_url)
+
+    except BookFileNotFoundException:
+        raise HTTPException(status_code=404, detail=BOOK_FILE_NOT_FOUND)
+    except BookPermissionDeniedException:
+        raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
+    except BookNotFoundException:
+        raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
+        )
+
+
+@router.post("", response_model=BookResponse)
+async def post_book(
+    body: BookCreateRequest,
+    create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
+):
+    """新しい書籍を作成するエンドポイント"""
+    try:
+        print(f"post_book: {body}")
+        book = create_book_usecase.execute(
+            user_id=body.user_id,
+            file_name=body.file_name,
+            file_data=body.file_data,
+            book_name=body.book_name,
+            cover_image=body.cover_image,
+            book_metadata=body.book_metadata,
+        )
+
+        return BookResponse(
+            success=True,
+            data=entity_to_detail(book),
+            message="書籍が正常に追加されました",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_CREATE_ERROR.format(error=str(e)),
+        )
+
+
+@router.put("/{book_id}")
+async def put_book(
+    book_id: str,
+    changes: BookUpdateRequest,
+    update_book_usecase: UpdateBookUseCase = Depends(get_update_book_usecase),
+):
+    """書籍情報を更新するエンドポイント"""
+    try:
+        book = update_book_usecase.execute(
+            book_id=book_id,
+            name=changes.name,
+            author=changes.author,
+            cfi=changes.cfi,
+            percentage=changes.percentage,
+            annotations=changes.annotations,
+            book_metadata=changes.book_metadata,
+            definitions=changes.definitions,
+            configuration=changes.configuration,
+        )
+
+        return BookResponse(
+            success=True,
+            data=entity_to_detail(book),
+            message="書籍が正常に更新されました",
+        )
+    except BookNotFoundException:
+        raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_UPDATE_ERROR.format(error=str(e)),
+        )
+
+
+@router.delete("/{book_id}")
+async def delete_book(
+    book_id: str,
+    delete_book_usecase: DeleteBookUseCase = Depends(get_delete_book_usecase),
+):
+    """書籍を削除するエンドポイント"""
+    try:
+        delete_book_usecase.execute(book_id)
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": "書籍が正常に削除されました",
+            }
+        )
+    except BookNotFoundException:
+        raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_DELETE_ERROR.format(error=str(e)),
+        )

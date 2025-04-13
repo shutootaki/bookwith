@@ -1,7 +1,10 @@
 import logging
+from collections.abc import Generator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+
 from src.application.error_handlers import setup_exception_handlers
 from src.db import get_db, init_db
 from src.presentation.api import setup_routes
@@ -25,10 +28,8 @@ app.add_middleware(
 )
 
 
-# データベースの初期化
 @app.on_event("startup")
-async def startup_db_client():
-    """アプリケーション起動時にデータベースを初期化します"""
+async def startup_db_client() -> None:
     try:
         init_db()
         logging.info("データベース接続が確立されました")
@@ -37,13 +38,11 @@ async def startup_db_client():
 
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    """アプリケーション終了時の処理"""
+async def shutdown_db_client() -> None:
     logging.info("データベース接続を閉じています")
 
 
-# DBセッションの依存関係
-def get_db_session():
+def get_db_session() -> Generator[Session]:
     with get_db() as session:
         yield session
 

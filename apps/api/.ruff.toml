@@ -1,0 +1,125 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  "tmp",
+  "protobuf",
+]
+
+# Same as Black.
+line-length = 150
+indent-width = 4
+
+# Assume Python 3.13
+target-version = "py313"
+
+[lint]
+select = [
+  "ANN",    # flake8-annotations
+  "ASYNC",  # flake8-async
+  "B",      # flake8-bugbear
+  "C",      # flake8-comprehensions
+  "D",      # pydocstyle
+  "E",      # pycodestyle errors
+  "F",      # pyflakes
+  "I",      # isort
+  "INP",    # flake8-no-pep420
+  "N",      # pep8-naming
+  "PIE",    # flake8-pie
+  "PT",     # flake8-pytest-style
+  "RET",    # flake8-return
+  "RSE",    # flake8-raise
+  "SIM",    # flake8-simplify
+  "SLF",    # flake8-self
+  "T",      # Type Checking
+  "TC",     # flake8-type-checking
+  "UP",     # pyupgrade
+  "W",      # pycodestyle warnings
+  "RUF100", # unused-noqa
+]
+ignore = [
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104", # Missing docstring in public package
+  "D105", # Missing docstring in magic mthod
+  "D106",
+  "D107",
+  "D203",
+  "D205", # Conflicts with multiline comments on methods
+  "D211",
+  "D213",
+  "E711",
+  # "D400",
+  # "D407",
+  # "D415",
+  # "D417",
+  # "E402",
+  # "E501",
+  # "E721",
+  # "E722",
+  # "F722",
+  # "N811",
+  # "PIE794",
+  # "PT011",
+  # "PT012",
+  # "RET505",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+flake8-bugbear.extend-immutable-calls = [
+  "fastapi.Depends",
+  "fastapi.Security",
+  "fastapi.Query",
+  "fastapi.Cookie",
+  "fastapi.security.HTTPBearer",
+  "fastapi.security.OAuth2AuthorizationCodeBearer",
+]
+
+pep8-naming.classmethod-decorators = [
+  "pydantic.validator",
+  "sqlalchemy.ext.declarative.declared_attr",
+]
+
+# Enable stricter type checks (Ruff + MyPy integration)
+[lint.flake8-type-checking]
+strict = true
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

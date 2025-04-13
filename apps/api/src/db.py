@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+
 from src.config.app_config import AppConfig
 
 # 設定の取得
@@ -19,8 +21,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-def get_db():
-    """データベースセッションを取得するコンテキストマネージャー"""
+def get_db() -> Generator[Session]:
+    """データベースセッションを取得するコンテキストマネージャー."""
     db = SessionLocal()
     try:
         yield db
@@ -28,10 +30,11 @@ def get_db():
         db.close()
 
 
-def init_db():
-    """データベーステーブルを初期化する関数"""
+def init_db() -> None:
+    # 未参照なので一時的にimportしておく
+    from src.infrastructure.postgres.annotation import annotation_dto  # noqa: F401
+
     try:
-        # モデル定義に基づいてテーブルを作成
         Base.metadata.create_all(bind=engine)
         logging.info("データベーステーブルが正常に初期化されました")
     except Exception as e:
