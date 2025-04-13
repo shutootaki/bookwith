@@ -1,10 +1,3 @@
-"""
-書籍APIエンドポイントのハンドラ
-クライアントリクエストを受け取り、ユースケースを呼び出して結果を返す
-"""
-
-from typing import List
-
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
@@ -67,28 +60,25 @@ router = APIRouter(prefix="/books", tags=["book"])
 
 # エラーハンドリングのユーティリティ関数
 def handle_domain_exception(e: Exception) -> HTTPException:
-    """ドメイン例外をHTTPExceptionに変換する"""
     if isinstance(e, BookNotFoundException):
         return HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
-    elif isinstance(e, BookPermissionDeniedException):
+    if isinstance(e, BookPermissionDeniedException):
         return HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
-    elif isinstance(e, BookFileNotFoundException):
+    if isinstance(e, BookFileNotFoundException):
         return HTTPException(status_code=404, detail=BOOK_FILE_NOT_FOUND)
-    elif isinstance(e, BookAlreadyStartedException):
+    if isinstance(e, BookAlreadyStartedException):
         return HTTPException(status_code=400, detail=BOOK_ALREADY_STARTED)
-    elif isinstance(e, BookAlreadyCompletedException):
+    if isinstance(e, BookAlreadyCompletedException):
         return HTTPException(status_code=400, detail=BOOK_ALREADY_COMPLETED)
-    elif isinstance(e, BookDomainException):
+    if isinstance(e, BookDomainException):
         return HTTPException(status_code=400, detail=str(e))
-    else:
-        return HTTPException(status_code=500, detail=str(e))
+    return HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("", response_model=BooksResponse)
 async def get_books(
     find_books_usecase: FindBooksUseCase = Depends(get_find_books_usecase),
 ):
-    """全ての書籍を取得するエンドポイント"""
     try:
         books = find_books_usecase.execute()
         book_details = [entity_to_detail(book) for book in books]
@@ -100,11 +90,8 @@ async def get_books(
 @router.get("/user/{user_id}", response_model=BooksResponse)
 async def get_books_by_user(
     user_id: str,
-    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(
-        get_find_books_by_user_id_usecase
-    ),
+    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(get_find_books_by_user_id_usecase),
 ):
-    """特定ユーザーの全ての書籍を取得するエンドポイント"""
     try:
         books = find_books_by_user_id_usecase.execute(user_id)
         book_details = [entity_to_detail(book) for book in books]
@@ -116,11 +103,8 @@ async def get_books_by_user(
 @router.get("/covers")
 async def get_covers(
     user_id: str = "test_user_id",
-    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(
-        get_find_books_by_user_id_usecase
-    ),
+    find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(get_find_books_by_user_id_usecase),
 ):
-    """ユーザーが所有するすべての書籍のカバー画像を取得するエンドポイント"""
     try:
         books = find_books_by_user_id_usecase.execute(user_id)
         gcs_client = GCSClient()
@@ -131,18 +115,12 @@ async def get_covers(
             if not book.cover_path:
                 continue
 
-            path = book.cover_path.replace(
-                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
-            )
+            path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
             # 署名付きURLを生成
             bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
             blob = bucket.blob(path)
-            cover_url = (
-                blob.generate_signed_url(version="v4", expiration=3600, method="GET")
-                if not gcs_client.use_emulator
-                else book.cover_path
-            )
+            cover_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET") if not gcs_client.use_emulator else book.cover_path
 
             result["data"].append(
                 {
@@ -162,17 +140,12 @@ async def get_covers(
 
 @router.delete("/bulk-delete", response_model=BulkDeleteResponse)
 async def bulk_delete_books_endpoint(
-    book_ids: List[str] = Body(..., embed=True),
-    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(
-        get_bulk_delete_books_usecase
-    ),
+    book_ids: list[str] = Body(..., embed=True),
+    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
 ):
-    """複数の書籍を一括削除するエンドポイント"""
     try:
         deleted_ids = bulk_delete_books_usecase.execute(book_ids)
-        return BulkDeleteResponse(
-            success=True, deletedIds=deleted_ids, count=len(deleted_ids)
-        )
+        return BulkDeleteResponse(success=True, deletedIds=deleted_ids, count=len(deleted_ids))
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -185,7 +158,6 @@ async def get_book(
     book_id: str,
     find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
 ):
-    """特定の書籍を取得するエンドポイント"""
     try:
         book = find_book_by_id_usecase.execute(book_id)
         return BookResponse(success=True, data=entity_to_detail(book))
@@ -199,7 +171,6 @@ async def get_book_cover(
     user_id: str,
     find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
 ):
-    """書籍のカバー画像を取得するエンドポイント（署名付きURL）"""
     try:
         book = find_book_by_id_usecase.execute(book_id)
 
@@ -215,20 +186,15 @@ async def get_book_cover(
         if gcs_client.use_emulator:
             # エミュレーター環境では直接URLを返す
             return JSONResponse(content={"cover_path": book.cover_path})
-        else:
-            # 本番環境では署名付きURLを生成
-            path = book.cover_path.replace(
-                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
-            )
+        # 本番環境では署名付きURLを生成
+        path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
-            # 署名付きURLを生成
-            bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
-            blob = bucket.blob(path)
-            signed_url = blob.generate_signed_url(
-                version="v4", expiration=3600, method="GET"
-            )
+        # 署名付きURLを生成
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+        blob = bucket.blob(path)
+        signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
 
-            return JSONResponse(content={"cover_path": signed_url})
+        return JSONResponse(content={"cover_path": signed_url})
 
     except BookPermissionDeniedException:
         raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
@@ -247,7 +213,6 @@ async def get_book_file(
     user_id: str,
     find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
 ):
-    """書籍のEPUBファイルを取得するエンドポイント（署名付きURL）"""
     try:
         book = find_book_by_id_usecase.execute(book_id)
 
@@ -262,19 +227,14 @@ async def get_book_file(
 
         if gcs_client.use_emulator:
             return BookFileResponse(success=True, url=book.file_path)
-        else:
-            path = book.file_path.replace(
-                f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", ""
-            )
+        path = book.file_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
-            # 署名付きURLを生成
-            bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
-            blob = bucket.blob(path)
-            signed_url = blob.generate_signed_url(
-                version="v4", expiration=3600, method="GET"
-            )
+        # 署名付きURLを生成
+        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+        blob = bucket.blob(path)
+        signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
 
-            return BookFileResponse(success=True, url=signed_url)
+        return BookFileResponse(success=True, url=signed_url)
 
     except BookFileNotFoundException:
         raise HTTPException(status_code=404, detail=BOOK_FILE_NOT_FOUND)
@@ -294,7 +254,6 @@ async def post_book(
     body: BookCreateRequest,
     create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
 ):
-    """新しい書籍を作成するエンドポイント"""
     try:
         print(f"post_book: {body}")
         book = create_book_usecase.execute(
@@ -326,7 +285,6 @@ async def put_book(
     changes: BookUpdateRequest,
     update_book_usecase: UpdateBookUseCase = Depends(get_update_book_usecase),
 ):
-    """書籍情報を更新するエンドポイント"""
     try:
         book = update_book_usecase.execute(
             book_id=book_id,
@@ -361,7 +319,6 @@ async def delete_book(
     book_id: str,
     delete_book_usecase: DeleteBookUseCase = Depends(get_delete_book_usecase),
 ):
-    """書籍を削除するエンドポイント"""
     try:
         delete_book_usecase.execute(book_id)
         return JSONResponse(

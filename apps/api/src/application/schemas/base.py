@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
@@ -9,14 +9,14 @@ class BaseResponse(BaseModel):
     """基本レスポンスモデル"""
 
     success: bool = True
-    message: Optional[str] = None
+    message: str | None = None
 
 
 # エラーモデル
 class ErrorDetail(BaseModel):
     """エラー詳細モデル"""
 
-    loc: Optional[List[str | int]] = None
+    loc: list[str | int] | None = None
     msg: str
     type: str
 
@@ -27,7 +27,7 @@ class ErrorResponse(BaseModel):
     success: bool = False
     detail: str
     status_code: int
-    errors: Optional[List[ErrorDetail]] = None
+    errors: list[ErrorDetail] | None = None
 
 
 # Root エンドポイント用モデル
@@ -62,7 +62,7 @@ class TokenResponse(BaseModel):
     """トークンレスポンスモデル"""
 
     access_token: str
-    access_token_expires_at: Optional[int] = None
+    access_token_expires_at: int | None = None
 
 
 class Annotation(BaseModel):
@@ -86,10 +86,10 @@ class Annotation(BaseModel):
     id: str
     book_id: str = Field(alias="bookId")
     cfi: str
-    spine: Dict[str, Any]
+    spine: dict[str, Any]
     type: AnnotationType
     color: AnnotationColor
-    notes: Optional[str] = None
+    notes: str | None = None
     text: str
 
     class Config:
@@ -101,13 +101,13 @@ class BookDetail(BaseModel):
     """書籍の詳細情報モデル"""
 
     id: str
-    annotations: Optional[List[Annotation]] = None
-    author: Optional[str] = None
-    book_metadata: Optional[Dict[str, Any]] = None
-    cfi: Optional[str] = None
-    configuration: Optional[Dict[str, Any]] = None
-    cover_path: Optional[str] = None
-    definitions: List[str] = []
+    annotations: list[Annotation] | None = None
+    author: str | None = None
+    book_metadata: dict[str, Any] | None = None
+    cfi: str | None = None
+    configuration: dict[str, Any] | None = None
+    cover_path: str | None = None
+    definitions: list[str] = []
     has_cover: bool = False
     name: str
     percentage: int = 0
@@ -133,7 +133,7 @@ class BookResponse(BaseResponse):
 class BooksResponse(BaseResponse):
     """複数書籍レスポンスモデル"""
 
-    data: List[BookDetail]
+    data: list[BookDetail]
     count: int
 
 
@@ -144,10 +144,10 @@ class BookCreateRequest(BaseModel):
     file_name: str
     file_type: str
     user_id: str
-    book_id: Optional[str]
-    book_name: Optional[str]
-    book_metadata: Optional[str]
-    cover_image: Optional[str]
+    book_id: str | None
+    book_name: str | None
+    book_metadata: str | None
+    cover_image: str | None
 
 
 class BookFileResponse(BaseResponse):
@@ -159,16 +159,16 @@ class BookFileResponse(BaseResponse):
 class BookUpdateRequest(BaseModel):
     """書籍更新リクエストモデル"""
 
-    annotations: Optional[List[Annotation]] = None
-    author: Optional[str] = None
-    book_metadata: Optional[Dict[str, Any]] = None
-    cfi: Optional[str] = None
-    configuration: Optional[Dict[str, Any]] = None
-    cover_path: Optional[str] = None
-    definitions: Optional[List[str]] = None
-    is_deleted: Optional[bool] = None
-    name: Optional[str] = None
-    percentage: Optional[float] = None
+    annotations: list[Annotation] | None = None
+    author: str | None = None
+    book_metadata: dict[str, Any] | None = None
+    cfi: str | None = None
+    configuration: dict[str, Any] | None = None
+    cover_path: str | None = None
+    definitions: list[str] | None = None
+    is_deleted: bool | None = None
+    name: str | None = None
+    percentage: float | None = None
 
     @field_validator("percentage")
     def validate_percentage(cls, v):
@@ -183,7 +183,7 @@ class Question(BaseModel):
     """質問リクエストモデル"""
 
     question: str
-    tenant_id: Optional[str] = None
+    tenant_id: str | None = None
 
 
 class Answer(BaseModel):
@@ -203,7 +203,7 @@ class RagChunk(BaseModel):
     """RAG処理で生成されたテキストチャンク"""
 
     text: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class RagProcessResponse(BaseResponse):
@@ -211,6 +211,6 @@ class RagProcessResponse(BaseResponse):
 
     file_name: str
     chunk_count: int
-    tenant_id: Optional[str] = None
-    index_name: Optional[str] = None
-    chunks: Optional[List[RagChunk]] = None
+    tenant_id: str | None = None
+    index_name: str | None = None
+    chunks: list[RagChunk] | None = None

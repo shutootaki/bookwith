@@ -54,6 +54,26 @@ class BookDTO(Base, TimestampMixin):
 
         book_status = BookStatus(status)
 
+        # アノテーションの変換
+        annotations_data = []
+        if self.annotations:
+            for annotation in self.annotations:
+                annotations_data.append(
+                    {
+                        "id": annotation.id,
+                        "book_id": annotation.book_id,
+                        "user_id": annotation.user_id,
+                        "cfi": annotation.cfi,
+                        "text": annotation.text,
+                        "notes": annotation.notes,
+                        "color": annotation.color.value if annotation.color else None,
+                        "type": annotation.type.value,
+                        "spine": annotation.spine,
+                        "created_at": annotation.created_at,
+                        "updated_at": annotation.updated_at,
+                    }
+                )
+
         return Book(
             id=book_id,
             title=book_title,
@@ -72,6 +92,7 @@ class BookDTO(Base, TimestampMixin):
             created_at=self.created_at,
             updated_at=self.updated_at,
             deleted_at=self.deleted_at,
+            annotations=annotations_data,
         )
 
     @staticmethod

@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.domain.book.entities.book import Book
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
+from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
 from src.infrastructure.postgres.book.book_dto import BookDTO
 
 
@@ -20,9 +21,38 @@ class PostgresBookRepository(BookRepository):
                 orm_dict = BookDTO.to_orm_dict(book)
                 for key, value in orm_dict.items():
                     setattr(existing_book, key, value)
+
+                # アノテーションの更新処理
+                if hasattr(book, "_annotations") and book._annotations is not None:
+                    # 既存のアノテーションを取得
+                    existing_annotations = self._session.query(AnnotationDTO).filter(AnnotationDTO.book_id == book.id.value).all()
+                    existing_ids = {a.id for a in existing_annotations}
+                    new_ids = {a.get("id") for a in book._annotations if a.get("id")}
+
+                    # 削除対象のアノテーションを削除
+                    if existing_ids - new_ids:
+                        self._session.query(AnnotationDTO).filter(AnnotationDTO.id.in_(existing_ids - new_ids)).delete(synchronize_session=False)
+
+                    # 更新対象のアノテーションを更新
+                    to_update = [a for a in book._annotations if a.get("id") and a.get("id") in existing_ids]
+                    for annotation in to_update:
+                        self._session.query(AnnotationDTO).filter(AnnotationDTO.id == annotation.get("id")).update(annotation)
+
+                    # 新規作成対象のアノテーションを作成
+                    to_create = [a for a in book._annotations if not (a.get("id") and a.get("id") in existing_ids)]
+                    if to_create:
+                        self._session.bulk_save_objects([AnnotationDTO(**a) for a in to_create])
             else:
                 book_orm = BookDTO.from_entity(book)
                 self._session.add(book_orm)
+
+                # 新規作成時にアノテーションも一緒に作成
+                if hasattr(book, "_annotations") and book._annotations is not None and book._annotations:
+                    for annotation in book._annotations:
+                        # book_idが設定されていない場合は設定する
+                        if "book_id" not in annotation:
+                            annotation["book_id"] = book.id.value
+                        self._session.add(AnnotationDTO(**annotation))
 
             self._session.commit()
         except Exception as e:
@@ -30,7 +60,12 @@ class PostgresBookRepository(BookRepository):
             raise e
 
     def find_by_id(self, book_id: BookId) -> Book | None:
-        book_orm = self._session.query(BookDTO).filter(BookDTO.id == book_id.value, BookDTO.deleted_at == None).first()
+        book_orm = (
+            self._session.query(BookDTO)
+            .filter(BookDTO.id == book_id.value, BookDTO.deleted_at == None)
+            .options(joinedload(BookDTO.annotations))
+            .first()
+        )
 
         if not book_orm:
             return None
@@ -38,7 +73,7 @@ class PostgresBookRepository(BookRepository):
         return book_orm.to_entity()
 
     def find_all(self) -> list[Book]:
-        book_orms = self._session.query(BookDTO).filter(BookDTO.deleted_at == None).all()
+        book_orms = self._session.query(BookDTO).filter(BookDTO.deleted_at == None).options(joinedload(BookDTO.annotations)).all()
 
         books = []
         for book_orm in book_orms:
@@ -46,7 +81,9 @@ class PostgresBookRepository(BookRepository):
         return books
 
     def find_by_user_id(self, user_id: str) -> list[Book]:
-        book_orms = self._session.query(BookDTO).filter(BookDTO.user_id == user_id, BookDTO.deleted_at == None).all()
+        book_orms = (
+            self._session.query(BookDTO).filter(BookDTO.user_id == user_id, BookDTO.deleted_at == None).options(joinedload(BookDTO.annotations)).all()
+        )
 
         return [book_orm.to_entity() for book_orm in book_orms]
 
