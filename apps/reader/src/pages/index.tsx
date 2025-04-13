@@ -11,7 +11,6 @@ import {
 } from 'react-icons/md'
 import { useSet } from 'react-use'
 import { toast } from 'sonner'
-import { useSWRConfig } from 'swr'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +24,9 @@ import {
 } from '@flow/reader/components/ui/alert-dialog'
 
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
+import ImportProgress, {
+  ImportProgressState,
+} from '../components/ImportProgress'
 import { BookRecord } from '../db'
 import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
 import { useBoolean } from '../hooks'
@@ -108,14 +110,19 @@ export default function Index() {
 }
 
 const Library: React.FC = () => {
-  const { books, mutate } = useLibrary()
-  const { data: covers } = useRemoteCovers()
+  const { books, mutate: booksMutate } = useLibrary()
+  const { data: covers, mutate: coversMutate } = useRemoteCovers()
   const t = useTranslation('home')
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
 
   const [loading, setLoading] = useState<string | undefined>()
+  const [importProgress, setImportProgress] = useState<ImportProgressState>({
+    total: 0,
+    completed: 0,
+    importing: false,
+  })
 
   const { groups } = useReaderSnapshot()
 
@@ -123,11 +130,53 @@ const Library: React.FC = () => {
     if (!select) reset()
   }, [reset, select])
 
+  // インポート完了時にトースト通知を表示
+  useEffect(() => {
+    if (
+      importProgress.success !== undefined &&
+      importProgress.failed !== undefined &&
+      !importProgress.importing &&
+      importProgress.total > 0
+    ) {
+      const successCount = importProgress.success
+      const failedCount = importProgress.failed
+
+      if (successCount > 0 || failedCount > 0) {
+        let message = ''
+        if (successCount > 0 && failedCount === 0) {
+          message = `${successCount}冊の書籍をインポートしました`
+        } else if (successCount === 0 && failedCount > 0) {
+          message = `${failedCount}冊の書籍のインポートに失敗しました`
+        } else {
+          message = `${successCount}冊の書籍をインポートしました（${failedCount}冊は失敗）`
+        }
+
+        if (successCount > 0) {
+          toast.success(message)
+          booksMutate()
+          coversMutate()
+        } else {
+          toast.error(message)
+        }
+      }
+    }
+  }, [importProgress, booksMutate, coversMutate])
+
   if (groups.length) return null
   if (!books) return null
 
   const allSelected = selectedBookIds.size === books.length
-  mutate()
+  booksMutate()
+
+  const handleFileImport = async (files: FileList | File[]) => {
+    try {
+      await handleFiles(files, setLoading, setImportProgress)
+    } catch (error) {
+      console.error('ファイルインポート中にエラーが発生しました:', error)
+      toast.error('インポート中にエラーが発生しました')
+      setImportProgress({ total: 0, completed: 0, importing: false })
+    }
+  }
 
   return (
     <DropZone
@@ -137,7 +186,7 @@ const Library: React.FC = () => {
         const book = books.find((b) => b.id === bookId)
         if (book) reader.addTab(book as any)
 
-        handleFiles(e.dataTransfer.files)
+        handleFileImport(e.dataTransfer.files)
       }}
     >
       <div className="mb-4 space-y-2.5">
@@ -162,7 +211,35 @@ const Library: React.FC = () => {
                 Icon: MdOutlineFileDownload,
                 onClick: async (el) => {
                   if (el?.reportValidity()) {
-                    await fetchBook(el.value, setLoading)
+                    try {
+                      setImportProgress({
+                        total: 1,
+                        completed: 0,
+                        importing: true,
+                      })
+                      await fetchBook(el.value, setLoading)
+                      setImportProgress({
+                        total: 1,
+                        completed: 1,
+                        importing: false,
+                        success: 1,
+                        failed: 0,
+                      })
+                      coversMutate()
+                    } catch (error) {
+                      console.error(
+                        'ファイルダウンロード中にエラーが発生しました:',
+                        error,
+                      )
+                      toast.error('ダウンロード中にエラーが発生しました')
+                      setImportProgress({
+                        total: 1,
+                        completed: 1,
+                        importing: false,
+                        success: 0,
+                        failed: 1,
+                      })
+                    }
                   }
                 },
               },
@@ -180,9 +257,35 @@ const Library: React.FC = () => {
                 variant="secondary"
                 disabled={!books}
                 onClick={async () => {
-                  await fetchBook(
-                    'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
-                  )
+                  setImportProgress({ total: 1, completed: 0, importing: true })
+                  try {
+                    await fetchBook(
+                      'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
+                      setLoading,
+                    )
+                    setImportProgress({
+                      total: 1,
+                      completed: 1,
+                      importing: false,
+                      success: 1,
+                      failed: 0,
+                    })
+                    booksMutate()
+                    coversMutate()
+                  } catch (error) {
+                    console.error(
+                      'サンプルブックのダウンロード中にエラーが発生しました:',
+                      error,
+                    )
+                    toast.error('サンプルブックのダウンロードに失敗しました')
+                    setImportProgress({
+                      total: 1,
+                      completed: 1,
+                      importing: false,
+                      success: 0,
+                      failed: 1,
+                    })
+                  }
                 }}
               >
                 {t('download_sample_book')}
@@ -225,7 +328,7 @@ const Library: React.FC = () => {
                         onClick={async () => {
                           toggleSelect()
                           await deleteBooksFromAPI([...selectedBookIds])
-                          mutate()
+                          booksMutate()
                           toast.success(t('delete_success'))
                         }}
                       >
@@ -251,8 +354,12 @@ const Library: React.FC = () => {
                     className="absolute inset-0 cursor-pointer opacity-0"
                     onChange={async (e) => {
                       const files = e.target.files
-                      if (files) await handleFiles(files, setLoading)
+                      if (files) {
+                        handleFileImport(files)
+                      }
                     }}
+                    multiple
+                    aria-label="本をインポート"
                   />
                   {t('import')}
                 </Button>
@@ -261,6 +368,8 @@ const Library: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ImportProgress progress={importProgress} />
 
       <div className="scroll h-full">
         <ul
