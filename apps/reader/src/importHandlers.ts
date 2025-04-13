@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { createBookInAPI, fetchAllBooks } from './bookApi'
+import { createBook, fetchAllBooks } from './bookApi'
 import { fileToEpub, indexEpub } from './epub'
 import { mapExtToMimes } from './mime'
 import { toDataUrl } from './fileUtils'
@@ -23,7 +23,7 @@ export async function addBook(
       coverDataUrl = await toDataUrl(coverUrl)
     }
 
-    const bookData = await createBookInAPI(
+    const bookData = await createBook(
       file,
       {
         id: tempBookId,
@@ -42,7 +42,7 @@ export async function addBook(
       return null
     }
 
-    // await indexEpub(file, bookData.id)
+    await indexEpub(file, bookData.tenant_id || '')
 
     setLoading?.(undefined)
     return bookData

@@ -30,7 +30,7 @@ def init_db() -> None:
         Base.metadata.create_all(bind=engine)
         logging.info("Database tables initialized successfully")
     except Exception as e:
-        logging.error(f"Error occurred during database initialization: {str(e)}")
+        logging.error(f"Error occurred during database initialization: {str(e)}", exc_info=True)
         raise
 
 

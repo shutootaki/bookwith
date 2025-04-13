@@ -3,11 +3,22 @@ import logging
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
-
-from src.application.schemas.base import ErrorDetail, ErrorResponse
+from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
+
+
+class ErrorDetail(BaseModel):
+    loc: list[str | int] | None = None
+    msg: str
+    type: str
+
+
+class ErrorResponse(BaseModel):
+    success: bool = False
+    detail: str
+    status_code: int
+    errors: list[ErrorDetail] | None = None
 
 
 class AppException(Exception):  # noqa: N818

@@ -27,7 +27,6 @@ import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import ImportProgress, {
   ImportProgressState,
 } from '../components/ImportProgress'
-import { BookRecord } from '../db'
 import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
 import { useBoolean } from '../hooks'
 import {
@@ -37,7 +36,7 @@ import {
   useRemoteCovers,
   useTranslation,
 } from '../hooks'
-import { CoversResponse } from '../hooks/useLibrary'
+import { BookDetail, CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { pack } from '../sync'
@@ -111,7 +110,7 @@ export default function Index() {
 
 const Library: React.FC = () => {
   const { books, mutate: booksMutate } = useLibrary()
-  const { data: covers, mutate: coversMutate } = useRemoteCovers()
+  const { covers, mutate: coversMutate } = useRemoteCovers()
   const t = useTranslation('home')
 
   const [select, toggleSelect] = useBoolean(false)
@@ -399,7 +398,7 @@ const Library: React.FC = () => {
 }
 
 interface BookProps {
-  book: BookRecord
+  book: BookDetail
   covers?: CoversResponse
   select?: boolean
   selected?: boolean

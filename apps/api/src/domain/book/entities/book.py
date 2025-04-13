@@ -9,6 +9,7 @@ from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_status import BookStatus, BookStatusEnum
 from src.domain.book.value_objects.book_title import BookTitle
+from src.domain.book.value_objects.tennant_id import TenantId
 
 
 class Book:
@@ -29,6 +30,7 @@ class Book:
         definitions: list[dict[str, Any]] | None = None,
         configuration: dict[str, Any] | None = None,
         created_at: datetime | None = None,
+        tenant_id: TenantId | None = None,
         updated_at: datetime | None = None,
         completed_at: datetime | None = None,
         deleted_at: datetime | None = None,
@@ -47,6 +49,7 @@ class Book:
         self._percentage = percentage
         self._book_metadata = book_metadata or {}
         self._definitions = definitions or []
+        self._tenant_id = tenant_id
         self._configuration = configuration or {}
         self._created_at = created_at if created_at is not None else datetime.now()
         self._updated_at = updated_at if updated_at is not None else datetime.now()
@@ -57,6 +60,7 @@ class Book:
     @classmethod
     def create(
         cls,
+        id: BookId,
         title: BookTitle,
         user_id: str,
         file_path: str,
@@ -65,10 +69,10 @@ class Book:
         cover_path: str | None = None,
         size: int = 0,
         book_metadata: dict[str, Any] | None = None,
+        tenant_id: TenantId | None = None,
     ) -> "Book":
-        book_id = BookId.generate()
         return cls(
-            id=book_id,
+            id=id,
             title=title,
             user_id=user_id,
             file_path=file_path,
@@ -77,6 +81,7 @@ class Book:
             cover_path=cover_path,
             size=size,
             book_metadata=book_metadata,
+            tenant_id=tenant_id,
         )
 
     def update_title(self, title: BookTitle) -> None:
@@ -195,6 +200,10 @@ class Book:
     @property
     def annotations(self) -> list[dict[str, Any]]:
         return self._annotations
+
+    @property
+    def tenant_id(self) -> TenantId | None:
+        return self._tenant_id
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Book):

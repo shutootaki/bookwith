@@ -75,5 +75,19 @@ export default {
   'action.step_down': 'Step Down',
   'action.step_up': 'Step Up',
 
+  'chat.title': 'Chat',
+  'chat.placeholder': 'Ask me anything',
+  'chat.new_chat': 'Open New Chat',
+  'chat.history': 'Chat History',
+  'chat.new': 'New Chat',
+  'chat.empty_title': 'Start a chat',
+  'chat.empty_description':
+    'AI will answer based on knowledge from the book you are reading.',
+  'chat.search_history': 'Search chat history',
+  'chat.no_history': 'No history found',
+  'chat.keyboard_shortcut': '`Cmd + Enter` or `Ctrl + Enter` to send',
+  'chat.send': 'Send',
+  'chat.error': 'An error occurred',
+
   untitled: 'Untitled',
 } as const

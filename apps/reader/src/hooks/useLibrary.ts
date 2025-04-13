@@ -16,8 +16,9 @@ export interface BookDetail {
   name: string
   percentage?: number
   size: number
-  createdAt: number
-  updatedAt?: number
+  tenant_id: string | null
+  created_at: number
+  updated_at: number
 }
 
 interface BooksResponse {

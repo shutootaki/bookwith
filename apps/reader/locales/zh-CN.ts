@@ -75,5 +75,18 @@ export default {
   'action.step_down': '减少',
   'action.step_up': '增加',
 
+  'chat.title': '聊天',
+  'chat.placeholder': '输入消息...',
+  'chat.new_chat': '新建聊天',
+  'chat.history': '聊天历史',
+  'chat.new': '新聊天',
+  'chat.empty_title': '开始聊天',
+  'chat.empty_description': 'AI 将根据您正在阅读的书籍知识回答问题。',
+  'chat.search_history': '搜索聊天历史',
+  'chat.no_history': '未找到历史记录',
+  'chat.keyboard_shortcut': '按 `Cmd + Enter` 或 `Ctrl + Enter` 发送',
+  'chat.send': '发送',
+  'chat.error': '发生错误',
+
   untitled: '未标题',
 } as const
