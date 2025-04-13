@@ -2,7 +2,7 @@ import json
 from typing import Dict, Optional
 
 from fastapi import Response
-from src.utils import TOKEN_MAPPING, get_dropbox_client
+from src.application.utils.helpers import TOKEN_MAPPING, get_dropbox_client
 
 
 def handle_dropbox_callback(state: str, code: str, response: Response) -> str:

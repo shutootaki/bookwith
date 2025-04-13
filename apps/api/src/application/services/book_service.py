@@ -5,10 +5,14 @@ from datetime import datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from src.infra.external.gcs import GCSClient
-from src.models import BookDetail, BookResponse
-from src.models.database import Annotation, Book
-from src.models.schemas import BookCreateRequest, BookUpdateRequest
+from src.application.schemas.base import (
+    BookCreateRequest,
+    BookDetail,
+    BookResponse,
+    BookUpdateRequest,
+)
+from src.infrastructure.database.models import Annotation, Book
+from src.infrastructure.external.gcs import GCSClient
 
 
 def get_book_file_signed_url(book_id: str, user_id: str, db: Session):

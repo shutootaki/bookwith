@@ -1,9 +1,12 @@
 from fastapi import APIRouter
-from src.models import Answer, Question
-from src.services import process_question
-from src.utils import BadRequestException, ServiceUnavailableException
+from src.application.error_handlers import (
+    BadRequestException,
+    ServiceUnavailableException,
+)
+from src.application.schemas.base import Answer, Question
+from src.application.services import process_question
 
-router = APIRouter("/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("")

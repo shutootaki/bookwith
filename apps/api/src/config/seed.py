@@ -1,5 +1,5 @@
-from db import SessionLocal
-from models.database import User
+from src.db import SessionLocal
+from src.infrastructure.database.models import User
 
 # ※ 初回のみ、テーブル作成を実行（すでにテーブルが存在する場合は不要）
 # Base.metadata.create_all(bind=engine)

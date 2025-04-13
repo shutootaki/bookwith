@@ -1,7 +1,10 @@
 from fastapi import APIRouter, File, Form, UploadFile
-from src.models import RagProcessResponse
-from src.services import process_epub_file
-from src.utils import BadRequestException, ServiceUnavailableException
+from src.application.error_handlers import (
+    BadRequestException,
+    ServiceUnavailableException,
+)
+from src.application.schemas.base import RagProcessResponse
+from src.application.services import process_epub_file
 
 router = APIRouter()
 

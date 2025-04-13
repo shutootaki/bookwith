@@ -4,8 +4,8 @@ from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableSerializable
 from langchain_openai import ChatOpenAI
-from src.prompts import rag_prompt
-from src.vector import get_vector_store
+from src.infrastructure.prompts import rag_prompt
+from src.infrastructure.vector import get_vector_store
 
 
 # ドキュメントをフォーマット

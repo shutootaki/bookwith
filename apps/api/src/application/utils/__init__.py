@@ -1,18 +1,14 @@
-from src.utils.error_handlers import (
-    AppException,
+from src.application.error_handlers import (
     BadRequestException,
-    ForbiddenException,
     NotFoundException,
     ServiceUnavailableException,
     UnauthorizedException,
     setup_exception_handlers,
 )
-from src.utils.helpers import TOKEN_MAPPING, get_dropbox_client
+from src.application.utils.helpers import TOKEN_MAPPING, get_dropbox_client
 
 __all__ = [
-    "AppException",
     "BadRequestException",
-    "ForbiddenException",
     "NotFoundException",
     "ServiceUnavailableException",
     "UnauthorizedException",

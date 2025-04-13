@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Cookie, Response
-from src.models import CallbackResponse, TokenResponse
-from src.services import handle_dropbox_callback, refresh_dropbox_token
-from src.utils import (
+from src.application.error_handlers import (
     BadRequestException,
     ServiceUnavailableException,
     UnauthorizedException,
 )
+from src.application.schemas.base import CallbackResponse, TokenResponse
+from src.application.services import handle_dropbox_callback, refresh_dropbox_token
 
 router = APIRouter()
 

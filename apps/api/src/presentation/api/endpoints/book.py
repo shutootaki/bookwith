@@ -3,12 +3,15 @@ from datetime import timedelta
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from src.db import get_db
-from src.infra.external.gcs import GCSClient
-from src.models import BookDetail, BookResponse, BooksResponse
-from src.models.database import Book
-from src.models.schemas import BookCreateRequest, BookFileResponse, BookUpdateRequest
-from src.services.book_service import (
+from src.application.schemas.base import (
+    BookCreateRequest,
+    BookDetail,
+    BookFileResponse,
+    BookResponse,
+    BooksResponse,
+    BookUpdateRequest,
+)
+from src.application.services.book_service import (
     add_book,
     all_books,
     bulk_delete_books,
@@ -16,6 +19,9 @@ from src.services.book_service import (
     get_book_file_signed_url,
     update_book,
 )
+from src.db import get_db
+from src.infrastructure.database.models import Book
+from src.infrastructure.external.gcs import GCSClient
 
 router = APIRouter(prefix="/books", tags=["book"])
 

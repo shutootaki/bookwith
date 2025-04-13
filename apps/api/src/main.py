@@ -2,9 +2,9 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api import setup_routes
+from src.application.error_handlers import setup_exception_handlers
 from src.db import get_db, init_db
-from src.utils import setup_exception_handlers
+from src.presentation.api import setup_routes
 
 # ロギング設定
 logging.basicConfig(

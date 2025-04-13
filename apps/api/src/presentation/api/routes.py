@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api.endpoints import (
+from src.presentation.api.endpoints import (
     auth_router,
     book_router,
     llm_router,
