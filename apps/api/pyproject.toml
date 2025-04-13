@@ -51,3 +51,11 @@ check_untyped_defs = true
 strict_equality = true
 warn_unused_ignores = true
 warn_redundant_casts = true
+
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+# TODO: Reevaluate
+#init_typed = true # When enabled, mypy will be able to check the arguments when creating Pydantic instances, but you will need to explicitly type-cast the arguments passed to Pydantic, and implicit type conversions will no longer be possible.
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true

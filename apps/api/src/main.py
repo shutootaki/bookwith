@@ -1,55 +1,48 @@
 import logging
+from collections.abc import Generator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api import setup_routes
-from src.db import get_db, init_db
-from src.utils import setup_exception_handlers
+from sqlalchemy.orm import Session
 
-# ロギング設定
+from src.db import get_db, init_db
+from src.presentation.api import setup_routes
+from src.presentation.api.error_messages.error_handlers import setup_exception_handlers
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-# FastAPIアプリケーションの作成
 app = FastAPI(title="BookWith API", description="Book related API service")
 
-# CORS設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 本番環境では特定のオリジンに制限すべき
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# データベースの初期化
 @app.on_event("startup")
-async def startup_db_client():
-    """アプリケーション起動時にデータベースを初期化します"""
+async def startup_db_client() -> None:
     try:
         init_db()
-        logging.info("データベース接続が確立されました")
+        logging.info("Database connection established")
     except Exception as e:
-        logging.error(f"データベース初期化エラー: {e}")
+        logging.error(f"Database initialization error: {e}")
 
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    """アプリケーション終了時の処理"""
-    logging.info("データベース接続を閉じています")
+async def shutdown_db_client() -> None:
+    logging.info("Closing database connection")
 
 
-# DBセッションの依存関係
-def get_db_session():
-    with get_db() as session:
-        yield session
+def get_db_session() -> Generator[Session]:
+    yield from get_db()
 
 
-# ルートのセットアップ
 setup_routes(app)
 
-# エラーハンドラーのセットアップ
 setup_exception_handlers(app)
