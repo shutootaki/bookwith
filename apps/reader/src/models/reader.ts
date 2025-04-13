@@ -2,7 +2,6 @@ import { debounce } from '@github/mini-throttle/decorators'
 import React from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { proxy, ref, snapshot, subscribe, useSnapshot } from 'valtio'
-import useSWR from 'swr'
 
 import type { Rendition, Location, Book } from '@flow/epubjs'
 import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
@@ -122,14 +121,8 @@ export class BookTab extends BaseTab {
   }
 
   updateBook(changes: Partial<BookRecord>) {
-    changes = {
-      ...changes,
-      updatedAt: Date.now(),
-    }
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
-
-    // バックエンドAPIを使用して更新（Promiseを待たない）
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
       method: 'PUT',
       headers: {

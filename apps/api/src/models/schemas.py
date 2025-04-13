@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
 # 共通モデル
@@ -15,7 +16,7 @@ class BaseResponse(BaseModel):
 class ErrorDetail(BaseModel):
     """エラー詳細モデル"""
 
-    loc: Optional[List[str]] = None
+    loc: Optional[List[str | int]] = None
     msg: str
     type: str
 
@@ -64,11 +65,43 @@ class TokenResponse(BaseModel):
     access_token_expires_at: Optional[int] = None
 
 
+class Annotation(BaseModel):
+    """アノテーションモデル"""
+
+    class AnnotationType(str, Enum):
+        """アノテーションタイプ列挙型"""
+
+        highlight = "highlight"
+
+    class AnnotationColor(str, Enum):
+        """アノテーション色列挙型"""
+
+        yellow = "yellow"
+        red = "red"
+        green = "green"
+        blue = "blue"
+
+    """アノテーションモデル"""
+
+    id: str
+    book_id: str = Field(alias="bookId")
+    cfi: str
+    spine: Dict[str, Any]
+    type: AnnotationType
+    color: AnnotationColor
+    notes: Optional[str] = None
+    text: str
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
 class BookDetail(BaseModel):
     """書籍の詳細情報モデル"""
 
     id: str
-    annotations: List[Dict[str, Any]] = []
+    annotations: Optional[List[Annotation]] = None
     author: Optional[str] = None
     book_metadata: Optional[Dict[str, Any]] = None
     cfi: Optional[str] = None
@@ -83,9 +116,8 @@ class BookDetail(BaseModel):
     created_at: Any
     updated_at: Any
 
-    @validator("has_cover", pre=True, always=True)
+    @field_validator("has_cover")
     def set_has_cover(cls, v, values):
-        # cover_pathがあればhas_coverをTrue、なければFalseに設定
         return "cover_path" in values and values["cover_path"] is not None
 
     class Config:
@@ -127,18 +159,18 @@ class BookFileResponse(BaseResponse):
 class BookUpdateRequest(BaseModel):
     """書籍更新リクエストモデル"""
 
-    name: Optional[str] = None
+    annotations: Optional[List[Annotation]] = None
     author: Optional[str] = None
-    percentage: Optional[float] = None
-    cfi: Optional[str] = None
     book_metadata: Optional[Dict[str, Any]] = None
-    definitions: Optional[List[str]] = None
+    cfi: Optional[str] = None
     configuration: Optional[Dict[str, Any]] = None
     cover_path: Optional[str] = None
-    is_deleted: Optional[bool] = None  # 論理削除フラグ
-    deleted_at: Optional[str] = None  # 削除日時
+    definitions: Optional[List[str]] = None
+    is_deleted: Optional[bool] = None
+    name: Optional[str] = None
+    percentage: Optional[float] = None
 
-    @validator("percentage")
+    @field_validator("percentage")
     def validate_percentage(cls, v):
         if v is not None:
             # 小数値が送信された場合、内部的には整数として扱う
@@ -151,7 +183,7 @@ class Question(BaseModel):
     """質問リクエストモデル"""
 
     question: str
-    tenant_id: Optional[str] = None  # テナントIDを追加
+    tenant_id: Optional[str] = None
 
 
 class Answer(BaseModel):
@@ -160,12 +192,9 @@ class Answer(BaseModel):
     answer: str
 
 
-# RAG エンドポイント用モデル
 class RagUploadRequest(BaseModel):
     """RAGアップロードリクエストモデル"""
 
-    # FastAPIのFile依存関係を使用するため、実際のリクエストボディでは使用されない
-    # このモデルはドキュメント生成用
     file: Any = Field(..., description="アップロードするEPUBファイル")
     user_id: str = Field(..., description="ユーザーID (テナント分離に使用)")
 

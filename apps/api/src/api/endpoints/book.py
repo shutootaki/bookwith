@@ -145,17 +145,10 @@ async def post_book(body: BookCreateRequest, db: Session = Depends(get_db)):
         )
 
 
-@router.put("/{book_id}", response_model=BookResponse)
+@router.put("/{book_id}")
 async def put_book(
     book_id: str, changes: BookUpdateRequest, db: Session = Depends(get_db)
 ):
     """書籍情報を更新するエンドポイント"""
-    changes_dict = changes.model_dump(exclude_unset=True)
-    return update_book(book_id, changes_dict, db)
-
-
-# @router.delete("/{book_id}", response_model=BookResponse)
-# async def delete_book(book_id: str, db: Session = Depends(get_db)):
-#     """書籍を削除するエンドポイント"""
-#     changes_dict = {"is_deleted": True}
-#     return update_book(book_id, changes_dict, db)
+    update_book(book_id, changes, db)
+    return None

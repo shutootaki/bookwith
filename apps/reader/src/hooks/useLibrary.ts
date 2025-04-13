@@ -28,7 +28,7 @@ interface BooksResponse {
 }
 
 export function useLibrary() {
-  const { data, error } = useSWR<BooksResponse>(
+  const { data, error, mutate } = useSWR<BooksResponse>(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
     async (url) => {
       const response = await fetch(url)
@@ -39,7 +39,11 @@ export function useLibrary() {
     },
   )
 
-  return data?.data || []
+  return {
+    books: data?.data || [],
+    error,
+    mutate,
+  }
 }
 
 export interface CoverData {

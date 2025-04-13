@@ -99,7 +99,7 @@ export default function Index() {
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
         />
-        <title>{focusedTab?.title ?? 'Flow'}</title>
+        <title>{focusedTab?.title ?? 'Bookwith'}</title>
       </Head>
       <ReaderGridView />
       {loading || <Library />}
@@ -108,10 +108,9 @@ export default function Index() {
 }
 
 const Library: React.FC = () => {
-  const books = useLibrary()
+  const { books, mutate } = useLibrary()
   const { data: covers } = useRemoteCovers()
   const t = useTranslation('home')
-  const { mutate } = useSWRConfig()
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
@@ -128,10 +127,7 @@ const Library: React.FC = () => {
   if (!books) return null
 
   const allSelected = selectedBookIds.size === books.length
-
-  const refreshLibrary = () => {
-    mutate(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books`)
-  }
+  mutate()
 
   return (
     <DropZone
@@ -229,7 +225,7 @@ const Library: React.FC = () => {
                         onClick={async () => {
                           toggleSelect()
                           await deleteBooksFromAPI([...selectedBookIds])
-                          refreshLibrary()
+                          mutate()
                           toast.success(t('delete_success'))
                         }}
                       >

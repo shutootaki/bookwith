@@ -28,7 +28,6 @@ export async function handleFiles(
       continue
     }
 
-    // 既存の書籍を検索するためにAPIを呼び出す
     const existingBooks = await fetchAllBooks()
     let book = existingBooks?.find((b) => b.name === file.name)
 
@@ -44,7 +43,6 @@ export async function handleFiles(
   return newBooks
 }
 
-// すべての書籍を取得するAPIを呼び出す
 export async function fetchAllBooks(): Promise<BookRecord[]> {
   try {
     const response = await fetch(
@@ -83,7 +81,6 @@ export async function fetchAllBooks(): Promise<BookRecord[]> {
   }
 }
 
-// 特定の書籍情報を取得するAPIを呼び出す
 export async function fetchBookById(
   bookId: string,
 ): Promise<BookRecord | null> {
@@ -129,11 +126,9 @@ export async function addBook(
   file: File,
   setLoading?: (id: string | undefined) => void,
 ) {
-  // EPUBファイルからメタデータを取得
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
 
-  // 一時的なブックIDを生成（サーバーからのレスポンスで置き換える可能性あり）
   const tempBookId = uuidv4()
   setLoading?.(tempBookId)
 
@@ -277,7 +272,6 @@ export async function fetchBook(
 ) {
   const filename = decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '')
 
-  // APIを通じて既存の書籍を検索
   const existingBooks = await fetchAllBooks()
   const book = existingBooks?.find((b) => b.name === filename)
 

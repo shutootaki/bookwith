@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from src.infra.external.gcs import GCSClient
 from src.models import BookDetail, BookResponse
-from src.models.database import Book
-from src.models.schemas import BookCreateRequest
+from src.models.database import Annotation, Book
+from src.models.schemas import BookCreateRequest, BookUpdateRequest
 
 
 def get_book_file_signed_url(book_id: str, user_id: str, db: Session):
@@ -54,7 +54,6 @@ def get_book_file_signed_url(book_id: str, user_id: str, db: Session):
 def get_all_covers(user_id: str, db: Session):
     gcs_client = GCSClient()
 
-    # ユーザーが所有する書籍を取得
     books = db.query(Book).filter(Book.user_id == user_id).all()
 
     result = {"success": True, "data": []}
@@ -95,55 +94,44 @@ def all_books(db: Session):
 
 def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
     try:
-        # book_idが指定されていない場合は生成
         if not body.book_id:
             book_id = str(uuid.uuid4())
         else:
             book_id = body.book_id
 
-        # ファイル名が指定されていない場合はアップロードされたファイル名を使用
         if not body.book_name:
             book_name = body.file_name
         else:
             book_name = body.book_name
 
-        # Base64からファイルデータをデコード
         file_data = base64.b64decode(body.file_data)
         gcs_client = GCSClient()
 
-        # GCSにアップロード
         bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
         epub_blob_name = f"books/{body.user_id}/{book_id}/book.epub"
         blob = bucket.blob(epub_blob_name)
         blob.upload_from_string(file_data, content_type="application/epub+zip")
 
-        # ファイルパスを保存（GCSバケット上の実際のパスを保存）
         file_path = (
             f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/{epub_blob_name}"
         )
 
-        # ファイルサイズを取得
         file_size = len(file_data)
 
-        # カバー画像を保存（もし提供されていれば）
         cover_path = None
         if body.cover_image and body.cover_image.startswith("data:image/"):
             try:
-                # Base64データURLからデータを抽出
                 image_data = body.cover_image.split(",")[1]
                 image_binary = base64.b64decode(image_data)
 
-                # GCSにカバー画像をアップロード
                 cover_blob_name = f"books/{body.user_id}/{book_id}/cover.jpg"
                 cover_blob = bucket.blob(cover_blob_name)
                 cover_blob.upload_from_string(image_binary, content_type="image/jpeg")
 
-                # カバー画像のURLを設定
                 cover_path = f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/{cover_blob_name}"
             except Exception as e:
                 print(f"カバー画像の保存中にエラーが発生しました: {str(e)}")
 
-        # メタデータがJSONとして渡された場合はパース
         metadata = {}
         if body.book_metadata:
             try:
@@ -177,7 +165,7 @@ def add_book(body: BookCreateRequest, db: Session) -> BookResponse:
         db.rollback()
 
 
-def update_book(book_id: str, changes_dict: dict, db: Session) -> BookResponse:
+def update_book(book_id: str, changes: BookUpdateRequest, db: Session) -> None:
     """書籍情報を更新する処理を行う関数"""
     try:
         book = db.query(Book).filter(Book.id == book_id).first()
@@ -186,20 +174,49 @@ def update_book(book_id: str, changes_dict: dict, db: Session) -> BookResponse:
                 status_code=404, detail=f"ID {book_id} の書籍が見つかりません"
             )
 
-        changes_dict["updated_at"] = datetime.now()
+        changes_dict = changes.model_dump(exclude_unset=True)
+        annotations = changes_dict.pop("annotations", None)
 
-        for key, value in changes_dict.items():
-            if hasattr(book, key):
+        if changes_dict:
+            for key, value in changes_dict.items():
                 setattr(book, key, value)
 
-        db.commit()
-        db.refresh(book)
+        if annotations is not None:
+            existing_annotations = (
+                db.query(Annotation).filter(Annotation.book_id == book_id).all()
+            )
+            existing_ids = {a.id for a in existing_annotations}
+            new_ids = {a.get("id") for a in annotations if a.get("id")}
 
-        return BookResponse(
-            success=True, data=BookDetail.model_validate(book, from_attributes=True)
-        )
+            if existing_ids - new_ids:
+                db.query(Annotation).filter(
+                    Annotation.id.in_(existing_ids - new_ids)
+                ).delete(synchronize_session=False)
+
+            to_update = [
+                a for a in annotations if a.get("id") and a.get("id") in existing_ids
+            ]
+            to_create = [
+                a
+                for a in annotations
+                if not (a.get("id") and a.get("id") in existing_ids)
+            ]
+
+            for annotation in to_update:
+                db.query(Annotation).filter(
+                    Annotation.id == annotation.get("id")
+                ).update(annotation)
+
+            if to_create:
+                db.bulk_save_objects([Annotation(**a) for a in to_create])
+
+        db.commit()
+
+        return None
+
     except Exception as e:
         db.rollback()
+        print(f"エラーが発生しました: {str(e)}")
         raise HTTPException(
             status_code=500, detail=f"書籍の更新中にエラーが発生しました: {str(e)}"
         )
@@ -219,7 +236,11 @@ def bulk_delete_books(book_ids: list[str], db: Session) -> dict:
 
         existing_ids = [book.id for book in existing_books]
         mappings = [
-            {"id": book_id, "is_deleted": True, "deleted_at": now, "updated_at": now}
+            {
+                "id": book_id,
+                "is_deleted": True,
+                "deleted_at": now,
+            }
             for book_id in existing_ids
         ]
 
