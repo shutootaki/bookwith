@@ -14,9 +14,9 @@ class Message:
         self,
         id: MessageId,
         content: MessageContent,
-        sender_id: str,
         sender_type: SenderType,
         chat_id: str,
+        sender_id: str,
         created_at: datetime | None = None,
         updated_at: datetime | None = None,
         deleted_at: datetime | None = None,
@@ -36,9 +36,9 @@ class Message:
     def create(
         cls,
         content: MessageContent,
-        sender_id: str,
         sender_type: SenderType,
         chat_id: str,
+        sender_id: str,
         metadata: dict[str, Any] | None = None,
     ) -> "Message":
         message_id = MessageId.generate()

@@ -1,5 +1,3 @@
-import enum
-
 from sqlalchemy import (
     JSON,
     Column,
@@ -11,19 +9,12 @@ from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import relationship
 
 from src.db import Base
+from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
+from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum
 from src.infrastructure.postgres.db_util import TimestampMixin
 
 
 class AnnotationDTO(Base, TimestampMixin):
-    class AnnotationTypeEnum(enum.Enum):
-        highlight = "highlight"
-
-    class AnnotationColorEnum(enum.Enum):
-        yellow = "yellow"
-        red = "red"
-        green = "green"
-        blue = "blue"
-
     __tablename__ = "annotations"
 
     id = Column(String, primary_key=True, index=True)
@@ -36,7 +27,7 @@ class AnnotationDTO(Base, TimestampMixin):
     color = Column(SQLAlchemyEnum(AnnotationColorEnum), nullable=True)
     type = Column(
         SQLAlchemyEnum(AnnotationTypeEnum),
-        default=AnnotationTypeEnum.highlight,
+        default=AnnotationTypeEnum.HIGHLIGHT,
         nullable=False,
     )
     spine = Column(JSON, nullable=True)

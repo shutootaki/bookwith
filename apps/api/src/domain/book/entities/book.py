@@ -29,6 +29,7 @@ class Book:
         definitions: list[dict[str, Any]] | None = None,
         configuration: dict[str, Any] | None = None,
         created_at: datetime | None = None,
+        tenant_id: str | None = None,
         updated_at: datetime | None = None,
         completed_at: datetime | None = None,
         deleted_at: datetime | None = None,
@@ -47,6 +48,7 @@ class Book:
         self._percentage = percentage
         self._book_metadata = book_metadata or {}
         self._definitions = definitions or []
+        self._tenant_id = tenant_id
         self._configuration = configuration or {}
         self._created_at = created_at if created_at is not None else datetime.now()
         self._updated_at = updated_at if updated_at is not None else datetime.now()
@@ -65,6 +67,7 @@ class Book:
         cover_path: str | None = None,
         size: int = 0,
         book_metadata: dict[str, Any] | None = None,
+        tenant_id: str | None = None,
     ) -> "Book":
         book_id = BookId.generate()
         return cls(
@@ -77,6 +80,7 @@ class Book:
             cover_path=cover_path,
             size=size,
             book_metadata=book_metadata,
+            tenant_id=tenant_id,
         )
 
     def update_title(self, title: BookTitle) -> None:
@@ -195,6 +199,10 @@ class Book:
     @property
     def annotations(self) -> list[dict[str, Any]]:
         return self._annotations
+
+    @property
+    def tenant_id(self) -> str | None:
+        return self._tenant_id
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Book):

@@ -37,6 +37,7 @@ class BookDTO(Base, TimestampMixin):
     definitions = Column(JSON, default=list)
     configuration = Column(JSON, nullable=True)
     deleted_at = Column(DateTime, nullable=True)
+    tenant_id = Column(String, nullable=True)
 
     user = relationship("UserDTO", back_populates="books")
     annotations = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
@@ -81,6 +82,7 @@ class BookDTO(Base, TimestampMixin):
             file_path=self.file_path,
             description=book_description,
             status=book_status,
+            tenant_id=self.tenant_id,
             author=self.author,
             cover_path=self.cover_path,
             size=self.size,
@@ -100,6 +102,7 @@ class BookDTO(Base, TimestampMixin):
         return {
             "id": book.id.value,
             "user_id": book.user_id,
+            "tenant_id": book.tenant_id,
             "name": book.title.value,
             "author": book.author,
             "file_path": book.file_path,
@@ -120,6 +123,7 @@ class BookDTO(Base, TimestampMixin):
         return BookDTO(
             id=book.id.value,
             user_id=book.user_id,
+            tenant_id=book.tenant_id,
             name=book.title.value,
             author=book.author,
             file_path=book.file_path,

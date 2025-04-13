@@ -1,8 +1,9 @@
-from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
+from src.domain.annotation.value_objects.annotation_color import AnnotationColor
+from src.domain.annotation.value_objects.annotation_type import AnnotationType
 from src.domain.book.entities.book import Book
 
 
@@ -17,15 +18,6 @@ class BookCreateRequest(BaseModel):
 
 
 class AnnotationSchemaTmp(BaseModel):
-    class AnnotationType(str, Enum):
-        highlight = "highlight"
-
-    class AnnotationColor(str, Enum):
-        yellow = "yellow"
-        red = "red"
-        green = "green"
-        blue = "blue"
-
     id: str
     book_id: str = Field(alias="bookId")
     cfi: str
@@ -64,7 +56,7 @@ class BookDetail(BaseModel):
     name: str
     percentage: float = 0
     size: int
-
+    tenant_id: str | None = None
     created_at: Any
     updated_at: Any
 

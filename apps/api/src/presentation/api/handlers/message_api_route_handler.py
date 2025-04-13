@@ -7,6 +7,7 @@ from src.db import get_db
 from src.domain.message.exceptions.message_exceptions import (
     MessageNotFoundException,
 )
+from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
 from src.infrastructure.postgres.message.message_repository import MessageRepositoryImpl
 from src.presentation.api.error_messages.message_error_message import MessageErrorMessage
 from src.presentation.api.schemas.message_schema import (
@@ -32,6 +33,7 @@ def _entity_to_response(message: Any) -> dict[str, Any]:
         "id": message.id.value,
         "content": message.content.value,
         "sender_id": message.sender_id,
+        "sender_type": message.sender_type.value,
         "chat_id": message.chat_id,
         "created_at": message.created_at,
         "updated_at": message.updated_at,
@@ -121,16 +123,22 @@ async def create_message(
 ) -> dict[str, Any]:
     """新しいメッセージを作成する"""
     message_repository = MessageRepositoryImpl(db)
-    create_message_usecase = CreateMessageUseCaseImpl(message_repository)
+    chat_repository = ChatRepositoryImpl(db)
+    create_message_usecase = CreateMessageUseCaseImpl(
+        message_repository=message_repository,
+        chat_repository=chat_repository,
+    )
 
     try:
-        message = create_message_usecase.execute(
+        (_, ai_message) = create_message_usecase.execute(
             content=message_create.content,
             sender_id=message_create.sender_id,
             chat_id=message_create.chat_id,
+            book_id=message_create.book_id,
+            tenant_id=message_create.tenant_id,
             metadata=message_create.metadata,
         )
-        return _entity_to_response(message)
+        return _entity_to_response(ai_message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

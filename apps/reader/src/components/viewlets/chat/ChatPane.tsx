@@ -1,11 +1,13 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Loader } from 'lucide-react'
+import { v4 as uuidv4 } from 'uuid'
 import { useReaderSnapshot } from '../../../models'
 import { ChatMessage } from './ChatMessage'
 import { ChatInputForm } from './ChatInputForm'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
 import { useTranslation } from '@flow/reader/hooks'
+import { TEST_USER_ID } from '../../../pages/_app'
 
 interface ChatPaneProps {
   messages: Message[]
@@ -24,9 +26,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   isLoading,
   setIsLoading,
 }) => {
-  const { focusedTab } = useReaderSnapshot()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const t = useTranslation()
+  const { focusedBookTab } = useReaderSnapshot()
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -46,15 +48,19 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/message`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            question: text,
-            tenant_id: focusedTab
-              ? `test_user_id_${focusedTab?.id}`
+            content: text,
+            chat_id: uuidv4(),
+            sender_id: TEST_USER_ID,
+            book_id: focusedBookTab?.book.id,
+            tenant_id: focusedBookTab
+              ? `tenant_${focusedBookTab.book.id}`
               : undefined,
+            metadata: {},
           }),
         },
       )
@@ -65,7 +71,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
 
       setMessages((prev) => [
         ...prev,
-        { sender_type: 'assistant', text: data.answer || t('chat.error') },
+        { sender_type: 'assistant', text: data.content || t('chat.error') },
       ])
     } catch (error) {
       console.error('Error:', error)

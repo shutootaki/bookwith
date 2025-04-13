@@ -1,5 +1,6 @@
 import { BookRecord } from './db'
 import { fileToBase64 } from './fileUtils'
+import { TEST_USER_ID } from './pages/_app'
 
 export async function fetchAllBooks(): Promise<BookRecord[]> {
   try {
@@ -94,7 +95,7 @@ export const getBookFile = async (
 ): Promise<BookFileData | undefined> => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=test_user_id`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=${TEST_USER_ID}`,
     )
     if (!response.ok)
       throw new Error(
@@ -133,7 +134,7 @@ export async function createBookInAPI(
     file_data: fileBase64,
     file_name: file.name,
     file_type: file.type,
-    user_id: 'test_user_id', // 実際のユーザーID管理に合わせて変更
+    user_id: TEST_USER_ID,
     book_id: book.id,
     book_name: book.name,
     book_metadata: book.metadata ? JSON.stringify(book.metadata) : null,

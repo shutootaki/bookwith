@@ -3,10 +3,7 @@ from enum import Enum
 
 
 class AnnotationTypeEnum(Enum):
-    """アノテーションタイプ列挙型"""
-
     HIGHLIGHT = "highlight"
-    # 将来的に他のタイプが追加される可能性があります
 
 
 @dataclass(frozen=True)

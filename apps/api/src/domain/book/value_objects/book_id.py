@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class BookId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.value:
             raise ValueError("BookIdは必須です")
 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
+from src.config.app_config import TEST_USER_ID
 from src.domain.book.exceptions.book_exceptions import (
     BookAlreadyCompletedException,
     BookAlreadyStartedException,
@@ -102,7 +103,7 @@ async def get_books_by_user(
 
 @router.get("/covers")
 async def get_covers(
-    user_id: str = "test_user_id",
+    user_id: str = TEST_USER_ID,
     find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(get_find_books_by_user_id_usecase),
 ):
     try:

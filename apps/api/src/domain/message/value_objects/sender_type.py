@@ -15,7 +15,8 @@ class SenderType:
         if not self.value:
             raise ValueError("SenderType value cannot be empty")
 
-        if self.value not in SenderTypeEnum.__members__:
+        valid_values = [e.value for e in SenderTypeEnum]
+        if self.value not in valid_values:
             raise ValueError(f"Invalid sender type: {self.value}")
 
     @classmethod
