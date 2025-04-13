@@ -30,4 +30,4 @@ def get_vector_store(index_name: str) -> WeaviateVectorStore:
     except Exception as e:
         # エラーが発生した場合はログに記録し、Noneを返す
         print(f"ベクトルストアの取得中にエラーが発生しました: {str(e)}")
-        return None
+        raise e

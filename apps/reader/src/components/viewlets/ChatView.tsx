@@ -148,7 +148,9 @@ const ChatPane: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             question: text,
-            tenant_id: focusedTab ? `tmp_user_id_${focusedTab?.id}` : undefined,
+            tenant_id: focusedTab
+              ? `test_user_id_${focusedTab?.id}`
+              : undefined,
           }),
         },
       )

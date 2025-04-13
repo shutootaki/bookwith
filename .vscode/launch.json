@@ -14,7 +14,14 @@
       "jinja": true,
       "justMyCode": false,
       "envFile": "${workspaceFolder}/apps/api/config/.env",
-      "env": { "PORT": "8000" }
+      "env": {
+        "PORT": "8000",
+        "OPENAI_API_KEY": "xxx",
+        "DATABASE_URL": "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        "DROPBOX_CLIENT_ID": "xxx",
+        "DROPBOX_CLIENT_SECRET": "xxx",
+        "CLOUD_STORAGE_EMULATOR_HOST": "http://localhost:4443"
+      }
     },
     {
       "name": "Python: Debug Tests",
@@ -27,7 +34,14 @@
       "console": "integratedTerminal",
       "justMyCode": false,
       "envFile": "${workspaceFolder}/apps/api/config/.env.test",
-      "env": { "PORT": "8000" }
+      "env": {
+        "PORT": "8000",
+        "OPENAI_API_KEY": "xxx",
+        "DATABASE_URL": "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+        "DROPBOX_CLIENT_ID": "xxx",
+        "DROPBOX_CLIENT_SECRET": "xxx",
+        "CLOUD_STORAGE_EMULATOR_HOST": "http://localhost:4443"
+      }
     }
   ]
 }

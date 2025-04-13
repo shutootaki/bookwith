@@ -31,7 +31,7 @@ export const TocView: React.FC<PaneViewProps> = (props) => {
 }
 
 const LibraryPane: React.FC = () => {
-  const books = useLibrary()
+  const { books } = useLibrary()
   const t = useTranslation('toc')
   return (
     <Pane headline={t('library')} preferredSize={240}>

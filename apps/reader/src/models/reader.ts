@@ -8,8 +8,8 @@ import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
-import { BookRecord, db } from '../db'
-import { fileToEpub } from '../file'
+import { BookRecord } from '../db'
+import { fileToEpub, getBookFile } from '../file'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
@@ -121,13 +121,17 @@ export class BookTab extends BaseTab {
   }
 
   updateBook(changes: Partial<BookRecord>) {
-    changes = {
-      ...changes,
-      updatedAt: Date.now(),
-    }
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
-    db?.books.update(this.book.id, changes)
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(changes),
+    }).catch((error) => {
+      console.error('書籍の更新に失敗しました:', error)
+    })
   }
 
   annotationRange?: Range
@@ -137,17 +141,24 @@ export class BookTab extends BaseTab {
   }
 
   define(def: string[]) {
-    this.updateBook({ definitions: [...this.book.definitions, ...def] })
+    const currentDefinitions = Array.isArray(this.book.definitions)
+      ? this.book.definitions
+      : []
+    this.updateBook({ definitions: [...currentDefinitions, ...def] })
   }
   undefine(def: string) {
+    const currentDefinitions = Array.isArray(this.book.definitions)
+      ? this.book.definitions
+      : []
     this.updateBook({
-      definitions: this.book.definitions.filter(
-        (d) => !compareDefinition(d, def),
-      ),
+      definitions: currentDefinitions.filter((d) => !compareDefinition(d, def)),
     })
   }
   isDefined(def: string) {
-    return this.book.definitions.some((d) => compareDefinition(d, def))
+    return (
+      Array.isArray(this.book.definitions) &&
+      this.book.definitions.some((d) => compareDefinition(d, def))
+    )
   }
 
   rangeToCfi(range: Range) {
@@ -162,6 +173,10 @@ export class BookTab extends BaseTab {
   ) {
     const spine = this.section
     if (!spine?.navitem) return
+
+    if (!this.book.annotations) {
+      this.book.annotations = []
+    }
 
     const i = this.book.annotations.findIndex((a) => a.cfi === cfi)
     let annotation = this.book.annotations[i]
@@ -185,7 +200,6 @@ export class BookTab extends BaseTab {
       }
 
       this.updateBook({
-        // DataCloneError: Failed to execute 'put' on 'IDBObjectStore': #<Object> could not be cloned.
         annotations: [...snapshot(this.book.annotations), annotation],
       })
     } else {
@@ -204,6 +218,11 @@ export class BookTab extends BaseTab {
     }
   }
   removeAnnotation(cfi: string) {
+    if (!this.book.annotations) {
+      this.book.annotations = []
+      return
+    }
+
     return this.updateBook({
       annotations: snapshot(this.book.annotations).filter((a) => a.cfi !== cfi),
     })
@@ -332,7 +351,7 @@ export class BookTab extends BaseTab {
     if (el === this._el) return
     this._el = ref(el)
 
-    const file = await db?.files.get(this.book.id)
+    const file = await getBookFile(this.book.id)
     if (!file) return
 
     this.epub = ref(await fileToEpub(file.file))

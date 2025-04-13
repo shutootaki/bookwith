@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import ePub, { Book } from '@flow/epubjs'
+import ePub from '@flow/epubjs'
 
-import { BookRecord, db } from './db'
+import { BookRecord } from './db'
 import { mapExtToMimes } from './mime'
 import { unpack } from './sync'
 
@@ -15,7 +15,6 @@ export async function handleFiles(
   files: Iterable<File>,
   setLoading?: (id: string | undefined) => void,
 ) {
-  const books = await db?.books.toArray()
   const newBooks = []
 
   for (const file of files) {
@@ -29,15 +28,98 @@ export async function handleFiles(
       continue
     }
 
-    let book = books?.find((b) => b.name === file.name)
+    const existingBooks = await fetchAllBooks()
+    let book = existingBooks?.find((b) => b.name === file.name)
 
     if (!book) {
-      book = await addBook(file, setLoading)
+      book = (await addBook(file, setLoading)) || undefined
     }
-    newBooks.push(book)
+
+    if (book) {
+      newBooks.push(book)
+    }
   }
 
   return newBooks
+}
+
+export async function fetchAllBooks(): Promise<BookRecord[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
+    )
+    if (!response.ok) {
+      console.error('書籍一覧取得エラー:', await response.json())
+      return []
+    }
+
+    const responseData = await response.json()
+    if (responseData?.success && Array.isArray(responseData?.data)) {
+      // APIから返されたデータをBookRecordに変換して返す
+      return responseData.data.map((book: any) => ({
+        id: book.id,
+        name: book.name,
+        author: book.author,
+        size: book.size,
+        metadata: book.book_metadata,
+        createdAt: new Date(book.created_at).getTime(),
+        updatedAt: book.updated_at
+          ? new Date(book.updated_at).getTime()
+          : undefined,
+        cfi: book.cfi,
+        percentage: book.percentage || 0,
+        definitions: book.definitions || [],
+        annotations: [],
+        configuration: book.configuration,
+        hasCover: book.has_cover || false,
+      }))
+    }
+    return []
+  } catch (error) {
+    console.error('書籍一覧取得中のエラー:', error)
+    return []
+  }
+}
+
+export async function fetchBookById(
+  bookId: string,
+): Promise<BookRecord | null> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}`,
+    )
+    if (!response.ok) {
+      console.error('書籍取得エラー:', await response.json())
+      return null
+    }
+
+    const responseData = await response.json()
+    if (responseData?.success && responseData?.data) {
+      const book = responseData.data
+      // APIから返されたデータをBookRecordに変換して返す
+      return {
+        id: book.id,
+        name: book.name,
+        author: book.author,
+        size: book.size,
+        metadata: book.book_metadata,
+        createdAt: new Date(book.created_at).getTime(),
+        updatedAt: book.updated_at
+          ? new Date(book.updated_at).getTime()
+          : undefined,
+        cfi: book.cfi,
+        percentage: book.percentage || 0,
+        definitions: book.definitions || [],
+        annotations: [],
+        configuration: book.configuration,
+        hasCover: book.has_cover || false,
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('書籍取得中のエラー:', error)
+    return null
+  }
 }
 
 export async function addBook(
@@ -47,33 +129,125 @@ export async function addBook(
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
 
-  const book: BookRecord = {
-    id: uuidv4(),
-    name: file.name || `${metadata.title}.epub`,
-    size: file.size,
-    metadata,
-    createdAt: Date.now(),
-    definitions: [],
-    annotations: [],
+  const tempBookId = uuidv4()
+  setLoading?.(tempBookId)
+
+  try {
+    // カバー画像を取得してデータURLに変換
+    const coverUrl = await epub.coverUrl()
+    let coverDataUrl = null
+    if (coverUrl) {
+      coverDataUrl = await toDataUrl(coverUrl)
+    }
+
+    // APIに書籍を登録
+    const bookData = await createBookInAPI(
+      file,
+      {
+        id: tempBookId,
+        name: file.name || `${metadata.title}.epub`,
+        size: file.size,
+        metadata,
+        createdAt: Date.now(),
+        definitions: [],
+        annotations: [],
+      },
+      coverDataUrl,
+    )
+
+    if (!bookData) {
+      console.error('APIへの書籍登録に失敗しました')
+      return null
+    }
+
+    // await indexEpub(file, bookData.id)
+
+    setLoading?.(undefined)
+    return bookData
+  } catch (error) {
+    console.error('書籍の登録中にエラーが発生しました:', error)
+    setLoading?.(undefined)
+    return null
   }
-  setLoading?.(book.id)
-  db?.books.add(book)
-  await indexEpub(file, book.id)
-  await addFile(book.id, file, epub)
-  setLoading?.(undefined)
-  return book
 }
 
-export async function addFile(id: string, file: File, epub?: Book) {
-  db?.files.add({ id, file })
+// APIに書籍を登録する関数
+export async function createBookInAPI(
+  file: File,
+  book: BookRecord,
+  coverDataUrl: string | null = null,
+): Promise<BookRecord | null> {
+  // ファイルをBase64エンコードに変換
+  const fileBase64 = await fileToBase64(file)
 
-  if (!epub) {
-    epub = await fileToEpub(file)
+  const requestData = {
+    file_data: fileBase64,
+    file_name: file.name,
+    file_type: file.type,
+    user_id: 'test_user_id', // 実際のユーザーID管理に合わせて変更
+    book_id: book.id,
+    book_name: book.name,
+    book_metadata: book.metadata ? JSON.stringify(book.metadata) : null,
+    cover_image: coverDataUrl || null,
   }
 
-  const url = await epub.coverUrl()
-  const cover = url && (await toDataUrl(url))
-  db?.covers.add({ id, cover })
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      },
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('書籍登録エラー:', errorData)
+      return null
+    }
+
+    const responseData = await response.json()
+    if (responseData?.success && responseData?.data) {
+      // APIから返されたデータをBookRecordに変換して返す
+      return {
+        id: responseData.data.id,
+        name: responseData.data.name,
+        size: responseData.data.size,
+        author: responseData.data.author,
+        metadata: book.metadata, // APIからのレスポンスにはメタデータの詳細が含まれていない可能性があるため
+        createdAt: new Date(responseData.data.created_at).getTime(),
+        updatedAt: new Date(responseData.data.updated_at).getTime(),
+        cfi: responseData.data.cfi,
+        percentage: responseData.data.percentage,
+        definitions: responseData.data.definitions || [],
+        annotations: responseData.data.annotations || [],
+        configuration: responseData.data.configuration,
+        hasCover: !!responseData.data.cover_path,
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('書籍登録中のエラー:', error)
+    return null
+  }
+}
+
+// ファイルをBase64に変換する関数
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      const result = reader.result as string
+      // データURLの先頭部分 (data:application/pdf;base64,) を削除して純粋なBase64を取得
+      const base64 = result.split(',')[1]
+      resolve(base64 || '')
+    }
+    reader.onerror = (error) => reject(error)
+  })
 }
 
 export function readBlob(fn: (reader: FileReader) => void) {
@@ -97,8 +271,9 @@ export async function fetchBook(
   setLoading?: (id: string | undefined) => void,
 ) {
   const filename = decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '')
-  const books = await db?.books.toArray()
-  const book = books?.find((b) => b.name === filename)
+
+  const existingBooks = await fetchAllBooks()
+  const book = existingBooks?.find((b) => b.name === filename)
 
   return (
     book ??
@@ -111,7 +286,7 @@ export async function fetchBook(
 const indexEpub = async (file: File, bookId: string) => {
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('user_id', 'tmp_user_id')
+  formData.append('user_id', 'test_user_id')
   formData.append('book_id', bookId)
 
   try {
@@ -121,5 +296,75 @@ const indexEpub = async (file: File, bookId: string) => {
     })
   } catch (error) {
     console.error('アップロード中のエラー:', error)
+  }
+}
+
+interface BookFileResponse {
+  success: boolean
+  url?: string
+  error?: string
+}
+
+interface BookFileData {
+  id: string
+  file: File
+}
+
+export const getBookFile = async (
+  bookId: string,
+): Promise<BookFileData | undefined> => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=test_user_id`,
+    )
+    if (!response.ok)
+      throw new Error(
+        `書籍ファイルの取得に失敗しました: ${response.statusText}`,
+      )
+
+    const data: BookFileResponse = await response.json()
+    if (!data.success || !data.url)
+      throw new Error('ブックファイルのURLが取得できませんでした')
+
+    const fileResponse = await fetch(data.url)
+    if (!fileResponse.ok)
+      throw new Error(
+        `ファイルのダウンロードに失敗しました: ${fileResponse.statusText}`,
+      )
+
+    const blob = await fileResponse.blob()
+    const fileName = data.url.split('/').pop() || 'book.epub'
+    const file = new File([blob], fileName, { type: 'application/epub+zip' })
+
+    return { id: bookId, file }
+  } catch (error) {
+    console.error('書籍ファイルの取得に失敗しました:', error)
+    return undefined
+  }
+}
+
+export async function deleteBooksFromAPI(bookIds: string[]): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/bulk-delete`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ book_ids: bookIds }),
+      },
+    )
+
+    if (!response.ok) {
+      console.error('書籍一括削除エラー:', await response.json())
+      return []
+    }
+
+    const data = await response.json()
+    return data.deletedIds || []
+  } catch (error) {
+    console.error('書籍一括削除中のエラー:', error)
+    return []
   }
 }

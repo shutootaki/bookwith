@@ -1,19 +1,12 @@
 import Dexie from 'dexie'
 import { useRouter } from 'next/router'
-import { parseCookies, destroyCookie } from 'nookies'
 
-import {
-  ColorScheme,
-  useColorScheme,
-  useForceRender,
-  useTranslation,
-} from '@flow/reader/hooks'
-import { dbx, mapToToken, OAUTH_SUCCESS_MESSAGE } from '@flow/reader/sync'
+import { ColorScheme, useColorScheme, useTranslation } from '@flow/reader/hooks'
 
-import { useEventListener } from '../../hooks'
 import { Button } from '../Button'
 import { Select } from '../Form'
 import { Page } from '../Page'
+import { PropsWithChildren } from 'react'
 
 export const Settings: React.FC = () => {
   const { scheme, setScheme } = useColorScheme()
@@ -46,7 +39,6 @@ export const Settings: React.FC = () => {
             <option value="dark">{t('color_scheme.dark')}</option>
           </Select>
         </Item>
-        <Synchronization />
         <Item title={t('cache')}>
           <Button
             variant="secondary"
@@ -65,64 +57,10 @@ export const Settings: React.FC = () => {
   )
 }
 
-const Synchronization: React.FC = () => {
-  const cookies = parseCookies()
-  const refreshToken = cookies[mapToToken['dropbox']]
-  const render = useForceRender()
-  const t = useTranslation('settings.synchronization')
-
-  useEventListener('message', (e) => {
-    if (e.data === OAUTH_SUCCESS_MESSAGE) {
-      // init app (generate access token, fetch remote data, etc.)
-      window.location.reload()
-    }
-  })
-
-  return (
-    <Item title={t('title')}>
-      <Select>
-        <option value="dropbox">Dropbox</option>
-      </Select>
-      <div className="mt-2">
-        {refreshToken ? (
-          <Button
-            variant="secondary"
-            onClick={() => {
-              destroyCookie(null, mapToToken['dropbox'])
-              render()
-            }}
-          >
-            {t('unauthorize')}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => {
-              const redirectUri = `${process.env.NEXT_PUBLIC_API_BASE_URL}/callback/dropbox`
-
-              dbx.auth
-                .getAuthenticationUrl(
-                  redirectUri,
-                  JSON.stringify({ redirectUri }),
-                  'code',
-                  'offline',
-                )
-                .then((url) => {
-                  window.open(url as string, '_blank')
-                })
-            }}
-          >
-            {t('authorize')}
-          </Button>
-        )}
-      </div>
-    </Item>
-  )
-}
-
 interface PartProps {
   title: string
 }
-const Item: React.FC<PartProps> = ({ title, children }) => {
+const Item: React.FC<PropsWithChildren<PartProps>> = ({ title, children }) => {
   return (
     <div>
       <h3 className="typescale-title-small text-on-surface-variant">{title}</h3>

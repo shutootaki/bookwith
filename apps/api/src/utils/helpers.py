@@ -1,5 +1,5 @@
-from config.app_config import AppConfig
 from dropbox import Dropbox
+from src.config.app_config import AppConfig
 
 
 def get_dropbox_client() -> Dropbox:

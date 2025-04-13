@@ -1,6 +1,9 @@
 from src.models.schemas import (
     Answer,
     BaseResponse,
+    BookDetail,
+    BookResponse,
+    BooksResponse,
     CallbackRequest,
     CallbackResponse,
     ErrorDetail,
@@ -17,6 +20,9 @@ from src.models.schemas import (
 __all__ = [
     "Answer",
     "BaseResponse",
+    "BookDetail",
+    "BookResponse",
+    "BooksResponse",
     "CallbackRequest",
     "CallbackResponse",
     "ErrorDetail",

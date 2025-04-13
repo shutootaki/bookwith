@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { useLiveQuery } from 'dexie-react-hooks'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
@@ -11,24 +10,37 @@ import {
   MdOutlineShare,
 } from 'react-icons/md'
 import { useSet } from 'react-use'
-import { usePrevious } from 'react-use'
+import { toast } from 'sonner'
+import { useSWRConfig } from 'swr'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@flow/reader/components/ui/alert-dialog'
 
 import { ReaderGridView, Button, TextField, DropZone } from '../components'
-import { BookRecord, CoverRecord, db } from '../db'
-import { addFile, fetchBook, handleFiles } from '../file'
+import { BookRecord } from '../db'
+import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
 import { useBoolean } from '../hooks'
 import {
   useDisablePinchZooming,
   useLibrary,
   useMobile,
-  useRemoteBooks,
-  useRemoteFiles,
+  useRemoteCovers,
   useTranslation,
 } from '../hooks'
+import { CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
-import { dbx, pack, uploadData } from '../sync'
+import { pack } from '../sync'
 import { copy } from '../utils'
+import { Toaster } from '../components/ui/sonner'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
@@ -50,7 +62,7 @@ export default function Index() {
     Promise.all(
       src.map((s) =>
         fetchBook(s).then((b) => {
-          reader.addTab(b)
+          if (b) reader.addTab(b as any)
         }),
       ),
     ).finally(() => setLoading(false))
@@ -87,7 +99,7 @@ export default function Index() {
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
         />
-        <title>{focusedTab?.title ?? 'Flow'}</title>
+        <title>{focusedTab?.title ?? 'Bookwith'}</title>
       </Head>
       <ReaderGridView />
       {loading || <Library />}
@@ -96,69 +108,16 @@ export default function Index() {
 }
 
 const Library: React.FC = () => {
-  const books = useLibrary()
-  const covers = useLiveQuery(() => db?.covers.toArray() ?? [])
+  const { books, mutate } = useLibrary()
+  const { data: covers } = useRemoteCovers()
   const t = useTranslation('home')
-
-  const { data: remoteBooks, mutate: mutateRemoteBooks } = useRemoteBooks()
-  const { data: remoteFiles, mutate: mutateRemoteFiles } = useRemoteFiles()
-  const previousRemoteBooks = usePrevious(remoteBooks)
-  const previousRemoteFiles = usePrevious(remoteFiles)
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
 
   const [loading, setLoading] = useState<string | undefined>()
-  const [readyToSync, setReadyToSync] = useState(false)
 
   const { groups } = useReaderSnapshot()
-
-  useEffect(() => {
-    if (previousRemoteFiles && remoteFiles) {
-      // to remove effect dependency `books`
-      db?.books.toArray().then((books) => {
-        if (books.length === 0) return
-
-        const newRemoteBooks = remoteFiles.map((f) =>
-          books.find((b) => b.name === f.name),
-        ) as BookRecord[]
-
-        uploadData(newRemoteBooks)
-        mutateRemoteBooks(newRemoteBooks, { revalidate: false })
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mutateRemoteBooks, remoteFiles])
-
-  useEffect(() => {
-    if (!previousRemoteBooks && remoteBooks) {
-      db?.books.bulkPut(remoteBooks).then(() => setReadyToSync(true))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remoteBooks])
-
-  useEffect(() => {
-    if (!remoteFiles || !readyToSync) return
-
-    db?.books.toArray().then(async (books) => {
-      for (const remoteFile of remoteFiles) {
-        const book = books.find((b) => b.name === remoteFile.name)
-        if (!book) continue
-
-        const file = await db?.files.get(book.id)
-        if (file) continue
-
-        setLoading(book.id)
-        await dbx
-          .filesDownload({ path: `/files/${remoteFile.name}` })
-          .then((d) => {
-            const blob: Blob = (d.result as any).fileBlob
-            return addFile(book.id, new File([blob], book.name))
-          })
-        setLoading(undefined)
-      }
-    })
-  }, [readyToSync, remoteFiles])
 
   useEffect(() => {
     if (!select) reset()
@@ -167,10 +126,8 @@ const Library: React.FC = () => {
   if (groups.length) return null
   if (!books) return null
 
-  const selectedBooks = [...selectedBookIds].map(
-    (id) => books.find((b) => b.id === id)!,
-  )
   const allSelected = selectedBookIds.size === books.length
+  mutate()
 
   return (
     <DropZone
@@ -178,7 +135,7 @@ const Library: React.FC = () => {
       onDrop={(e) => {
         const bookId = e.dataTransfer.getData('text/plain')
         const book = books.find((b) => b.id === bookId)
-        if (book) reader.addTab(book)
+        if (book) reader.addTab(book as any)
 
         handleFiles(e.dataTransfer.files)
       }}
@@ -249,59 +206,34 @@ const Library: React.FC = () => {
           <div className="space-x-2">
             {select ? (
               <>
-                <Button
-                  onClick={async () => {
-                    toggleSelect()
-
-                    for (const book of selectedBooks) {
-                      const remoteFile = remoteFiles?.find(
-                        (f) => f.name === book.name,
-                      )
-                      if (remoteFile) continue
-
-                      const file = await db?.files.get(book.id)
-                      if (!file) continue
-
-                      setLoading(book.id)
-                      await dbx.filesUpload({
-                        path: `/files/${book.name}`,
-                        contents: file.file,
-                      })
-                      setLoading(undefined)
-
-                      mutateRemoteFiles()
-                    }
-                  }}
-                >
-                  {t('upload')}
-                </Button>
-                <Button
-                  onClick={async () => {
-                    toggleSelect()
-                    const bookIds = [...selectedBookIds]
-
-                    db?.books.bulkDelete(bookIds)
-                    db?.covers.bulkDelete(bookIds)
-                    db?.files.bulkDelete(bookIds)
-
-                    // folder data is not updated after `filesDeleteBatch`
-                    mutateRemoteFiles(
-                      async (data) => {
-                        await dbx.filesDeleteBatch({
-                          entries: selectedBooks.map((b) => ({
-                            path: `/files/${b.name}`,
-                          })),
-                        })
-                        return data?.filter(
-                          (f) => !selectedBooks.find((b) => b.name === f.name),
-                        )
-                      },
-                      { revalidate: false },
-                    )
-                  }}
-                >
-                  {t('delete')}
-                </Button>
+                <AlertDialog>
+                  <Button asChild>
+                    <AlertDialogTrigger>{t('delete')}</AlertDialogTrigger>
+                  </Button>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t('delete_confirmation')}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('delete_confirmation_message')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          toggleSelect()
+                          await deleteBooksFromAPI([...selectedBookIds])
+                          mutate()
+                          toast.success(t('delete_success'))
+                        }}
+                      >
+                        {t('delete')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             ) : (
               <>
@@ -342,7 +274,7 @@ const Library: React.FC = () => {
           {books.map((book) => (
             <Book
               key={book.id}
-              book={book}
+              book={book as any}
               covers={covers}
               select={select}
               selected={has(book.id)}
@@ -352,13 +284,14 @@ const Library: React.FC = () => {
           ))}
         </ul>
       </div>
+      <Toaster />
     </DropZone>
   )
 }
 
 interface BookProps {
   book: BookRecord
-  covers?: CoverRecord[]
+  covers?: CoversResponse
   select?: boolean
   selected?: boolean
   loading?: boolean
@@ -372,13 +305,11 @@ const Book: React.FC<BookProps> = ({
   loading,
   toggle,
 }) => {
-  const remoteFiles = useRemoteFiles()
-
   const router = useRouter()
   const mobile = useMobile()
 
-  const cover = covers?.find((c) => c.id === book.id)?.cover
-  const remoteFile = remoteFiles.data?.find((f) => f.name === book.name)
+  const coverData = covers?.data?.find((c) => c.book_id === book.id)
+  const cover = coverData?.cover_url
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
 
@@ -406,9 +337,9 @@ const Book: React.FC<BookProps> = ({
             loading && 'progress-bit w-[5%]',
           )}
         />
-        {book.percentage !== undefined && (
+        {book?.percentage !== undefined && (
           <div className="typescale-body-large absolute right-0 bg-gray-500/60 px-2 text-gray-100">
-            {(book.percentage * 100).toFixed()}%
+            {(book?.percentage * 100).toFixed()}%
           </div>
         )}
         <img
@@ -435,10 +366,7 @@ const Book: React.FC<BookProps> = ({
         title={book.name}
       >
         <MdCheckCircle
-          className={clsx(
-            'mr-1 mb-0.5 inline',
-            remoteFile ? 'text-tertiary' : 'text-surface-variant',
-          )}
+          className={clsx('text-surface-variant mr-1 mb-0.5 inline')}
           size={16}
         />
         {book.name}

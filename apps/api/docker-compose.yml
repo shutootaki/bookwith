@@ -15,5 +15,15 @@ services:
     volumes:
       - weaviate_data:/var/lib/weaviate
 
+  gcloud-storage-emulator:
+    image: fsouza/fake-gcs-server:latest
+    ports:
+      - 4443:4443
+    command: -scheme http -public-host ${URL:-localhost}:4443
+    volumes:
+      - ./gcs_fixtures:/data
+      - ./gcs:/storage
+
 volumes:
   weaviate_data:
+  gcs_fixtures:
