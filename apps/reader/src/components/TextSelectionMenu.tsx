@@ -95,7 +95,7 @@ export const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({
 }
 
 const ICON_SIZE = scale(22, 28)
-const ANNOTATION_SIZE = scale(24, 30)
+const ANNOTATION_SIZE = scale(28, 32)
 
 interface TextSelectionMenuRendererProps {
   tab: BookTab
@@ -159,7 +159,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
           }
         }}
         className={clsx(
-          'bg-card text-card-foreground absolute z-50 rounded-lg p-2 shadow-md focus:outline-none',
+          'bg-card text-card-foreground absolute z-50 rounded-lg border border-gray-100 p-2 shadow-md focus:outline-none dark:border-gray-800',
         )}
         style={{
           left: layout(containerRect.width, width, {
@@ -183,23 +183,23 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
         }}
       >
         {annotate ? (
-          <div className="mb-3">
+          <div className="mb-2">
             <TextField
               mRef={ref}
               as="textarea"
               name="notes"
               defaultValue={annotation?.notes}
               hideLabel
-              className="h-40 w-72"
+              className="focus:border-primary focus:ring-primary h-40 w-72 rounded-lg border-gray-200 focus:ring-1 dark:border-gray-700"
               autoFocus
             />
           </div>
         ) : (
-          <div className="text-muted-foreground mb-3 flex gap-1">
+          <div className="text-muted-foreground mb-2 flex justify-between gap-1.5">
             <Button
               variant="ghost"
               size="icon"
-              className="h-auto w-auto p-1"
+              className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
               title={t('copy')}
               onClick={() => {
                 hide()
@@ -211,7 +211,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-auto w-auto p-1"
+              className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
               title="チャットを開く"
               onClick={() => {
                 hide()
@@ -224,7 +224,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-auto w-auto p-1"
+              className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
               title={t('search_in_book')}
               onClick={() => {
                 hide()
@@ -237,7 +237,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-auto w-auto p-1"
+              className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
               title={t('annotate')}
               onClick={() => {
                 setAnnotate(true)
@@ -249,7 +249,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-auto w-auto p-1"
+                className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                 title={t('undefine')}
                 onClick={() => {
                   hide()
@@ -262,7 +262,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-auto w-auto p-1"
+                className="h-auto w-auto rounded-lg p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
                 title={t('define')}
                 onClick={() => {
                   hide()
@@ -276,7 +276,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
         )}
         <div className="space-y-2">
           {keys(typeMap).map((type) => (
-            <div key={type} className="flex gap-2">
+            <div key={type} className="flex justify-center gap-2">
               {keys(colorMap).map((color) => (
                 <div
                   key={color}
@@ -287,7 +287,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
                     fontSize: scale(16, 20),
                   }}
                   className={clsx(
-                    'text-foreground flex cursor-pointer items-center justify-center',
+                    'text-foreground flex cursor-pointer items-center justify-center rounded-md border border-gray-200 shadow-sm transition-transform hover:scale-105 dark:border-gray-700',
                     typeMap[type].class,
                   )}
                   onClick={() => {
@@ -308,11 +308,12 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
           ))}
         </div>
         {annotate && (
-          <div className="mt-3 flex">
+          <div className="mt-2 flex">
             {annotation && (
               <Button
                 variant="secondary"
                 size="sm"
+                className="rounded-md border border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
                 onClick={() => {
                   tab.removeAnnotation(cfi)
                   hide()
@@ -322,7 +323,7 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
               </Button>
             )}
             <Button
-              className="ml-auto"
+              className="bg-primary hover:bg-primary/90 ml-auto rounded-md shadow-sm transition-colors"
               size="sm"
               onClick={() => {
                 tab.putAnnotation(
