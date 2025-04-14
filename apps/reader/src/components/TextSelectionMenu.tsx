@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { useCallback, useRef, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import {
+  MdChat,
   MdCopyAll,
   MdOutlineAddBox,
   MdOutlineEdit,
@@ -19,7 +20,7 @@ import {
   useTranslation,
   useTypography,
 } from '../hooks'
-import { BookTab } from '../models'
+import { BookTab, reader } from '../models'
 import { isTouchScreen, scale } from '../platform'
 import { copy, keys, last } from '../utils'
 
@@ -206,6 +207,19 @@ const TextSelectionMenuRenderer: React.FC<TextSelectionMenuRendererProps> = ({
               }}
             >
               <MdCopyAll size={ICON_SIZE} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-auto w-auto p-1"
+              title="チャットを開く"
+              onClick={() => {
+                hide()
+                setAction('chat')
+                tab.setChatKeyword(text)
+              }}
+            >
+              <MdChat size={ICON_SIZE} />
             </Button>
             <Button
               variant="ghost"

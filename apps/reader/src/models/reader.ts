@@ -235,6 +235,12 @@ export class BookTab extends BaseTab {
     this.onKeywordChange()
   }
 
+  chatKeyword = ''
+  setChatKeyword(keyword: string) {
+    if (this.chatKeyword === keyword) return
+    this.chatKeyword = keyword
+  }
+
   // only use throttle/debounce for side effects
   @debounce(1000)
   async onKeywordChange() {
@@ -524,6 +530,12 @@ export class Group {
 export class Reader {
   groups: Group[] = []
   focusedIndex = -1
+
+  // setChatKeyword(keyword: string) {
+  //   if (this.focusedBookTab) {
+  //     this.focusedBookTab.setChatKeyword(keyword)
+  //   }
+  // }
 
   get focusedGroup() {
     return this.groups[this.focusedIndex]

@@ -14,6 +14,7 @@ interface ChatPaneProps {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>
   text: string
   setText: React.Dispatch<React.SetStateAction<string>>
+  setKeyword: React.Dispatch<React.SetStateAction<string>>
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
   chatId?: string | null
