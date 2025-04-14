@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { History, PlusCircle } from 'lucide-react'
 import { PaneViewProps, PaneView } from '../base'
-import { useTranslation } from '@flow/reader/hooks'
+import { useTranslation, useAction } from '@flow/reader/hooks'
 
 import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
 import { ChatPane } from './chat/ChatPane'
@@ -9,6 +9,7 @@ import { Message } from './chat/types'
 import { chatService } from '../../services/api/chatService'
 import { v4 as uuidv4 } from 'uuid'
 import { MessageResponse } from '../../services/api/types'
+import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeyword'
 
 export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [messages, setMessages] = useState<Message[]>([])
@@ -17,12 +18,20 @@ export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [showHistory, setShowHistory] = useState(false)
   const [selectedChatId, setSelectedChatId] = useState<string>(uuidv4())
   const t = useTranslation()
+  const [chatKeyword, setChatKeyword] = useIntermediateChatKeyword()
+
+  useEffect(() => {
+    if (chatKeyword) {
+      setText(chatKeyword)
+    }
+  }, [chatKeyword])
 
   const resetChat = () => {
     setMessages([])
     setText('')
     setIsLoading(false)
     setSelectedChatId(uuidv4())
+    setChatKeyword('')
   }
 
   const handleSelectChat = async (chatId: string) => {

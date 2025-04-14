@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import Highlighter from 'react-highlight-words'
 import { VscCollapseAll, VscExpandAll } from 'react-icons/vsc'
 
@@ -13,26 +13,7 @@ import {
 import { TextField } from '../Form'
 import { Row } from '../Row'
 import { PaneViewProps, PaneView } from '../base'
-
-// When inputting with IME and storing state in `valtio`,
-// unexpected rendering with `e.target.value === ''` occurs,
-// which leads to `<input>` and IME flash to empty,
-// while this will not happen when using `React.useState`,
-// so we should create an intermediate `keyword` state to fix this.
-function useIntermediateKeyword() {
-  const [keyword, setKeyword] = useState('')
-  const { focusedBookTab } = useReaderSnapshot()
-
-  useEffect(() => {
-    setKeyword(focusedBookTab?.keyword ?? '')
-  }, [focusedBookTab?.keyword])
-
-  useEffect(() => {
-    reader.focusedBookTab?.setKeyword(keyword)
-  }, [keyword])
-
-  return [keyword, setKeyword] as const
-}
+import { useIntermediateKeyword } from '../../hooks/useIntermediateKeyword'
 
 export const SearchView: React.FC<PaneViewProps> = (props) => {
   const [action] = useAction()

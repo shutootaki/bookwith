@@ -75,7 +75,7 @@ export const ChatHistoryCommandDialog: React.FC<
                 </div>
                 <div className="text-muted-foreground w-full text-xs">
                   <span>
-                    {t('chat.last_updated')}:{' '}
+                    {t('chat.created_at')}:{' '}
                     {new Date(chat.updated_at).toLocaleString()}
                   </span>
                 </div>

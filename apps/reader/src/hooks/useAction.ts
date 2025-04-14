@@ -9,10 +9,8 @@ export type Action =
   | 'image'
   | 'timeline'
   | 'theme'
-export const actionState = atom<Action | undefined>({
-  key: 'action',
-  default: undefined,
-})
+
+export const actionState = atom<Action | undefined>(undefined)
 
 export function useSetAction() {
   return useSetAtom(actionState)

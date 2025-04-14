@@ -6,7 +6,7 @@ import { ChatMessage } from './ChatMessage'
 import { ChatInputForm } from './ChatInputForm'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
-import { useTranslation } from '@flow/reader/hooks'
+import { useAction, useTranslation } from '@flow/reader/hooks'
 import { TEST_USER_ID } from '../../../pages/_app'
 
 interface ChatPaneProps {
@@ -31,8 +31,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
-
-  console.log({ tenant_id: focusedBookTab?.book?.tenant_id })
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

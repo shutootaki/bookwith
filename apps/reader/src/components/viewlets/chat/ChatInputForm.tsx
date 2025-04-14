@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { ArrowUpIcon } from 'lucide-react'
 import { Textarea } from '../../ui/textarea'
 import { Button } from '../../ui/button'
@@ -9,13 +9,15 @@ import {
   TooltipTrigger,
 } from '../../ui/tooltip'
 import { useAutoResize } from './utils'
-import { useTranslation } from '@flow/reader/hooks'
+import { useAction, useTranslation } from '@flow/reader/hooks'
+import { TextAreaRefType } from './types'
 
 interface ChatInputFormProps {
   text: string
   setText: React.Dispatch<React.SetStateAction<string>>
   onSend: (e: React.FormEvent | React.KeyboardEvent) => void
   isLoading: boolean
+  shouldFocus?: boolean
 }
 
 export const ChatInputForm: React.FC<ChatInputFormProps> = ({
@@ -27,8 +29,26 @@ export const ChatInputForm: React.FC<ChatInputFormProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isEmpty = !text.trim()
   const t = useTranslation()
+  const [action] = useAction()
+  const [shouldFocusInput, setShouldFocusInput] = useState(false)
+  const actualRef = textareaRef
+  useAutoResize(text, actualRef)
 
-  useAutoResize(text, textareaRef)
+  useEffect(() => {
+    setShouldFocusInput(action === 'chat')
+  }, [action])
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current = textareaRef.current
+    }
+  }, [textareaRef])
+
+  useEffect(() => {
+    if (shouldFocusInput && textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [shouldFocusInput])
 
   return (
     <div className="sticky bottom-0 border-t p-3">
@@ -37,7 +57,9 @@ export const ChatInputForm: React.FC<ChatInputFormProps> = ({
           <Textarea
             ref={textareaRef}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value)
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault()
