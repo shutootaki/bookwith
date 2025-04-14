@@ -27,7 +27,7 @@ class Book:
         cfi: str | None = None,
         percentage: float = 0,
         book_metadata: dict[str, Any] | None = None,
-        definitions: list[dict[str, Any]] | None = None,
+        definitions: list[str] | None = None,
         configuration: dict[str, Any] | None = None,
         created_at: datetime | None = None,
         tenant_id: TenantId | None = None,

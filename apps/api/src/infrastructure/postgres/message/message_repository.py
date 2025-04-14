@@ -43,7 +43,12 @@ class MessageRepositoryImpl(MessageRepository):
         return [message_orm.to_entity() for message_orm in message_orms]
 
     def find_by_chat_id(self, chat_id: str) -> list[Message]:
-        message_orms = self._session.query(MessageDTO).filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None).all()
+        message_orms = (
+            self._session.query(MessageDTO)
+            .filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None)
+            .order_by(MessageDTO.created_at.asc())
+            .all()
+        )
 
         return [message_orm.to_entity() for message_orm in message_orms]
 

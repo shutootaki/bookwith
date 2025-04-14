@@ -36,7 +36,7 @@ class ChatRepositoryImpl(ChatRepository):
         return chat_dto.to_entity()
 
     def find_by_user_id(self, user_id: UserId) -> list[Chat]:
-        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value).all()
+        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value).order_by(ChatDTO.updated_at.desc()).all()
         return [dto.to_entity() for dto in chat_dtos]
 
     def find_by_book_id(self, book_id: BookId) -> list[Chat]:

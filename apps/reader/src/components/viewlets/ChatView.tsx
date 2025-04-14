@@ -7,6 +7,7 @@ import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
 import { ChatPane } from './chat/ChatPane'
 import { Message } from './chat/types'
 import { chatService } from '../../services/api/chatService'
+import { v4 as uuidv4 } from 'uuid'
 import { MessageResponse } from '../../services/api/types'
 
 export const ChatView: React.FC<PaneViewProps> = (props) => {
@@ -14,14 +15,14 @@ export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [text, setText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
+  const [selectedChatId, setSelectedChatId] = useState<string>(uuidv4())
   const t = useTranslation()
 
   const resetChat = () => {
     setMessages([])
     setText('')
     setIsLoading(false)
-    setSelectedChatId(null)
+    setSelectedChatId(uuidv4())
   }
 
   const handleSelectChat = async (chatId: string) => {

@@ -2,8 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from src.domain.annotation.value_objects.annotation_color import AnnotationColor
-from src.domain.annotation.value_objects.annotation_type import AnnotationType
+from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
+from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum
 from src.domain.book.entities.book import Book
 
 
@@ -22,8 +22,8 @@ class AnnotationSchemaTmp(BaseModel):
     book_id: str = Field(alias="bookId")
     cfi: str
     spine: dict[str, Any]
-    type: AnnotationType
-    color: AnnotationColor
+    type: AnnotationTypeEnum
+    color: AnnotationColorEnum
     notes: str | None = None
     text: str
 
@@ -39,7 +39,7 @@ class BookUpdateRequest(BaseModel):
     percentage: float | None = Field(None, description="Reading progress percentage (%)")
     annotations: list[AnnotationSchemaTmp] | None = Field(None, description="Annotation information")
     book_metadata: dict[str, Any] | None = Field(None, description="Book metadata")
-    definitions: list[dict[str, Any]] | None = Field(None, description="User defined information")
+    definitions: list[str] | None = Field(None, description="User defined information")
     configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
 
 

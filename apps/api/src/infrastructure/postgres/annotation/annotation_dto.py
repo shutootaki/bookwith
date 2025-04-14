@@ -34,3 +34,21 @@ class AnnotationDTO(Base, TimestampMixin):
 
     book = relationship("BookDTO", back_populates="annotations", uselist=False)
     user = relationship("UserDTO", back_populates="annotations", uselist=False)
+
+    @staticmethod
+    def from_dict(data: dict) -> dict:
+        result = data.copy()
+
+        if "color" in result and isinstance(result["color"], str):
+            try:
+                result["color"] = AnnotationColorEnum(result["color"])
+            except ValueError:
+                result["color"] = None
+
+        if "type" in result and isinstance(result["type"], str):
+            try:
+                result["type"] = AnnotationTypeEnum(result["type"])
+            except ValueError:
+                result["type"] = AnnotationTypeEnum.HIGHLIGHT
+
+        return result

@@ -88,6 +88,7 @@ export default {
   'chat.keyboard_shortcut': '`Cmd + Enter` or `Ctrl + Enter` to send',
   'chat.send': 'Send',
   'chat.error': 'An error occurred',
+  'chat.last_updated': 'Last updated',
 
   untitled: 'Untitled',
 } as const

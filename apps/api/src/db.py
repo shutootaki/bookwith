@@ -32,6 +32,3 @@ def init_db() -> None:
     except Exception as e:
         logging.error(f"Error occurred during database initialization: {str(e)}", exc_info=True)
         raise
-
-
-__all__ = ["Base", "get_db", "init_db", "engine", "SessionLocal"]
