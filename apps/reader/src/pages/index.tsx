@@ -473,11 +473,7 @@ const Book: React.FC<BookProps> = ({
         className="line-clamp-2 text-on-surface-variant typescale-body-small lg:typescale-body-medium mt-2 w-full"
         title={book.name}
       >
-        <MdCheckCircle
-          className={clsx('text-surface-variant mr-1 mb-0.5 inline')}
-          size={16}
-        />
-        {book.name}
+        {book.book_metadata.title || book.name}
       </div>
     </div>
   )

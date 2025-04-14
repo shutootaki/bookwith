@@ -307,7 +307,7 @@ const SideBar: React.FC = () => {
     <>
       {action && mobile && (
         <div
-          className="fixed inset-0 z-30 bg-black/50"
+          className="fixed inset-0 z-10 bg-black/50"
           onClick={() => setAction(undefined)}
         />
       )}

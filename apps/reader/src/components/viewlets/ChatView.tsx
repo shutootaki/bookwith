@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { History, PlusCircle } from 'lucide-react'
 import { PaneViewProps, PaneView } from '../base'
-import { useTranslation } from '@flow/reader/hooks'
+import { useTranslation, useAction } from '@flow/reader/hooks'
 
 import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
 import { ChatPane } from './chat/ChatPane'
@@ -13,7 +13,6 @@ import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeywo
 
 export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [messages, setMessages] = useState<Message[]>([])
-
   const [text, setText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
