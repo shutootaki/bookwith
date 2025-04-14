@@ -4,11 +4,17 @@ from sqlalchemy.orm import Session
 from src.db import get_db
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
+from src.domain.message.repositories.message_repository import MessageRepository
 from src.infrastructure.postgres.book.book_repository import PostgresBookRepository
 from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
+from src.infrastructure.postgres.message.message_repository import MessageRepositoryImpl
 from src.usecase.book.create_book_usecase import (
     CreateBookUseCase,
     CreateBookUseCaseImpl,
+)
+from src.usecase.book.create_book_vector_index_usecase import (
+    CreateBookVectorIndexUseCase,
+    CreateBookVectorIndexUseCaseImpl,
 )
 from src.usecase.book.delete_book_usecase import (
     BulkDeleteBooksUseCase,
@@ -53,6 +59,22 @@ from src.usecase.chat.find_chats_by_user_id_usecase import (
 from src.usecase.chat.update_chat_title_usecase import (
     UpdateChatTitleUseCase,
     UpdateChatTitleUseCaseImpl,
+)
+from src.usecase.message.create_message_usecase import (
+    CreateMessageUseCase,
+    CreateMessageUseCaseImpl,
+)
+from src.usecase.message.delete_message_usecase import (
+    DeleteMessageUseCase,
+    DeleteMessageUseCaseImpl,
+)
+from src.usecase.message.find_message_by_id_usecase import (
+    FindMessageByIdUseCase,
+    FindMessageByIdUseCaseImpl,
+)
+from src.usecase.message.find_messages_usecase import (
+    FindMessagesUseCase,
+    FindMessagesUseCaseImpl,
 )
 
 
@@ -140,3 +162,39 @@ def get_delete_chat_usecase(
     chat_repository: ChatRepository = Depends(get_chat_repository),
 ) -> DeleteChatUseCase:
     return DeleteChatUseCaseImpl(chat_repository)
+
+
+def get_create_book_vector_index_usecase() -> CreateBookVectorIndexUseCase:
+    return CreateBookVectorIndexUseCaseImpl()
+
+
+def get_message_repository(db: Session = Depends(get_db)) -> MessageRepository:
+    return MessageRepositoryImpl(db)
+
+
+def get_find_messages_usecase(
+    message_repository: MessageRepository = Depends(get_message_repository),
+) -> FindMessagesUseCase:
+    return FindMessagesUseCaseImpl(message_repository)
+
+
+def get_find_message_by_id_usecase(
+    message_repository: MessageRepository = Depends(get_message_repository),
+) -> FindMessageByIdUseCase:
+    return FindMessageByIdUseCaseImpl(message_repository)
+
+
+def get_create_message_usecase(
+    message_repository: MessageRepository = Depends(get_message_repository),
+    chat_repository: ChatRepository = Depends(get_chat_repository),
+) -> CreateMessageUseCase:
+    return CreateMessageUseCaseImpl(
+        message_repository=message_repository,
+        chat_repository=chat_repository,
+    )
+
+
+def get_delete_message_usecase(
+    message_repository: MessageRepository = Depends(get_message_repository),
+) -> DeleteMessageUseCase:
+    return DeleteMessageUseCaseImpl(message_repository)
