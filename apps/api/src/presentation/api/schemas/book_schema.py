@@ -39,7 +39,7 @@ class BookUpdateRequest(BaseModel):
     percentage: float | None = Field(None, description="Reading progress percentage (%)")
     annotations: list[AnnotationSchemaTmp] | None = Field(None, description="Annotation information")
     book_metadata: dict[str, Any] | None = Field(None, description="Book metadata")
-    definitions: list[dict[str, Any]] | None = Field(None, description="User defined information")
+    definitions: list[str] | None = Field(None, description="User defined information")
     configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
 
 

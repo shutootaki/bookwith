@@ -18,8 +18,7 @@ class PostgresBookRepository(BookRepository):
             existing_book = self._session.query(BookDTO).filter(BookDTO.id == book.id.value).first()
 
             if existing_book:
-                orm_dict = BookDTO.to_orm_dict(book)
-                for key, value in orm_dict.items():
+                for key, value in BookDTO.to_orm_dict(book).items():
                     setattr(existing_book, key, value)
 
                 if hasattr(book, "_annotations") and book._annotations is not None:
@@ -27,24 +26,32 @@ class PostgresBookRepository(BookRepository):
                     existing_ids = {a.id for a in existing_annotations}
                     new_ids = {a.get("id") for a in book._annotations if a.get("id")}
 
-                    if existing_ids - new_ids:
-                        self._session.query(AnnotationDTO).filter(AnnotationDTO.id.in_(existing_ids - new_ids)).delete(synchronize_session=False)
+                    if ids_to_delete := existing_ids - new_ids:
+                        self._session.query(AnnotationDTO).filter(AnnotationDTO.id.in_(ids_to_delete)).delete(synchronize_session=False)
 
-                    to_update = [a for a in book._annotations if a.get("id") and a.get("id") in existing_ids]
-                    for annotation in to_update:
-                        self._session.query(AnnotationDTO).filter(AnnotationDTO.id == annotation.get("id")).update(annotation)
+                    to_update = [a for a in book._annotations if a.get("id") in existing_ids]
+                    if to_update:
+                        anno_map = {
+                            a.id: a for a in self._session.query(AnnotationDTO).filter(AnnotationDTO.id.in_([a.get("id") for a in to_update])).all()
+                        }
 
-                    to_create = [a for a in book._annotations if not (a.get("id") and a.get("id") in existing_ids)]
+                        for annotation in to_update:
+                            if anno_obj := anno_map.get(annotation.get("id")):
+                                for key, value in AnnotationDTO.from_dict(annotation).items():
+                                    setattr(anno_obj, key, value)
+
+                    to_create = [a for a in book._annotations if not a.get("id") or a.get("id") not in existing_ids]
                     if to_create:
-                        self._session.bulk_save_objects([AnnotationDTO(**a) for a in to_create])
+                        self._session.bulk_save_objects(
+                            [AnnotationDTO(**AnnotationDTO.from_dict({**a.copy(), "book_id": book.id.value})) for a in to_create]
+                        )
             else:
-                book_orm = BookDTO.from_entity(book)
-                self._session.add(book_orm)
-                if hasattr(book, "_annotations") and book._annotations is not None and book._annotations:
-                    for annotation in book._annotations:
-                        if "book_id" not in annotation:
-                            annotation["book_id"] = book.id.value
-                        self._session.add(AnnotationDTO(**annotation))
+                self._session.add(BookDTO.from_entity(book))
+
+                if hasattr(book, "_annotations") and book._annotations:
+                    self._session.bulk_save_objects(
+                        [AnnotationDTO(**AnnotationDTO.from_dict({**a.copy(), "book_id": book.id.value})) for a in book._annotations]
+                    )
 
             self._session.commit()
         except Exception as e:
@@ -65,7 +72,13 @@ class PostgresBookRepository(BookRepository):
         return book_orm.to_entity()
 
     def find_all(self) -> list[Book]:
-        book_orms = self._session.query(BookDTO).filter(BookDTO.deleted_at == None).options(joinedload(BookDTO.annotations)).all()
+        book_orms = (
+            self._session.query(BookDTO)
+            .filter(BookDTO.deleted_at == None)
+            .options(joinedload(BookDTO.annotations))
+            .order_by(BookDTO.updated_at.desc())
+            .all()
+        )
 
         books = []
         for book_orm in book_orms:
@@ -74,7 +87,11 @@ class PostgresBookRepository(BookRepository):
 
     def find_by_user_id(self, user_id: str) -> list[Book]:
         book_orms = (
-            self._session.query(BookDTO).filter(BookDTO.user_id == user_id, BookDTO.deleted_at == None).options(joinedload(BookDTO.annotations)).all()
+            self._session.query(BookDTO)
+            .filter(BookDTO.user_id == user_id, BookDTO.deleted_at == None)
+            .options(joinedload(BookDTO.annotations))
+            .order_by(BookDTO.updated_at.desc())
+            .all()
         )
 
         return [book_orm.to_entity() for book_orm in book_orms]

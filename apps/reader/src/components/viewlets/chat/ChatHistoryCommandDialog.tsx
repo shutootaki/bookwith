@@ -11,7 +11,8 @@ import {
 import { chatService } from '../../../services/api/chatService'
 import { ChatResponse } from '../../../services/api/types'
 import { TEST_USER_ID } from '../../../pages/_app'
-import { Loader } from 'lucide-react'
+import { Loader, MessageSquare } from 'lucide-react'
+import { DialogContent } from '../../ui/dialog'
 
 interface ChatHistoryCommandDialogProps {
   open: boolean
@@ -49,9 +50,8 @@ export const ChatHistoryCommandDialog: React.FC<
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput placeholder={t('chat.search_history')} />
-      <CommandList>
+      <CommandList className="max-h-96">
         <CommandEmpty>{t('chat.no_history')}</CommandEmpty>
-
         <CommandGroup heading={t('chat.history')}>
           {isLoading ? (
             <CommandItem disabled>
@@ -67,8 +67,18 @@ export const ChatHistoryCommandDialog: React.FC<
                 onSelect={() => {
                   onSelectChat?.(chat.id)
                 }}
+                className="flex flex-col items-start py-3 px-2"
               >
-                <span>{chat.title || t('chat.untitled')}</span>
+                <div className="flex w-full items-center">
+                  <MessageSquare className="text-primary/70 mr-2 h-4 w-4 flex-shrink-0" />
+                  <span>{chat.title || t('chat.untitled')}</span>
+                </div>
+                <div className="text-muted-foreground w-full text-xs">
+                  <span>
+                    {t('chat.last_updated')}:{' '}
+                    {new Date(chat.updated_at).toLocaleString()}
+                  </span>
+                </div>
               </CommandItem>
             ))
           ) : (

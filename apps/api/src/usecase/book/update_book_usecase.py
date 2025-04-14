@@ -20,7 +20,7 @@ class UpdateBookUseCase(ABC):
         percentage: float | None = None,
         annotations: list[AnnotationSchemaTmp] | None = None,
         book_metadata: dict[str, Any] | None = None,
-        definitions: list[dict[str, Any]] | None = None,
+        definitions: list[str] | None = None,
         configuration: dict[str, Any] | None = None,
     ) -> Book:
         pass
@@ -39,7 +39,7 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
         percentage: float | None = None,
         annotations: list[AnnotationSchemaTmp] | None = None,
         book_metadata: dict[str, Any] | None = None,
-        definitions: list[dict[str, Any]] | None = None,
+        definitions: list[str] | None = None,
         configuration: dict[str, Any] | None = None,
     ) -> Book:
         book_id_obj = BookId(book_id)

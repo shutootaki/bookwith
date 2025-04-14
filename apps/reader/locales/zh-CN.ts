@@ -87,6 +87,7 @@ export default {
   'chat.keyboard_shortcut': '按 `Cmd + Enter` 或 `Ctrl + Enter` 发送',
   'chat.send': '发送',
   'chat.error': '发生错误',
+  'chat.last_updated': '最后更新',
 
   untitled: '未标题',
 } as const
