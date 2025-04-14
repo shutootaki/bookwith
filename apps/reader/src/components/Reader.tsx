@@ -44,6 +44,15 @@ import * as pages from './pages'
 
 function handleKeyDown(tab?: BookTab) {
   return (e: KeyboardEvent) => {
+    const activeElement = document.activeElement
+
+    if (
+      !activeElement ||
+      activeElement.matches('input, textarea, select, [contenteditable]')
+    ) {
+      return
+    }
+
     try {
       switch (e.code) {
         case 'ArrowLeft':
@@ -56,13 +65,13 @@ function handleKeyDown(tab?: BookTab) {
           break
         case 'Space':
           e.shiftKey ? tab?.prev() : tab?.next()
+          break
       }
     } catch (error) {
       // ignore `rendition is undefined` error
     }
   }
 }
-
 export function ReaderGridView() {
   const { groups } = useReaderSnapshot()
 
