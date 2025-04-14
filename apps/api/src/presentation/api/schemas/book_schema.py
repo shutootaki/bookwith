@@ -2,8 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from src.domain.annotation.value_objects.annotation_color import AnnotationColor
-from src.domain.annotation.value_objects.annotation_type import AnnotationType
+from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
+from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum
 from src.domain.book.entities.book import Book
 
 
@@ -22,8 +22,8 @@ class AnnotationSchemaTmp(BaseModel):
     book_id: str = Field(alias="bookId")
     cfi: str
     spine: dict[str, Any]
-    type: AnnotationType
-    color: AnnotationColor
+    type: AnnotationTypeEnum
+    color: AnnotationColorEnum
     notes: str | None = None
     text: str
 
