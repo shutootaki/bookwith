@@ -39,7 +39,6 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
 }) => {
   const { dragover, setDragEvent } = useDndContext()
   const [position, setPosition] = useState<Position>()
-  // console.log(dragover, position)
 
   useEffect(() => {
     if (!dragover) setPosition(undefined)
@@ -80,7 +79,6 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
       className={clsx('relative', className)}
       // https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#selecting_files_using_drag_and_drop
       onDragEnter={(e) => {
-        console.log('drag enter', e.dataTransfer.types)
         if (dragover) return
 
         setDragEvent(e)
@@ -107,11 +105,9 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
           className="absolute inset-0 z-10"
           onDragOver={handleDragover}
           onDragLeave={(e) => {
-            console.log('drag leave', e.target)
             setDragEvent()
           }}
           onDrop={(e) => {
-            console.log('drop', e)
             setDragEvent()
             e.stopPropagation()
             e.preventDefault()

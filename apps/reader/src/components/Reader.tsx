@@ -149,7 +149,10 @@ function ReaderGroup({ index }: ReaderGroupProps) {
           let tabs = []
 
           if (files.length) {
-            tabs = await handleFiles(files)
+            const result = await handleFiles(files)
+            if (result.newBooks) {
+              tabs = result.newBooks
+            }
           } else {
             const text = e.dataTransfer.getData('text/plain')
             const fromTab = text.includes(',')
@@ -309,7 +312,6 @@ function BookPane({ tab, onMouseDown }: BookPaneProps) {
 
   // `dragenter` not fired in iframe when the count of times is even, so use `dragover`
   useEventListener(iframe, 'dragover', (e: any) => {
-    console.log('drag enter in iframe')
     setDragEvent(e)
   })
 

@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 import {
   MdCheckBox,
   MdCheckBoxOutlineBlank,
-  MdCheckCircle,
   MdOutlineFileDownload,
   MdOutlineShare,
 } from 'react-icons/md'
@@ -72,11 +71,14 @@ export default function Index() {
   useEffect(() => {
     if ('launchQueue' in window && 'LaunchParams' in window) {
       window.launchQueue.setConsumer((params) => {
-        console.log('launchQueue', params)
         if (params.files.length) {
           Promise.all(params.files.map((f) => f.getFile()))
             .then((files) => handleFiles(files))
-            .then((books) => books.forEach((b) => reader.addTab(b)))
+            .then((result) => {
+              if (result && 'newBooks' in result) {
+                result.newBooks.forEach((b: any) => reader.addTab(b))
+              }
+            })
         }
       })
     }
@@ -129,7 +131,6 @@ const Library: React.FC = () => {
     if (!select) reset()
   }, [reset, select])
 
-  // インポート完了時にトースト通知を表示
   useEffect(() => {
     if (
       importProgress.success !== undefined &&
@@ -143,11 +144,14 @@ const Library: React.FC = () => {
       if (successCount > 0 || failedCount > 0) {
         let message = ''
         if (successCount > 0 && failedCount === 0) {
-          message = `${successCount}冊の書籍をインポートしました`
+          message = t('import_success', { count: successCount })
         } else if (successCount === 0 && failedCount > 0) {
-          message = `${failedCount}冊の書籍のインポートに失敗しました`
+          message = t('import_failed', { count: failedCount })
         } else {
-          message = `${successCount}冊の書籍をインポートしました（${failedCount}冊は失敗）`
+          message = t('import_partial_success', {
+            success: successCount,
+            failed: failedCount,
+          })
         }
 
         if (successCount > 0) {
@@ -159,7 +163,7 @@ const Library: React.FC = () => {
         }
       }
     }
-  }, [importProgress, booksMutate, coversMutate])
+  }, [importProgress, booksMutate, coversMutate, t])
 
   if (groups.length) return null
   if (!books) return null
@@ -167,12 +171,86 @@ const Library: React.FC = () => {
   const allSelected = selectedBookIds.size === books.length
   booksMutate()
 
-  const handleFileImport = async (files: FileList | File[]) => {
+  const handleImportOperation = async (
+    operation: () => Promise<any>,
+    setImportProgress: React.Dispatch<
+      React.SetStateAction<ImportProgressState>
+    >,
+    mutate?: () => void,
+    fileName?: string,
+  ) => {
+    try {
+      setImportProgress({
+        total: 1,
+        completed: 0,
+        importing: true,
+        ...(fileName && {
+          currentFile: {
+            name: fileName,
+            progress: 0,
+            index: 0,
+          },
+        }),
+      })
+
+      // ファイル名が指定されている場合は進捗状況を更新する
+      if (fileName) {
+        // 進捗状況を更新する関数
+        const updateProgress = (progress: number) => {
+          setImportProgress((prev) => ({
+            ...prev,
+            currentFile: {
+              ...prev.currentFile!,
+              progress,
+            },
+          }))
+        }
+
+        // 初期進捗を設定
+        updateProgress(10)
+      }
+
+      const result = await operation()
+
+      setImportProgress({
+        total: 1,
+        completed: 1,
+        importing: false,
+        success: result ? 1 : 0,
+        failed: result ? 0 : 1,
+      })
+
+      if (mutate) mutate()
+
+      return result
+    } catch (error) {
+      console.error(t('import_error_log'), error)
+      toast.error(t('import_error'))
+
+      setImportProgress({
+        total: 1,
+        completed: 1,
+        importing: false,
+        success: 0,
+        failed: 1,
+      })
+
+      return null
+    }
+  }
+
+  const handleFileImport = async (
+    files: FileList | File[],
+    setLoading: React.Dispatch<React.SetStateAction<string | undefined>>,
+    setImportProgress: React.Dispatch<
+      React.SetStateAction<ImportProgressState>
+    >,
+  ) => {
     try {
       await handleFiles(files, setLoading, setImportProgress)
     } catch (error) {
-      console.error('ファイルインポート中にエラーが発生しました:', error)
-      toast.error('インポート中にエラーが発生しました')
+      console.error(t('file_import_error_log'), error)
+      toast.error(t('import_error'))
       setImportProgress({ total: 0, completed: 0, importing: false })
     }
   }
@@ -185,7 +263,7 @@ const Library: React.FC = () => {
         const book = books.find((b) => b.id === bookId)
         if (book) reader.addTab(book as any)
 
-        handleFileImport(e.dataTransfer.files)
+        handleFileImport(e.dataTransfer.files, setLoading, setImportProgress)
       }}
     >
       <div className="mb-4 space-y-2.5">
@@ -210,35 +288,11 @@ const Library: React.FC = () => {
                 Icon: MdOutlineFileDownload,
                 onClick: async (el) => {
                   if (el?.reportValidity()) {
-                    try {
-                      setImportProgress({
-                        total: 1,
-                        completed: 0,
-                        importing: true,
-                      })
-                      await fetchBook(el.value, setLoading)
-                      setImportProgress({
-                        total: 1,
-                        completed: 1,
-                        importing: false,
-                        success: 1,
-                        failed: 0,
-                      })
-                      coversMutate()
-                    } catch (error) {
-                      console.error(
-                        'ファイルダウンロード中にエラーが発生しました:',
-                        error,
-                      )
-                      toast.error('ダウンロード中にエラーが発生しました')
-                      setImportProgress({
-                        total: 1,
-                        completed: 1,
-                        importing: false,
-                        success: 0,
-                        failed: 1,
-                      })
-                    }
+                    await handleImportOperation(
+                      async () => await fetchBook(el.value, setLoading),
+                      setImportProgress,
+                      coversMutate,
+                    )
                   }
                 },
               },
@@ -256,35 +310,48 @@ const Library: React.FC = () => {
                 variant="secondary"
                 disabled={!books}
                 onClick={async () => {
-                  setImportProgress({ total: 1, completed: 0, importing: true })
-                  try {
-                    await fetchBook(
-                      'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
-                      setLoading,
-                    )
-                    setImportProgress({
-                      total: 1,
-                      completed: 1,
-                      importing: false,
-                      success: 1,
-                      failed: 0,
-                    })
-                    booksMutate()
-                    coversMutate()
-                  } catch (error) {
-                    console.error(
-                      'サンプルブックのダウンロード中にエラーが発生しました:',
-                      error,
-                    )
-                    toast.error('サンプルブックのダウンロードに失敗しました')
-                    setImportProgress({
-                      total: 1,
-                      completed: 1,
-                      importing: false,
-                      success: 0,
-                      failed: 1,
-                    })
-                  }
+                  const fileName =
+                    'Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub'
+                  await handleImportOperation(
+                    async () => {
+                      // 進捗状態を追跡する関数を作成
+                      let progressUpdater:
+                        | ((progress: number) => void)
+                        | undefined
+                      setImportProgress((prev) => {
+                        if (prev.currentFile) {
+                          progressUpdater = (progress) => {
+                            setImportProgress((p) => ({
+                              ...p,
+                              currentFile: {
+                                ...p.currentFile!,
+                                progress,
+                              },
+                            }))
+                          }
+                        }
+                        return prev
+                      })
+
+                      return await fetchBook(
+                        'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
+                        (id) => {
+                          setLoading(id)
+                          // ローディング状態に応じて進捗を更新
+                          if (progressUpdater) {
+                            if (id) {
+                              progressUpdater(60)
+                            } else {
+                              progressUpdater(90)
+                            }
+                          }
+                        },
+                      )
+                    },
+                    setImportProgress,
+                    booksMutate,
+                    fileName,
+                  )
                 }}
               >
                 {t('download_sample_book')}
@@ -354,11 +421,11 @@ const Library: React.FC = () => {
                     onChange={async (e) => {
                       const files = e.target.files
                       if (files) {
-                        handleFileImport(files)
+                        handleFileImport(files, setLoading, setImportProgress)
                       }
                     }}
                     multiple
-                    aria-label="本をインポート"
+                    aria-label="import-books"
                   />
                   {t('import')}
                 </Button>
@@ -367,9 +434,7 @@ const Library: React.FC = () => {
           </div>
         </div>
       </div>
-
       <ImportProgress progress={importProgress} />
-
       <div className="scroll h-full">
         <ul
           className="grid"

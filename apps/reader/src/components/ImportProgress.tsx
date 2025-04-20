@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Progress } from './ui/progress'
 import { CircularProgress } from './ui/spinner'
+import { useTranslation } from '../hooks'
 
 export interface ImportProgressState {
   total: number
@@ -111,11 +112,13 @@ const FileProgressItem: React.FC<{
   fileName: string
   progress: number
 }> = ({ fileName, progress }) => {
+  const t = useTranslation('import')
+
   return (
     <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-800">
       <div className="flex items-center justify-between">
         <div className="flex-1 truncate text-sm font-medium">
-          処理中: {fileName}
+          {t('processing')}: {fileName}
         </div>
         <div className="text-muted-foreground text-xs">
           {Math.round(progress)}%
@@ -127,22 +130,28 @@ const FileProgressItem: React.FC<{
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
-        aria-valuetext={`${fileName}の処理: ${Math.round(progress)}%`}
+        aria-valuetext={`${fileName}${t('processing_aria')}: ${Math.round(
+          progress,
+        )}%`}
       />
       <div className="mt-2 flex flex-wrap gap-2">
         {progress < 30 && (
-          <div className="text-muted-foreground text-xs">ファイル解析中...</div>
+          <div className="text-muted-foreground text-xs">
+            {t('analyzing_file')}
+          </div>
         )}
         {progress >= 30 && progress < 60 && (
           <div className="text-muted-foreground text-xs">
-            メタデータ処理中...
+            {t('processing_metadata')}
           </div>
         )}
         {progress >= 60 && progress < 90 && (
-          <div className="text-muted-foreground text-xs">本文処理中...</div>
+          <div className="text-muted-foreground text-xs">
+            {t('processing_content')}
+          </div>
         )}
         {progress >= 90 && (
-          <div className="text-muted-foreground text-xs">保存処理中...</div>
+          <div className="text-muted-foreground text-xs">{t('saving')}</div>
         )}
       </div>
     </div>
@@ -152,6 +161,7 @@ const FileProgressItem: React.FC<{
 // メインのインポート進捗表示コンポーネント
 const ImportProgress: React.FC<ImportProgressProps> = ({ progress }) => {
   const animatedProgress = useAnimatedProgress(progress.currentFile)
+  const t = useTranslation('import')
 
   if (!progress.importing) return null
 
@@ -165,7 +175,10 @@ const ImportProgress: React.FC<ImportProgressProps> = ({ progress }) => {
         <div className="flex items-center gap-3">
           <CircularProgress className="text-primary h-6 w-6" />
           <div className="font-medium">
-            書籍をインポート中 ({progress.completed}/{progress.total})
+            {t('importing_books', {
+              completed: progress.completed,
+              total: progress.total,
+            })}
           </div>
         </div>
         <div className="text-muted-foreground text-sm">
@@ -178,11 +191,9 @@ const ImportProgress: React.FC<ImportProgressProps> = ({ progress }) => {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round((progress.completed / progress.total) * 100)}
-        aria-valuetext={`${progress.completed}/${
-          progress.total
-        } ファイル処理済み (${Math.round(
-          (progress.completed / progress.total) * 100,
-        )}%)`}
+        aria-valuetext={`${progress.completed}/${progress.total} ${t(
+          'files_processed',
+        )} (${Math.round((progress.completed / progress.total) * 100)}%)`}
       />
 
       {/* 現在処理中のファイル情報と詳細な進行状況 */}
@@ -195,8 +206,11 @@ const ImportProgress: React.FC<ImportProgressProps> = ({ progress }) => {
 
       <p className="text-muted-foreground mt-2 text-xs">
         {progress.success !== undefined && progress.failed !== undefined
-          ? `${progress.success}冊のインポートに成功、${progress.failed}冊が失敗`
-          : 'インポート完了までしばらくお待ちください...'}
+          ? t('import_status', {
+              success: progress.success,
+              failed: progress.failed,
+            })
+          : t('please_wait')}
       </p>
     </div>
   )

@@ -12,7 +12,7 @@ import { chatService } from '../../../services/api/chatService'
 import { ChatResponse } from '../../../services/api/types'
 import { TEST_USER_ID } from '../../../pages/_app'
 import { Loader, MessageSquare } from 'lucide-react'
-import { DialogContent } from '../../ui/dialog'
+import { DialogTitle, DialogDescription } from '../../ui/dialog'
 
 interface ChatHistoryCommandDialogProps {
   open: boolean
@@ -49,6 +49,7 @@ export const ChatHistoryCommandDialog: React.FC<
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
+      <DialogTitle className="sr-only">{t('chat.history')}</DialogTitle>
       <CommandInput placeholder={t('chat.search_history')} />
       <CommandList className="max-h-96">
         <CommandEmpty>{t('chat.no_history')}</CommandEmpty>
