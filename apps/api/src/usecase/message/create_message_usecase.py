@@ -1,6 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING, Any
 
+from fastapi import BackgroundTasks
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -10,6 +11,7 @@ from langchain_openai import ChatOpenAI
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_title import ChatTitle
+from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.prompts import rag_prompt
 from src.infrastructure.vector import get_vector_store
 
@@ -38,7 +40,7 @@ class CreateMessageUseCase(ABC):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> AsyncGenerator[str]:
+    ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
 
 
@@ -50,6 +52,8 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
     ) -> None:
         self.message_repository = message_repository
         self.chat_repository = chat_repository
+        # 記憶管理サービスの初期化
+        self.memory_service = MemoryService()
 
     async def execute(
         self,
@@ -59,8 +63,11 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> AsyncGenerator[str]:
+    ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
+        # BackgroundTasksが指定されていない場合は新しく作成
+        background_tasks = BackgroundTasks()
+
         chat_id_obj = ChatId(chat_id)
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
@@ -82,10 +89,39 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
         self.message_repository.save(user_message)
 
+        # メッセージをベクトル化（非同期）
+        self.memory_service.schedule_message_vectorization(user_message, background_tasks)
+
+        # チャットのメッセージ数を取得
+        message_count = self.message_repository.count_by_chat_id(chat_id)
+
+        # 必要に応じて要約をスケジュール（非同期）
+        self.memory_service.schedule_chat_summarization(
+            chat_id=chat_id,
+            user_id=sender_id,
+            message_count=message_count,
+            message_repository=self.message_repository,
+            background_tasks=background_tasks,
+        )
+
+        # チャットの全メッセージを取得し、最新のバッファを抽出
+        all_messages = self.message_repository.find_by_chat_id(chat_id)
+        buffer = self.memory_service.get_latest_messages(all_messages)
+
+        # 記憶を考慮したプロンプトを構築
+        memory_prompt = self.memory_service.build_memory_prompt(buffer=buffer, user_query=content, user_id=sender_id, chat_id=chat_id)
+
         ai_response_chunks = []
-        async for chunk in self._stream_ai_response(content, tenant_id):
-            ai_response_chunks.append(chunk)
-            yield chunk
+        if tenant_id is None:
+            # 記憶ベースでLLMを呼び出し
+            async for chunk in self._stream_memory_based_response(memory_prompt):
+                ai_response_chunks.append(chunk)
+                yield chunk
+        else:
+            # RAGベースでLLMを呼び出し（既存のRAG機能を活かす）
+            async for chunk in self._stream_ai_response(content, tenant_id):
+                ai_response_chunks.append(chunk)
+                yield chunk
 
         full_ai_response = "".join(ai_response_chunks)
 
@@ -97,6 +133,15 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             metadata=meta,
         )
         self.message_repository.save(ai_message)
+
+        # AIのレスポンスもベクトル化（非同期）
+        self.memory_service.schedule_message_vectorization(ai_message, background_tasks)
+
+    async def _stream_memory_based_response(self, prompt: str) -> AsyncGenerator[str]:
+        """記憶ベースのレスポンスをストリーミングで返す."""
+        model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
+        async for chunk in (model | StrOutputParser()).astream(prompt):
+            yield chunk
 
     async def _stream_ai_response(self, question: str, tenant_id: str | None = None) -> AsyncGenerator[str]:
         def _format_documents_as_string(documents: list[Document]) -> str:

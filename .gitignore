@@ -50,3 +50,6 @@ tmp-worktree/
 
 # repomix
 repomix-output.xml
+
+# debug
+launch.json

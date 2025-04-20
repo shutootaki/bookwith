@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.domain.message.entities.message import Message
@@ -103,3 +104,12 @@ class MessageRepositoryImpl(MessageRepository):
         except Exception as e:
             self._session.rollback()
             raise e
+
+    def count_by_chat_id(self, chat_id: str) -> int:
+        """チャットIDに関連するメッセージの数を取得する."""
+        try:
+            count = self._session.query(func.count(MessageDTO.id)).filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None).scalar()
+            return count or 0
+        except Exception as e:
+            print(f"メッセージカウント取得中にエラーが発生: {str(e)}")
+            return 0
