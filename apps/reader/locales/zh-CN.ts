@@ -15,6 +15,23 @@ export default {
   'home.delete_confirmation': '确认删除',
   'home.delete_confirmation_message':
     '您确定要删除选中的图书吗？此操作无法撤销。',
+  'home.import_success': '成功导入 {count} 本书',
+  'home.import_failed': '导入 {count} 本书失败',
+  'home.import_partial_success': '成功导入 {success} 本书（{failed} 本失败）',
+  'home.import_error': '导入过程中发生错误',
+  'home.import_error_log': '导入操作中发生错误:',
+  'home.file_import_error_log': '文件导入中发生错误:',
+
+  'import.processing': '处理中',
+  'import.processing_aria': '处理',
+  'import.analyzing_file': '正在分析文件...',
+  'import.processing_metadata': '正在处理元数据...',
+  'import.processing_content': '正在处理内容...',
+  'import.saving': '正在保存...',
+  'import.importing_books': '正在导入图书 ({completed}/{total})',
+  'import.files_processed': '个文件已处理',
+  'import.import_status': '{success} 本书导入成功，{failed} 本失败',
+  'import.please_wait': '请等待导入完成...',
 
   'toc.title': '目录',
   'toc.library': '图书馆',

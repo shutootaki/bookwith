@@ -73,7 +73,7 @@ export function useRemoteCovers() {
     },
   )
   return {
-    covers: data || [],
+    covers: data || { success: false, data: [] },
     mutate,
   }
 }
