@@ -38,7 +38,7 @@ class CreateMessageUseCase(ABC):
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> tuple[Message, Message]:
-        """新しいMessageを作成して返す"""
+        """新しいMessageを作成して返す."""
 
 
 class CreateMessageUseCaseImpl(CreateMessageUseCase):
@@ -59,7 +59,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> tuple[Message, Message]:
-        """新しいMessageを作成して保存し、ユーザーとAIのMessageエンティティのタプルを返す"""
+        """新しいMessageを作成して保存し、ユーザーとAIのMessageエンティティのタプルを返す."""
         chat_id_obj = ChatId(chat_id)
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
