@@ -35,18 +35,20 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         <div className="leading-relaxed">
           <FormattedText text={message.text} />
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-gray-500 hover:text-gray-900"
-          onClick={handleCopy}
-        >
-          {isCopied ? (
-            <Check className="h-4 w-4" color="green" />
-          ) : (
-            <Copy className="h-4 w-4" />
-          )}
-        </Button>
+        {message.text && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-gray-500 hover:text-gray-900"
+            onClick={handleCopy}
+          >
+            {isCopied ? (
+              <Check className="h-4 w-4" color="green" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </Button>
+        )}
       </div>
     </div>
   )

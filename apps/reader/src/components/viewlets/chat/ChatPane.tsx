@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { Loader } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { useReaderSnapshot } from '../../../models'
@@ -6,7 +6,7 @@ import { ChatMessage } from './ChatMessage'
 import { ChatInputForm } from './ChatInputForm'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
-import { useAction, useTranslation } from '@flow/reader/hooks'
+import { useTranslation } from '@flow/reader/hooks'
 import { TEST_USER_ID } from '../../../pages/_app'
 
 interface ChatPaneProps {
@@ -40,49 +40,86 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  const handleSend = async (e: React.FormEvent | React.KeyboardEvent) => {
-    e.preventDefault()
-    if (!text.trim() || isLoading) return
+  const handleSend = useCallback(
+    async (e: React.FormEvent | React.KeyboardEvent) => {
+      e.preventDefault()
+      if (!text.trim() || isLoading) return
 
-    setMessages((prev) => [...prev, { sender_type: 'user', text }])
-    setText('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: text,
-            chat_id: chatId || uuidv4(),
-            sender_id: TEST_USER_ID,
-            book_id: focusedBookTab?.book.id,
-            tenant_id: focusedBookTab?.book?.tenant_id ?? undefined,
-            metadata: {},
-          }),
-        },
-      )
-
-      if (!response.ok) throw new Error(t('chat.error'))
-
-      const data = await response.json()
+      const trimmedText = text.trim()
 
       setMessages((prev) => [
         ...prev,
-        { sender_type: 'assistant', text: data.content || t('chat.error') },
+        { sender_type: 'user', text: trimmedText },
       ])
-    } catch (error) {
-      console.error('Error:', error)
-      setMessages((prev) => [
-        ...prev,
-        { sender_type: 'assistant', text: t('chat.error') },
-      ])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+      setText('')
+      setIsLoading(true)
+
+      setMessages((prev) => [...prev, { sender_type: 'assistant', text: '' }])
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: trimmedText,
+              chat_id: chatId || uuidv4(),
+              sender_id: TEST_USER_ID,
+              book_id: focusedBookTab?.book.id,
+              tenant_id: focusedBookTab?.book?.tenant_id ?? undefined,
+              metadata: {},
+            }),
+          },
+        )
+
+        if (!response.ok || !response.body) throw new Error(t('chat.error'))
+
+        await processStream(response.body)
+      } catch (error) {
+        updateAssistantMessage(t('chat.error'))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [text, isLoading, chatId, focusedBookTab, t, scrollToBottom],
+  )
+
+  const processStream = useCallback(
+    async (stream: ReadableStream) => {
+      const reader = stream.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedContent = ''
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          accumulatedContent += chunk
+
+          updateAssistantMessage(accumulatedContent)
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('Stream processing error:', error)
+        throw error
+      }
+    },
+    [scrollToBottom],
+  )
+
+  const updateAssistantMessage = useCallback((content: string) => {
+    setMessages((prev) => {
+      const messagesSnapshot = [...prev]
+      const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
+      if (lastMessage?.sender_type === 'assistant') {
+        lastMessage.text = content
+      }
+      return messagesSnapshot
+    })
+  }, [])
 
   return (
     <div className="mx-auto flex h-full w-full max-w-4xl flex-col">
@@ -93,9 +130,10 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
           {messages.map((msg, index) => (
             <ChatMessage key={index} message={msg} />
           ))}
-          {isLoading && (
-            <Loader className="flex h-4 w-4 animate-spin justify-start" />
-          )}
+          {isLoading &&
+            messages[messages.length - 1]?.sender_type !== 'assistant' && (
+              <Loader className="flex h-4 w-4 animate-spin justify-start" />
+            )}
           <div ref={messagesEndRef} />
         </div>
       )}

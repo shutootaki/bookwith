@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi.responses import StreamingResponse
 
 from src.domain.message.exceptions.message_exceptions import (
     MessageNotFoundException,
@@ -103,14 +104,14 @@ async def get_message(
         )
 
 
-@router.post("", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-async def create_message(
+@router.post("", status_code=status.HTTP_200_OK)
+async def stream_create_message(
     message_create: MessageCreate,
     create_message_usecase: CreateMessageUseCase = Depends(get_create_message_usecase),
-) -> dict[str, Any]:
-    """新しいメッセージを作成する."""
+) -> StreamingResponse:
+    """新しいメッセージを作成し、AI の応答をストリーミングで返す."""
     try:
-        (_, ai_message) = create_message_usecase.execute(
+        response_stream = create_message_usecase.execute(
             content=message_create.content,
             sender_id=message_create.sender_id,
             chat_id=message_create.chat_id,
@@ -118,10 +119,10 @@ async def create_message(
             tenant_id=message_create.tenant_id,
             metadata=message_create.metadata,
         )
-        return _entity_to_response(ai_message)
+        return StreamingResponse(response_stream, media_type="text/event-stream")
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"{MessageErrorMessage.MESSAGE_CREATE_FAILED} {str(e)}",
         )
 
