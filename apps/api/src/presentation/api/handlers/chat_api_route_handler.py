@@ -30,10 +30,7 @@ from src.usecase.chat.find_chats_by_user_id_and_book_id_usecase import FindChats
 from src.usecase.chat.find_chats_by_user_id_usecase import FindChatsByUserIdUseCase
 from src.usecase.chat.update_chat_title_usecase import UpdateChatTitleUseCase
 
-router = APIRouter(
-    prefix="/chats",
-    tags=["chats"],
-)
+router = APIRouter(prefix="/chats", tags=["chats"])
 
 
 @router.post("", response_model=ChatResponse, status_code=status.HTTP_201_CREATED)

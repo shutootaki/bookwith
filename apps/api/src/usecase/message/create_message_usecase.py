@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING, Any
 
 from langchain_core.documents import Document
@@ -29,7 +30,7 @@ from src.domain.message.value_objects.sender_type import SenderType
 
 class CreateMessageUseCase(ABC):
     @abstractmethod
-    def execute(
+    async def execute(
         self,
         content: str,
         sender_id: str,
@@ -37,8 +38,8 @@ class CreateMessageUseCase(ABC):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> tuple[Message, Message]:
-        """新しいMessageを作成して返す"""
+    ) -> AsyncGenerator[str]:
+        """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
 
 
 class CreateMessageUseCaseImpl(CreateMessageUseCase):
@@ -50,7 +51,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         self.message_repository = message_repository
         self.chat_repository = chat_repository
 
-    def execute(
+    async def execute(
         self,
         content: str,
         sender_id: str,
@@ -58,12 +59,13 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> tuple[Message, Message]:
-        """新しいMessageを作成して保存し、ユーザーとAIのMessageエンティティのタプルを返す"""
+    ) -> AsyncGenerator[str]:
+        """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
         chat_id_obj = ChatId(chat_id)
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
         if chat is None:
+            # TODO: タイトル生成を非同期にするか検討
             chat_title = self._get_chat_title(content)
             new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), title=ChatTitle(chat_title), book_id=BookId(book_id) if book_id else None)
             self.chat_repository.save(new_chat)
@@ -80,11 +82,15 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
         self.message_repository.save(user_message)
 
-        ai_response = self._process_question(content, tenant_id)
-        ai_content = MessageContent(ai_response)
+        ai_response_chunks = []
+        async for chunk in self._stream_ai_response(content, tenant_id):
+            ai_response_chunks.append(chunk)
+            yield chunk
+
+        full_ai_response = "".join(ai_response_chunks)
 
         ai_message = Message.create(
-            content=ai_content,
+            content=MessageContent(full_ai_response),
             sender_id=sender_id,
             sender_type=SenderType.assistant(),
             chat_id=chat_id,
@@ -92,18 +98,17 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
         self.message_repository.save(ai_message)
 
-        return user_message, ai_message
-
-    def _process_question(self, question: str, tenant_id: str | None = None) -> str:
+    async def _stream_ai_response(self, question: str, tenant_id: str | None = None) -> AsyncGenerator[str]:
         def _format_documents_as_string(documents: list[Document]) -> str:
             return "\n\n".join(doc.page_content for doc in documents)
 
-        model = ChatOpenAI(name="gpt-4o-mini")
+        model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
 
         vector_store = get_vector_store("BookContentIndex")
         if tenant_id is None:
             basic_chain: RunnableSerializable[Any, str] = RunnablePassthrough() | model | StrOutputParser()
-            return basic_chain.invoke(question)
+            async for chunk in basic_chain.astream(question):
+                yield chunk
 
         vector_store_retriever = vector_store.as_retriever(
             search_kwargs={
@@ -112,7 +117,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             }
         )
 
-        chain: RunnableSerializable[Any, str] = (
+        rag_chain: RunnableSerializable[Any, str] = (
             {
                 "context": vector_store_retriever | _format_documents_as_string,
                 "question": RunnablePassthrough(),
@@ -122,7 +127,8 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             | StrOutputParser()
         )
 
-        return chain.invoke(question)
+        async for chunk in rag_chain.astream(question):
+            yield chunk
 
     def _get_chat_title(self, question: str) -> str:
         prompt = ChatPromptTemplate.from_messages(
@@ -132,7 +138,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
                     """You are the chat title generation AI.
 Based on the user's initial question, generate a concise and precise chat title.
 The title should be no longer than 30 characters.
-It should be in a format that summarises the content of the question.""",
+It should be in a format that summaries the content of the question.""",
                 ),
                 ("human", "{question}"),
             ]

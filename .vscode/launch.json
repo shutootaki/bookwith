@@ -42,6 +42,26 @@
         "DROPBOX_CLIENT_SECRET": "xxx",
         "CLOUD_STORAGE_EMULATOR_HOST": "http://localhost:4443"
       }
+    },
+    {
+      "name": "Next.js: start",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/reader",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Next.js: debug client",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/apps/reader",
+      "sourceMapPathOverrides": {
+        "webpack://_N_E/*": "${webRoot}/*"
+      }
     }
   ]
 }
