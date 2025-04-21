@@ -36,3 +36,7 @@ class MessageRepository(ABC):
     @abstractmethod
     def count_by_chat_id(self, chat_id: str) -> int:
         """チャットIDに関連するメッセージの数を取得する."""
+
+    @abstractmethod
+    def find_chat_ids_by_user_id(self, user_id: str) -> list[str]:
+        """ユーザーIDに関連するチャットIDを取得する."""

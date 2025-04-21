@@ -8,8 +8,6 @@ TEST_USER_ID = "91527c9d-48aa-41d0-bb85-dc96f26556a0"
 
 class AppConfig(BaseSettings):
     openai_api_key: str = Field(min_length=1, description="OpenAI API Key")
-    dropbox_client_id: str = Field(min_length=1, description="Dropbox Client ID")
-    dropbox_client_secret: str = Field(min_length=1, description="Dropbox Client Secret")
     database_url: str = Field(description="データベースURL")
     cloud_storage_emulator_host: str | None = Field(default=None, description="Cloud Storage Emulator Host")
 
@@ -22,6 +20,7 @@ class AppConfig(BaseSettings):
         default=["好き", "趣味は", "住んで", "名前は", "職業は", "興味", "関心", "専門"],
         description="ユーザープロファイルとして抽出するためのキーワード",
     )
+    max_prompt_tokens: int = Field(default=8192, description="プロンプトの最大トークン数")
 
     @classmethod
     def get_config(cls) -> Self:

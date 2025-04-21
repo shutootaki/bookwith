@@ -4,17 +4,16 @@ from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 
 def get_vector_store(index_name: str) -> WeaviateVectorStore:
-    """
-    特定のインデックス名に基づいてベクトルストアを取得します
-    インデックスが存在しない場合はNoneを返します
+    """特定のインデックス名に基づいてベクトルストアを取得します.
+    インデックスが存在しない場合はNoneを返します.
 
     Args:
         index_name: Weaviateのインデックス名
 
     Returns:
         WeaviateVectorStoreインスタンス、または存在しない場合はNone
-    """
 
+    """
     # インデックス（コレクション）が存在するか確認
     try:
         # 既存のインデックスに接続するWeaviateVectorStoreを作成
@@ -23,7 +22,7 @@ def get_vector_store(index_name: str) -> WeaviateVectorStore:
             text_key="content",
             index_name=index_name,
             embedding=OpenAIEmbeddings(
-                model="text-embedding-3-large",
+                model="text-embedding-3-small",
                 max_retries=2,
             ),
         )

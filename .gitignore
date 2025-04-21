@@ -53,3 +53,6 @@ repomix-output.xml
 
 # debug
 launch.json
+
+# github
+.github
