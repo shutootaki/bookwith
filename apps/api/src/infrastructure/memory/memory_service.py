@@ -1,7 +1,6 @@
 import logging
+from datetime import datetime
 from typing import Any
-
-from fastapi import BackgroundTasks
 
 from src.config.app_config import AppConfig
 from src.domain.message.entities.message import Message
@@ -89,18 +88,6 @@ class MemoryService:
             logger.error(f"記憶検索中にエラーが発生: {str(e)}", exc_info=True)
             return [], []  # エラー時は空リストを返す
 
-    def schedule_message_vectorization(self, message: Message, background_tasks: BackgroundTasks) -> None:
-        """メッセージのベクトル化をスケジュール（互換性のために残しているが同期処理）.
-
-        Args:
-            message: ベクトル化するメッセージ
-            background_tasks: バックグラウンドタスクマネージャー（使用されない）
-
-        """
-        # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
-        self.vectorize_message(message)
-        logger.debug(f"メッセージID {message.id.value} のベクトル化を実行")
-
     def vectorize_message(self, message: Message) -> None:
         """メッセージを同期的にベクトル化.
 
@@ -110,22 +97,6 @@ class MemoryService:
         """
         vectorize_text_background(message=message, memory_store=self.memory_store, config=self.config)
         logger.debug(f"メッセージID {message.id.value} のベクトル化を実行")
-
-    def schedule_chat_summarization(
-        self, chat_id: str, user_id: str, message_count: int, message_repository: MessageRepository, background_tasks: BackgroundTasks
-    ) -> None:
-        """チャットの要約生成をスケジュール（互換性のために残しているが同期処理）.
-
-        Args:
-            chat_id: チャットID
-            user_id: ユーザーID
-            message_count: 現在のメッセージ数
-            message_repository: メッセージリポジトリ
-            background_tasks: バックグラウンドタスクマネージャー（使用されない）
-
-        """
-        # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
-        self.summarize_chat(chat_id, user_id, message_count, message_repository)
 
     def summarize_chat(self, chat_id: str, user_id: str, message_count: int, message_repository: MessageRepository) -> None:
         """チャットの要約を同期的に生成（条件を満たす場合）.
@@ -148,18 +119,6 @@ class MemoryService:
                 memory_store=self.memory_store,
                 config=self.config,
             )
-
-    def schedule_batch_summarization(self, user_id: str, message_repository: MessageRepository, background_tasks: BackgroundTasks) -> None:
-        """ユーザーの全チャットのバッチ要約をスケジュール（互換性のために残しているが同期処理）.
-
-        Args:
-            user_id: ユーザーID
-            message_repository: メッセージリポジトリ
-            background_tasks: バックグラウンドタスクマネージャー（使用されない）
-
-        """
-        # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
-        self.batch_summarize(user_id, message_repository)
 
     def batch_summarize(self, user_id: str, message_repository: MessageRepository) -> None:
         """ユーザーの全チャットのバッチ要約を同期的に実行.
@@ -266,124 +225,171 @@ class MemoryService:
             logger.error(f"プロファイル情報取得中にエラーが発生: {str(e)}", exc_info=True)
             return []
 
-    def add_manual_knowledge(self, user_id: str, content: str, background_tasks: BackgroundTasks) -> bool:
-        """ユーザープロファイル情報を手動で追加（互換性のために残しているが同期処理）.
-
-        Args:
-            user_id: ユーザーID
-            content: プロファイル情報の内容
-            background_tasks: バックグラウンドタスク（使用されない）
-
-        Returns:
-            成功したかどうか
-
-        """
-        # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
-        return self.add_manual_knowledge_sync(user_id, content)
-
     def add_manual_knowledge_sync(self, user_id: str, content: str) -> bool:
-        """ユーザープロファイル情報を手動で追加（同期版）.
+        """ユーザーのプロファイル情報を手動で追加する（同期）.
 
         Args:
             user_id: ユーザーID
-            content: プロファイル情報の内容
+            content: 追加する知識の内容
 
         Returns:
-            成功したかどうか
+            成功した場合はTrue, 失敗した場合はFalse
 
         """
-        # 同じ処理を同期的に実行
+        if not content:
+            return False
+
         try:
             # ベクトル化
             vector = self.memory_store.encode_text(content)
 
             # メタデータ準備
-            import datetime
-
-            timestamp = datetime.datetime.now().isoformat()
-            knowledge_id = f"manual_knowledge_{user_id}_{timestamp}"
+            timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            knowledge_id = f"manual_{user_id}_{timestamp}"
 
             metadata = {
                 "content": content,
                 "type": self.memory_store.TYPE_USER_PROFILE,
                 "user_id": user_id,
-                "chat_id": None,  # プロファイル情報はチャットに紐づかない
+                "chat_id": None,  # 手動追加はチャットに紐づかない
                 "message_id": knowledge_id,
-                "sender": "system",  # 手動追加なのでsystem
+                "sender": "system",
                 "created_at": timestamp,
-                "token_count": len(content.split()),  # 簡易的なトークンカウント
+                "token_count": len(content.split()),  # 簡易カウント
+                "is_summarized": None,  # プロファイルには不要
             }
 
-            # 保存
-            knowledge_id = self.memory_store.add_memory(vector=vector, metadata=metadata)
-            print(f"ユーザー {user_id} に手動プロファイル情報を同期的に追加 (id: {knowledge_id})")
+            # ベクトルストアに追加
+            self.memory_store.add_memory(vector=vector, metadata=metadata)
+            logger.info(f"手動知識を追加しました: {knowledge_id}")
             return True
         except Exception as e:
-            logger.error(f"手動プロファイル情報追加中にエラーが発生: {str(e)}", exc_info=True)
+            logger.error(f"手動知識の追加中にエラーが発生: {str(e)}", exc_info=True)
             return False
 
     def delete_knowledge(self, knowledge_id: str) -> bool:
-        """プロファイル情報を削除.
+        """指定されたIDの知識（プロファイル情報）を削除する.
 
         Args:
-            knowledge_id: 削除するプロファイル情報のID
+            knowledge_id: 削除する知識のUUID
 
         Returns:
-            成功したかどうか
+            成功した場合はTrue, 失敗した場合はFalse
 
         """
         try:
-            # Weaviateからオブジェクトを削除
             collection = self.memory_store.client.collections.get(self.memory_store.CHAT_MEMORY_CLASS_NAME)
-            collection.data.delete(uuid=knowledge_id)
-            print(f"プロファイル情報 {knowledge_id} を削除")
+
+            # 削除を実行
+            # 削除対象が存在するか確認してから削除する方が安全だが、シンプルに削除を試みる
+            collection.data.delete_by_id(uuid=knowledge_id)
+
+            logger.info(f"知識 {knowledge_id} を削除しました")
             return True
         except Exception as e:
-            logger.error(f"プロファイル情報削除中にエラーが発生: {str(e)}", exc_info=True)
+            logger.error(f"知識 {knowledge_id} の削除中にエラーが発生: {str(e)}", exc_info=True)
             return False
 
-    def search_messages(self, user_id: str, query: str, limit: int = 5) -> list[dict[str, Any]]:
-        """メッセージを検索.
+    # def search_messages(self, user_id: str, query: str, limit: int = 5) -> list[dict[str, Any]]:
+    #     """メッセージ記憶を検索.
+    #
+    #     Args:
+    #         user_id: ユーザーID
+    #         query: 検索クエリ
+    #         limit: 取得するメッセージ数
+    #
+    #     Returns:
+    #         検索結果のリスト
+    #
+    #     """
+    #     try:
+    #         query_vector = self.memory_store.encode_text(query)
+    #
+    #         collection = self.memory_store.client.collections.get(self.memory_store.CHAT_MEMORY_CLASS_NAME)
+    #
+    #         # フィルタを作成（メッセージタイプのみ）
+    #         from weaviate.classes.query import Filter
+    #
+    #         filter_query = Filter.by_property("user_id").equal(user_id) & Filter.by_property("type").equal(self.memory_store.TYPE_MESSAGE)
+    #
+    #         response = collection.query.near_vector(
+    #             near_vector=query_vector,
+    #             return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count", "is_summarized"],
+    #             include_vector=False,
+    #             limit=limit,
+    #             filters=filter_query,
+    #         )
+    #
+    #         results = []
+    #         for obj in response.objects:
+    #             item = obj.properties
+    #             item["id"] = obj.uuid
+    #             if obj.metadata:
+    #                 item["_additional"] = {
+    #                     "distance": obj.metadata.distance,
+    #                     "certainty": 1.0 - (obj.metadata.distance or 0.0),
+    #                 }
+    #             results.append(item)
+    #
+    #         return results
+    #
+    #     except Exception as e:
+    #         logger.error(f"メッセージ検索中にエラーが発生: {str(e)}", exc_info=True)
+    #         return []
 
-        Args:
-            user_id: ユーザーID
-            query: 検索クエリ
-            limit: 取得する最大数
+    # def schedule_message_vectorization(self, message: Message, background_tasks: BackgroundTasks) -> None:
+    #     """メッセージのベクトル化をスケジュール（互換性のために残しているが同期処理）.
+    #
+    #     Args:
+    #         message: ベクトル化するメッセージ
+    #         background_tasks: バックグラウンドタスクマネージャー（使用されない）
+    #
+    #     """
+    #     # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
+    #     self.vectorize_message(message)
+    #     logger.debug(f"メッセージID {message.id.value} のベクトル化を実行")
 
-        Returns:
-            検索結果メッセージリスト
+    # def schedule_chat_summarization(
+    #     self, chat_id: str, user_id: str, message_count: int, message_repository: MessageRepository, background_tasks: BackgroundTasks
+    # ) -> None:
+    #     """チャットの要約生成をスケジュール（互換性のために残しているが同期処理）.
+    #
+    #     Args:
+    #         chat_id: チャットID
+    #         user_id: ユーザーID
+    #         message_count: 現在のメッセージ数
+    #         message_repository: メッセージリポジトリ
+    #         background_tasks: バックグラウンドタスクマネージャー（使用されない）
+    #
+    #     """
+    #     # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
+    #     self.summarize_chat(chat_id, user_id, message_count, message_repository)
 
-        """
-        try:
-            # クエリをベクトル化
-            query_vector = self.memory_store.encode_text(query)
+    # def schedule_batch_summarization(self, user_id: str, message_repository: MessageRepository, background_tasks: BackgroundTasks) -> None:
+    #     """ユーザーの全チャットのバッチ要約をスケジュール（互換性のために残しているが同期処理）.
+    #
+    #     Args:
+    #         user_id: ユーザーID
+    #         message_repository: メッセージリポジトリ
+    #         background_tasks: バックグラウンドタスクマネージャー（使用されない）
+    #
+    #     """
+    #     # BackgroundTasksパラメータは互換性のために残していますが、実際には使用せず同期的に処理します
+    #     self.batch_summarize(user_id, message_repository)
 
-            # ユーザーのメッセージのみを検索
-            collection = self.memory_store.client.collections.get(self.memory_store.CHAT_MEMORY_CLASS_NAME)
-
-            # フィルター作成
-            from weaviate.classes.query import Filter
-
-            filter_query = Filter.by_property("user_id").equal(user_id) & Filter.by_property("type").equal(self.memory_store.TYPE_MESSAGE)
-
-            # 検索実行
-            response = collection.query.near_vector(
-                near_vector=query_vector,
-                return_properties=["content", "chat_id", "sender", "created_at", "message_id"],
-                filters=filter_query,
-                limit=limit,
-            )
-
-            # 結果変換
-            results = []
-            for obj in response.objects:
-                item = obj.properties
-                item["id"] = obj.uuid
-                item["relevance"] = 1.0 - (obj.distance or 0.0)  # 関連度
-                results.append(item)
-
-            print(f"ユーザー {user_id} のクエリ '{query[:30]}...' に対して {len(results)}件のメッセージを検索")
-            return results
-        except Exception as e:
-            logger.error(f"メッセージ検索中にエラーが発生: {str(e)}", exc_info=True)
-            return []
+    # def add_manual_knowledge(self, user_id: str, content: str, background_tasks: BackgroundTasks) -> bool:
+    #     """ユーザーのプロファイル情報を手動で追加する（非同期).
+    #
+    #     Args:
+    #         user_id: ユーザーID
+    #         content: 追加する知識の内容
+    #         background_tasks: バックグラウンドタスクマネージャー
+    #
+    #     Returns:
+    #         成功した場合はTrue, 失敗した場合はFalse
+    #
+    #     """
+    #     # background_tasks.add_task(self.add_manual_knowledge_sync, user_id=user_id, content=content)
+    #     # return True # 非同期なので即時成功を返す
+    #     # 同期処理に変更
+    #     return self.add_manual_knowledge_sync(user_id=user_id, content=content)

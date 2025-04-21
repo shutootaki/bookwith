@@ -202,71 +202,6 @@ class MemoryVectorStore:
             raise
 
     @retry_on_error(max_retries=2)
-    def search_similar_memories(self, query: str, user_id: str, chat_id: str, memory_type: str, limit: int = 5) -> list[dict[str, Any]]:
-        """類似記憶を検索."""
-        query_vector = self.encode_text(query)
-
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-
-        # フィルターの作成
-        where_filter = (
-            Filter.by_property("user_id").equal(user_id)
-            & Filter.by_property("chat_id").equal(chat_id)
-            & Filter.by_property("type").equal(memory_type)
-        )
-
-        # クエリ実行
-        response = collection.query.near_vector(
-            near_vector=query_vector,
-            return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
-            include_vector=False,
-            limit=limit,
-            filters=where_filter,
-        )
-
-        # 結果の変換
-        results = []
-        for obj in response.objects:
-            item = obj.properties
-            item["id"] = obj.uuid
-            # 距離情報を取得
-            item["_additional"] = {
-                "distance": obj.metadata.distance,
-                "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
-            }
-            results.append(item)
-
-        return results
-
-    @retry_on_error(max_retries=2)
-    def fetch_memories_by_chat_id(self, user_id: str, chat_id: str, memory_type: str) -> list[dict[str, Any]]:
-        """チャットIDによる記憶の取得 (ベクトル検索なし)."""
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-
-        # フィルターの作成
-        where_filter = (
-            Filter.by_property("user_id").equal(user_id)
-            & Filter.by_property("chat_id").equal(chat_id)
-            & Filter.by_property("type").equal(memory_type)
-        )
-
-        # クエリ実行
-        response = collection.query.fetch_objects(
-            filters=where_filter,
-            return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
-            limit=100,
-        )
-
-        # 結果の変換
-        results = []
-        for obj in response.objects:
-            item = obj.properties
-            item["id"] = obj.uuid
-            results.append(item)
-
-        return results
-
-    @retry_on_error(max_retries=2)
     def search_chat_memories(self, user_id: str, chat_id: str, query_vector: list[float], limit: int = 5) -> list[dict[str, Any]]:
         """チャットIDによる関連記憶のベクトル検索."""
         collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
@@ -373,3 +308,70 @@ class MemoryVectorStore:
             results.append(item)
 
         return results
+
+
+# @retry_on_error(max_retries=2)
+# def search_similar_memories(self, query: str, user_id: str, chat_id: str, memory_type: str, limit: int = 5) -> list[dict[str, Any]]:
+#     """類似記憶を検索."""
+#     query_vector = self.encode_text(query)
+#
+#     collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+#
+#     # フィルターの作成
+#     where_filter = (
+#         Filter.by_property("user_id").equal(user_id)
+#         & Filter.by_property("chat_id").equal(chat_id)
+#         & Filter.by_property("type").equal(memory_type)
+#     )
+#
+#     # クエリ実行
+#     response = collection.query.near_vector(
+#         near_vector=query_vector,
+#         return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
+#         include_vector=False,
+#         limit=limit,
+#         filters=where_filter,
+#     )
+#
+#     # 結果の変換
+#     results = []
+#     for obj in response.objects:
+#         item = obj.properties
+#         item["id"] = obj.uuid
+#         # 距離情報を取得
+#         item["_additional"] = {
+#             "distance": obj.metadata.distance,
+#             "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
+#         }
+#         results.append(item)
+#
+#     return results
+
+# @retry_on_error(max_retries=2)
+# def fetch_memories_by_chat_id(self, user_id: str, chat_id: str, memory_type: str) -> list[dict[str, Any]]:
+#     """チャットIDによる記憶の取得 (ベクトル検索なし)."""
+#     collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+#
+#     # フィルターの作成
+#     where_filter = (
+#         Filter.by_property("user_id").equal(user_id)
+#         & Filter.by_property("chat_id").equal(chat_id)
+#         & Filter.by_property("type").equal(memory_type)
+#     )
+#
+#     # クエリ実行
+#     response = collection.query.fetch_objects(
+#         filters=where_filter,
+#         return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
+#         include_vector=False,
+#         limit=1000,  # 必要に応じて調整
+#     )
+#
+#     # 結果の変換
+#     results = []
+#     for obj in response.objects:
+#         item = obj.properties
+#         item["id"] = obj.uuid
+#         results.append(item)
+#
+#     return results
