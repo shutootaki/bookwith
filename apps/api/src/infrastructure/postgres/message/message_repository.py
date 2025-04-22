@@ -53,6 +53,18 @@ class MessageRepositoryImpl(MessageRepository):
 
         return [message_orm.to_entity() for message_orm in message_orms]
 
+    def find_latest_by_chat_id(self, chat_id: str, limit: int) -> list[Message]:
+        """チャットIDで最新のメッセージを指定件数取得する."""
+        message_orms = (
+            self._session.query(MessageDTO)
+            .filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None)
+            .order_by(MessageDTO.created_at.desc())  # 新しい順（降順）
+            .limit(limit)
+            .all()
+        )
+
+        return [message_orm.to_entity() for message_orm in message_orms]
+
     def find_by_sender_id(self, sender_id: str) -> list[Message]:
         message_orms = self._session.query(MessageDTO).filter(MessageDTO.sender_id == sender_id, MessageDTO.deleted_at == None).all()
 

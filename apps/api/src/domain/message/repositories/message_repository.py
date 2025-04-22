@@ -22,6 +22,10 @@ class MessageRepository(ABC):
         """チャットIDでメッセージを検索する."""
 
     @abstractmethod
+    def find_latest_by_chat_id(self, chat_id: str, limit: int) -> list[Message]:
+        """チャットIDで最新のメッセージを指定件数取得する."""
+
+    @abstractmethod
     def find_by_sender_id(self, sender_id: str) -> list[Message]:
         """送信者IDでメッセージを検索する."""
 

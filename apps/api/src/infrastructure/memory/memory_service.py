@@ -28,26 +28,6 @@ class MemoryService:
         self.config = AppConfig.get_config()
         self.memory_store = MemoryVectorStore()
 
-    def get_latest_messages(self, messages: list[Message], limit: int | None = None) -> list[Message]:
-        """最新のメッセージバッファを取得.
-
-        Args:
-            messages: チャットの全メッセージリスト
-            limit: 取得するメッセージ数（Noneの場合はconfig値を使用）
-
-        Returns:
-            最新のメッセージバッファ (新しい順)
-
-        """
-        if limit is None:
-            limit = self.config.memory_buffer_size
-
-        # 時間でソート（新しい順）
-        sorted_messages = sorted([msg for msg in messages if not msg.is_deleted], key=lambda msg: msg.created_at, reverse=True)
-
-        # 設定されたバッファサイズ分だけ返す
-        return sorted_messages[:limit]
-
     def search_relevant_memories(
         self, user_id: str, chat_id: str, query: str, chat_limit: int | None = None, profile_limit: int | None = None
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -70,8 +50,8 @@ class MemoryService:
         if profile_limit is None:
             profile_limit = self.config.memory_profile_results
 
-        # クエリをベクトル化
         try:
+            # クエリをベクトル化
             query_vector = self.memory_store.encode_text(query)
 
             # チャット記憶を検索

@@ -238,7 +238,7 @@ class MemoryVectorStore:
         return results
 
     @retry_on_error(max_retries=2)
-    def search_user_profile(self, user_id: str, query_vector: list[float] | None = None, limit: int = 1) -> list[dict[str, Any]]:
+    def search_user_profile(self, user_id: str, query_vector: list[float] | None = None, limit: int = 3) -> list[dict[str, Any]]:
         """ユーザープロファイルを検索."""
         collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
 

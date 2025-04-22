@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import tiktoken
+from tiktoken.core import Encoding
 
 from src.config.app_config import AppConfig
 from src.domain.message.entities.message import Message
@@ -10,11 +11,11 @@ from src.domain.message.entities.message import Message
 logger = logging.getLogger(__name__)
 
 # tiketokenエンコーダー（トークンカウント用）
+TIKTOKEN_ENCODING: Encoding | None = None
 try:
     TIKTOKEN_ENCODING = tiktoken.get_encoding("cl100k_base")  # GPT-4用のエンコーディング
 except Exception as e:
     logger.warning(f"tiktokenの初期化に失敗しました: {str(e)}")
-    TIKTOKEN_ENCODING = None
 
 
 def estimate_tokens(text: str) -> int:
@@ -57,7 +58,7 @@ def truncate_text_to_tokens(text: str, max_tokens: int) -> str:
     return text[:max_chars] + "..."
 
 
-def create_memory_prompt(
+def create_memory_prompt(  # noqa: C901
     buffer: list[Message],
     chat_memories: list[dict[str, Any]],
     user_profile_memories: list[dict[str, Any]],
@@ -106,7 +107,6 @@ def create_memory_prompt(
         memory_items = []
 
         for mem in chat_memories:
-            content = mem.get("content", "N/A")
             sender = mem.get("sender", "不明")
             mem_type = mem.get("type", "message")
 

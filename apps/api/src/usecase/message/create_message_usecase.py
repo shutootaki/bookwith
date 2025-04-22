@@ -63,8 +63,6 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         metadata: dict[str, Any] | None = None,
     ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
-        # 注: 非同期処理を同期処理に変更したため、BackgroundTasksは使用しません
-
         chat_id_obj = ChatId(chat_id)
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
@@ -74,11 +72,10 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), title=ChatTitle(chat_title), book_id=BookId(book_id) if book_id else None)
             self.chat_repository.save(new_chat)
 
-        message_content = MessageContent(content)
         meta = metadata or {}
 
         user_message = Message.create(
-            content=message_content,
+            content=MessageContent(content),
             sender_id=sender_id,
             sender_type=SenderType.user(),
             chat_id=chat_id,
@@ -90,6 +87,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         self.memory_service.vectorize_message(user_message)
 
         # チャットのメッセージ数を取得
+        # todo: 全件取得によるパフォーマンスの影響を考慮
         message_count = self.message_repository.count_by_chat_id(chat_id)
 
         # 必要に応じて要約を実行（同期処理）
@@ -100,15 +98,15 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             message_repository=self.message_repository,
         )
 
-        # チャットの全メッセージを取得し、最新のバッファを抽出
-        all_messages = self.message_repository.find_by_chat_id(chat_id)
-        buffer = self.memory_service.get_latest_messages(all_messages)
+        # 新しい順（降順）で必要な分だけ取得し、古い順（昇順）に並べ直す
+        latest_messages = self.message_repository.find_latest_by_chat_id(chat_id, limit=self.memory_service.config.memory_buffer_size)
 
         # 記憶を考慮したプロンプトを構築
-        memory_prompt = self.memory_service.build_memory_prompt(buffer=buffer, user_query=content, user_id=sender_id, chat_id=chat_id)
+        memory_prompt = self.memory_service.build_memory_prompt(
+            buffer=sorted(latest_messages, key=lambda msg: msg.created_at), user_query=content, user_id=sender_id, chat_id=chat_id
+        )
 
         ai_response_chunks = []
-        # tenant_idの有無に関わらず、_stream_ai_responseを使用
         # tenant_idがNoneの場合は記憶ベースのみ、そうでない場合はハイブリッドレスポンスになる
         async for chunk in self._stream_ai_response(question=memory_prompt, tenant_id=tenant_id):
             ai_response_chunks.append(chunk)
