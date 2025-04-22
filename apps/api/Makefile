@@ -11,13 +11,16 @@ endif
 -include src/config/.env.$(ENV).local
 
 # Exported variables will be visible in external scripts
-export DROPBOX_CLIENT_ID
-export DROPBOX_CLIENT_SECRET
-export OPENAI_API_KEY
-export ENV
-export PORT
-export DATABASE_URL
 export CLOUD_STORAGE_EMULATOR_HOST
+export DATABASE_URL
+export ENV
+export LANGCHAIN_ENDPOINT
+export LANGSMITH_TRACING
+export LANGSMITH_ENDPOINT
+export LANGSMITH_API_KEY
+export LANGSMITH_PROJECT
+export OPENAI_API_KEY
+export PORT
 
 default: help
 
@@ -28,12 +31,16 @@ help: ## Show this help message.
 	@echo
 	@echo 'Common environment variables:'
 	@echo
-	@echo '  DROPBOX_CLIENT_ID                          Dropbox Client ID'
-	@echo '  DROPBOX_CLIENT_SECRET                      Dropbox Client Secret'
 	@echo '  OPENAI_API_KEY                             OpenAI API Key'
 	@echo '  ENV                                        sets the environment. .env.${ENV} and .env.${ENV}.local will be automatically loaded.'
 	@echo '  PORT                                       Run server on the specified port'
 	@echo '  CLOUD_STORAGE_EMULATOR_HOST                Cloud Storage Emulator Host'
+	@echo '  DATABASE_URL                               Database URL'
+	@echo '  LANGCHAIN_ENDPOINT                         LangChain API Endpoint'
+	@echo '  LANGSMITH_API_KEY                          LangSmith API Key'
+	@echo '  LANGSMITH_ENDPOINT                         LangSmith API Endpoint'
+	@echo '  LANGSMITH_PROJECT                          LangSmith Project'
+	@echo '  LANGSMITH_TRACING                          LangSmith Tracing'
 
 configure: ## Installs packages using poetry
 	poetry install --no-root

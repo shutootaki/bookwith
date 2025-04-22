@@ -36,7 +36,7 @@ class CreateBookVectorIndexUseCaseImpl(CreateBookVectorIndexUseCase):
                 WeaviateVectorStore.from_documents(
                     documents=split_docs,
                     embedding=OpenAIEmbeddings(
-                        model="text-embedding-3-large",
+                        model="text-embedding-3-small",
                         max_retries=2,
                     ),
                     client=weaviate.connect_to_local(),

@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_title import ChatTitle
-from src.infrastructure.prompts import rag_prompt
+from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.vector import get_vector_store
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ class CreateMessageUseCase(ABC):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> AsyncGenerator[str]:
+    ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
 
 
@@ -50,6 +50,8 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
     ) -> None:
         self.message_repository = message_repository
         self.chat_repository = chat_repository
+        # 記憶管理サービスの初期化
+        self.memory_service = MemoryService()
 
     async def execute(
         self,
@@ -59,7 +61,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         book_id: str | None = None,
         tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
-    ) -> AsyncGenerator[str]:
+    ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
         chat_id_obj = ChatId(chat_id)
         chat = self.chat_repository.find_by_id(chat_id_obj)
@@ -70,11 +72,10 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), title=ChatTitle(chat_title), book_id=BookId(book_id) if book_id else None)
             self.chat_repository.save(new_chat)
 
-        message_content = MessageContent(content)
         meta = metadata or {}
 
         user_message = Message.create(
-            content=message_content,
+            content=MessageContent(content),
             sender_id=sender_id,
             sender_type=SenderType.user(),
             chat_id=chat_id,
@@ -82,8 +83,32 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
         self.message_repository.save(user_message)
 
+        # メッセージをベクトル化（同期処理）
+        self.memory_service.vectorize_message(user_message)
+
+        # チャットのメッセージ数を取得
+        # todo: 全件取得によるパフォーマンスの影響を考慮
+        message_count = self.message_repository.count_by_chat_id(chat_id)
+
+        # 必要に応じて要約を実行（同期処理）
+        self.memory_service.summarize_chat(
+            chat_id=chat_id,
+            user_id=sender_id,
+            message_count=message_count,
+            message_repository=self.message_repository,
+        )
+
+        # 新しい順（降順）で必要な分だけ取得し、古い順（昇順）に並べ直す
+        latest_messages = self.message_repository.find_latest_by_chat_id(chat_id, limit=self.memory_service.config.memory_buffer_size)
+
+        # 記憶を考慮したプロンプトを構築
+        memory_prompt = self.memory_service.build_memory_prompt(
+            buffer=sorted(latest_messages, key=lambda msg: msg.created_at), user_query=content, user_id=sender_id, chat_id=chat_id
+        )
+
         ai_response_chunks = []
-        async for chunk in self._stream_ai_response(content, tenant_id):
+        # tenant_idがNoneの場合は記憶ベースのみ、そうでない場合はハイブリッドレスポンスになる
+        async for chunk in self._stream_ai_response(question=memory_prompt, tenant_id=tenant_id):
             ai_response_chunks.append(chunk)
             yield chunk
 
@@ -98,18 +123,36 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
         self.message_repository.save(ai_message)
 
+        # AIのレスポンスもベクトル化（同期処理）
+        self.memory_service.vectorize_message(ai_message)
+
+    async def _stream_memory_based_response(self, prompt: str) -> AsyncGenerator[str]:
+        """記憶ベースのレスポンスをストリーミングで返す."""
+        model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
+        async for chunk in (model | StrOutputParser()).astream(prompt):
+            yield chunk
+
     async def _stream_ai_response(self, question: str, tenant_id: str | None = None) -> AsyncGenerator[str]:
+        """LLMの応答をストリーミングで返す.
+
+        tenant_idがNoneの場合は記憶情報のみを使用し、
+        tenant_idがある場合は記憶情報とBookの知識ベースを組み合わせて応答を生成する。
+        """
+
         def _format_documents_as_string(documents: list[Document]) -> str:
             return "\n\n".join(doc.page_content for doc in documents)
 
         model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
 
-        vector_store = get_vector_store("BookContentIndex")
+        # tenant_idがない場合は記憶ベースの応答のみを返す
         if tenant_id is None:
             basic_chain: RunnableSerializable[Any, str] = RunnablePassthrough() | model | StrOutputParser()
             async for chunk in basic_chain.astream(question):
                 yield chunk
+            return
 
+        # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
+        vector_store = get_vector_store("BookContentIndex")
         vector_store_retriever = vector_store.as_retriever(
             search_kwargs={
                 "k": 4,
@@ -117,17 +160,34 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             }
         )
 
-        rag_chain: RunnableSerializable[Any, str] = (
+        # 記憶情報とRAG情報を組み合わせたハイブリッドチェーン
+        hybrid_chain: RunnableSerializable[Any, str] = (
             {
                 "context": vector_store_retriever | _format_documents_as_string,
                 "question": RunnablePassthrough(),
             }
-            | rag_prompt
+            | ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        """あなたは丁寧で役立つアシスタントです。
+                ユーザーの質問に対して、以下の情報源を考慮して回答してください：
+                1. ユーザーとの会話履歴（質問に含まれています）
+                2. 関連する書籍の内容（コンテキスト情報として提供されます）
+
+                会話の文脈と書籍の情報の両方を考慮して、一貫性のある適切な回答を提供してください。
+                書籍の情報が関連している場合は、それを優先して使用してください。
+                質問に関連する情報がコンテキストに含まれていない場合は、会話の文脈のみに基づいて回答してください。
+                """,
+                    ),
+                    ("human", "会話の文脈を含む質問: {question}\n\n書籍からの関連情報: {context}"),
+                ]
+            )
             | model
             | StrOutputParser()
         )
 
-        async for chunk in rag_chain.astream(question):
+        async for chunk in hybrid_chain.astream(question):
             yield chunk
 
     def _get_chat_title(self, question: str) -> str:

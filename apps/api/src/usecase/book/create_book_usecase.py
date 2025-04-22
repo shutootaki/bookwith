@@ -110,6 +110,6 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
         for blob in blobs:
             try:
                 blob.delete()
-                self._logger.info(f"ロールバック: {blob.name} を削除しました")
+                self._print(f"ロールバック: {blob.name} を削除しました")
             except Exception as delete_error:
                 self._logger.error(f"ロールバック中にエラーが発生しました: {blob.name}, {str(delete_error)}")

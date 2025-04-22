@@ -130,10 +130,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
           {messages.map((msg, index) => (
             <ChatMessage key={index} message={msg} />
           ))}
-          {isLoading &&
-            messages[messages.length - 1]?.sender_type !== 'assistant' && (
-              <Loader className="flex h-4 w-4 animate-spin justify-start" />
-            )}
+          {isLoading && messages[messages.length - 1]?.text === '' && (
+            <Loader className="flex h-4 w-4 animate-spin justify-start" />
+          )}
           <div ref={messagesEndRef} />
         </div>
       )}

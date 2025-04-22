@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.domain.message.entities.message import Message
@@ -47,6 +48,18 @@ class MessageRepositoryImpl(MessageRepository):
             self._session.query(MessageDTO)
             .filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None)
             .order_by(MessageDTO.created_at.asc())
+            .all()
+        )
+
+        return [message_orm.to_entity() for message_orm in message_orms]
+
+    def find_latest_by_chat_id(self, chat_id: str, limit: int) -> list[Message]:
+        """チャットIDで最新のメッセージを指定件数取得する."""
+        message_orms = (
+            self._session.query(MessageDTO)
+            .filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None)
+            .order_by(MessageDTO.created_at.desc())  # 新しい順（降順）
+            .limit(limit)
             .all()
         )
 
@@ -103,3 +116,21 @@ class MessageRepositoryImpl(MessageRepository):
         except Exception as e:
             self._session.rollback()
             raise e
+
+    def count_by_chat_id(self, chat_id: str) -> int:
+        """チャットIDに関連するメッセージの数を取得する."""
+        try:
+            count = self._session.query(func.count(MessageDTO.id)).filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None).scalar()
+            return count or 0
+        except Exception as e:
+            print(f"メッセージカウント取得中にエラーが発生: {str(e)}")
+            return 0
+
+    def find_chat_ids_by_user_id(self, user_id: str) -> list[str]:
+        """ユーザーIDに関連するチャットIDを取得する."""
+        try:
+            chat_ids = self._session.query(MessageDTO.chat_id).filter(MessageDTO.sender_id == user_id, MessageDTO.deleted_at == None).distinct().all()
+            return [chat_id[0] for chat_id in chat_ids]
+        except Exception as e:
+            print(f"チャットID取得中にエラーが発生: {str(e)}")
+            return []

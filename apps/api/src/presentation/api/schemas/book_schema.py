@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
 from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum
@@ -27,9 +27,7 @@ class AnnotationSchemaTmp(BaseModel):
     notes: str | None = None
     text: str
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class BookUpdateRequest(BaseModel):
@@ -60,8 +58,7 @@ class BookDetail(BaseModel):
     created_at: Any
     updated_at: Any
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BookResponse(BaseModel):

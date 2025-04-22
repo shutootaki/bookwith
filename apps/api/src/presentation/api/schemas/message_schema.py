@@ -1,20 +1,20 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.domain.message.value_objects.sender_type import SenderTypeEnum
 
 
 class MessageBase(BaseModel):
-    """メッセージの基本モデル"""
+    """メッセージの基本モデル."""
 
     content: str = Field(..., description="メッセージの内容")
     chat_id: str = Field(..., description="メッセージが所属するチャットID")
 
 
 class MessageCreate(MessageBase):
-    """メッセージ作成リクエストモデル"""
+    """メッセージ作成リクエストモデル."""
 
     sender_id: str = Field(..., description="送信者ID")
     tenant_id: str | None = Field(None, description="ベクトルストアのテナントID")
@@ -23,7 +23,7 @@ class MessageCreate(MessageBase):
 
 
 class MessageUpdate(BaseModel):
-    """メッセージ更新リクエストモデル"""
+    """メッセージ更新リクエストモデル."""
 
     content: str | None = Field(None, description="メッセージの内容")
     sender_type: SenderTypeEnum | None = Field(None, description="送信者の種類")
@@ -31,13 +31,13 @@ class MessageUpdate(BaseModel):
 
 
 class MessageBulkDelete(BaseModel):
-    """複数メッセージ削除リクエストモデル"""
+    """複数メッセージ削除リクエストモデル."""
 
     message_ids: list[str] = Field(..., description="削除するメッセージIDのリスト")
 
 
 class MessageResponse(BaseModel):
-    """メッセージレスポンスモデル"""
+    """メッセージレスポンスモデル."""
 
     id: str
     content: str
@@ -48,18 +48,17 @@ class MessageResponse(BaseModel):
     updated_at: datetime
     metadata: dict[str, Any] | None = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MessageListResponse(BaseModel):
-    """メッセージリストレスポンスモデル"""
+    """メッセージリストレスポンスモデル."""
 
     data: list[MessageResponse]
     total: int
 
 
 class FailedMessageIdsResponse(BaseModel):
-    """失敗したメッセージIDレスポンスモデル"""
+    """失敗したメッセージIDレスポンスモデル."""
 
     failed_ids: list[str]
