@@ -15,14 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def vectorize_text_background(message: Message, memory_store: MemoryVectorStore, config: AppConfig | None = None) -> None:
-    """メッセージをベクトル化して保存する非同期タスク.
-
-    Args:
-        message: ベクトル化するメッセージ
-        memory_store: 記憶ベクトルストア
-        config: アプリケーション設定（Noneの場合は初期化される）
-
-    """
+    """メッセージをベクトル化して保存する非同期タスク."""
     if config is None:
         config = AppConfig.get_config()
 
@@ -39,44 +32,23 @@ def vectorize_text_background(message: Message, memory_store: MemoryVectorStore,
             "chat_id": message.chat_id,
             "message_id": str(message.id.value),
             "sender": message.sender_type.value,
-            "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),  # RFC3339フォーマットに変換
-            "token_count": len(text.split()),  # 簡易的なトークンカウント
-            "is_summarized": False,  # 初期状態では要約されていない
+            "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "token_count": len(text.split()),
+            # "is_summarized" は add_memory 内でデフォルト設定される
         }
 
         # ベクトルストアに保存
         memory_id = memory_store.add_memory(vector=vector, metadata=metadata)
-        print(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
+        logger.info(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
 
-        # ユーザーが送信したメッセージの場合、プロファイル情報を抽出
-        if message.sender_type.value == "user":
-            for keyword in config.memory_profile_keywords:
-                if keyword in text:
-                    # プロファイル情報としても保存
-                    profile_metadata = metadata.copy()
-                    profile_metadata["type"] = memory_store.TYPE_USER_PROFILE
-                    profile_metadata["chat_id"] = None  # プロファイル情報はチャットに紐づかない
-                    profile_id = memory_store.add_memory(vector=vector, metadata=profile_metadata)
-                    print(f"ユーザープロファイル情報として保存 (memory_id: {profile_id})")
-                    break  # 一度でもキーワードが見つかればプロファイル情報として扱う
-
+    except ValueError as ve:
+        logger.warning(f"メッセージベクトル化中に値エラー: {str(ve)}")  # 空テキストなどの場合
     except Exception as e:
         logger.error(f"メッセージベクトル化中にエラーが発生: {str(e)}", exc_info=True)
 
 
-def summarize_and_vectorize_background(
-    chat_id: str, user_id: str, message_repository: MessageRepository, memory_store: MemoryVectorStore, config: AppConfig | None = None
-) -> None:
-    """チャットメッセージを要約してベクトル化する非同期タスク.
-
-    Args:
-        chat_id: 要約対象のチャットID
-        user_id: ユーザーID
-        message_repository: メッセージリポジトリ
-        memory_store: 記憶ベクトルストア
-        config: アプリケーション設定（Noneの場合は初期化される）
-
-    """
+def summarize_and_vectorize_background(chat_id: str, user_id: str, memory_store: MemoryVectorStore, config: AppConfig | None = None) -> None:
+    """チャットメッセージを要約してベクトル化する非同期タスク."""
     if config is None:
         config = AppConfig.get_config()
 
@@ -214,11 +186,10 @@ def process_batch_summarization(
             summarize_and_vectorize_background(
                 chat_id=chat_id,
                 user_id=user_id,
-                message_repository=message_repository,
                 memory_store=memory_store,
                 config=config,
             )
 
-        print(f"ユーザー {user_id} の {len(chat_ids)} チャットのバッチ要約処理が完了しました")
+        print(f"ユーザー {user_id} の全チャット ({len(chat_ids)}件) の要約処理をトリガーしました")
     except Exception as e:
         logger.error(f"バッチ要約処理中にエラーが発生: {str(e)}", exc_info=True)

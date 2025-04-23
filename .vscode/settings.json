@@ -46,5 +46,6 @@
   "python.autoComplete.extraPaths": [
     "${workspaceFolder}/apps/api/src",
     "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages"
-  ]
+  ],
+  "cSpell.words": ["unsummarized"]
 }

@@ -44,7 +44,6 @@ langchain-weaviate = {version = ">=0.0.4,<0.0.5", python = ">=3.13,<4.0"}
 weaviate-client = {version = ">=4.12.0,<5.0.0", python = ">=3.13,<4.0"}
 
 [tool.mypy]
-mypy_path = "."
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 ignore_missing_imports = true
 strict_optional = true
@@ -56,7 +55,5 @@ warn_redundant_casts = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
-# TODO: Reevaluate
-#init_typed = true # When enabled, mypy will be able to check the arguments when creating Pydantic instances, but you will need to explicitly type-cast the arguments passed to Pydantic, and implicit type conversions will no longer be possible.
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
