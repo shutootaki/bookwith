@@ -1,10 +1,16 @@
 import logging
+import tempfile
 import time
 from functools import wraps
+from pathlib import Path
 from typing import Any
 
 import weaviate
+from fastapi import UploadFile
+from langchain_community.document_loaders import UnstructuredEPubLoader
 from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
 from weaviate.collections.classes.config import DataType, Property
@@ -16,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def retry_on_error(max_retries=3, initial_delay=1, backoff_factor=2):
-    """エラー発生時に再試行するデコレータ"""
+    """エラー発生時に再試行するデコレータ."""
 
     def decorator(func):
         @wraps(func)
@@ -45,6 +51,7 @@ class MemoryVectorStore:
 
     # Weaviateのクラス名
     CHAT_MEMORY_CLASS_NAME = "ChatMemory"
+    BOOK_CONTENT_INDEX_NAME = "BookContentIndex"
 
     # メモリタイプ定義
     TYPE_MESSAGE = "message"
@@ -309,69 +316,41 @@ class MemoryVectorStore:
 
         return results
 
+    @retry_on_error(max_retries=3)
+    async def create_book_vector_index(self, file: UploadFile, tenant_id: str) -> dict:
+        """EPUBファイルを処理してベクトルストアにインデックス化する."""
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
+                file_content = await file.read()
+                temp_file.write(file_content)
+                temp_path = temp_file.name
 
-# @retry_on_error(max_retries=2)
-# def search_similar_memories(self, query: str, user_id: str, chat_id: str, memory_type: str, limit: int = 5) -> list[dict[str, Any]]:
-#     """類似記憶を検索."""
-#     query_vector = self.encode_text(query)
-#
-#     collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-#
-#     # フィルターの作成
-#     where_filter = (
-#         Filter.by_property("user_id").equal(user_id)
-#         & Filter.by_property("chat_id").equal(chat_id)
-#         & Filter.by_property("type").equal(memory_type)
-#     )
-#
-#     # クエリ実行
-#     response = collection.query.near_vector(
-#         near_vector=query_vector,
-#         return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
-#         include_vector=False,
-#         limit=limit,
-#         filters=where_filter,
-#     )
-#
-#     # 結果の変換
-#     results = []
-#     for obj in response.objects:
-#         item = obj.properties
-#         item["id"] = obj.uuid
-#         # 距離情報を取得
-#         item["_additional"] = {
-#             "distance": obj.metadata.distance,
-#             "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
-#         }
-#         results.append(item)
-#
-#     return results
+            try:
+                docs = UnstructuredEPubLoader(temp_path).load()
 
-# @retry_on_error(max_retries=2)
-# def fetch_memories_by_chat_id(self, user_id: str, chat_id: str, memory_type: str) -> list[dict[str, Any]]:
-#     """チャットIDによる記憶の取得 (ベクトル検索なし)."""
-#     collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-#
-#     # フィルターの作成
-#     where_filter = (
-#         Filter.by_property("user_id").equal(user_id)
-#         & Filter.by_property("chat_id").equal(chat_id)
-#         & Filter.by_property("type").equal(memory_type)
-#     )
-#
-#     # クエリ実行
-#     response = collection.query.fetch_objects(
-#         filters=where_filter,
-#         return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
-#         include_vector=False,
-#         limit=1000,  # 必要に応じて調整
-#     )
-#
-#     # 結果の変換
-#     results = []
-#     for obj in response.objects:
-#         item = obj.properties
-#         item["id"] = obj.uuid
-#         results.append(item)
-#
-#     return results
+                splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                split_docs = splitter.split_documents(docs)
+
+                WeaviateVectorStore.from_documents(
+                    documents=split_docs,
+                    embedding=self.embedding_model,  # 既存のエンベディングモデルを再利用
+                    client=self.client,  # 既存のクライアントを再利用
+                    index_name=self.BOOK_CONTENT_INDEX_NAME,
+                    text_key="content",
+                    tenant=tenant_id,
+                )
+
+                return {
+                    "message": "Upload and processing completed successfully",
+                    "file_name": file.filename,
+                    "chunk_count": len(split_docs),
+                    "index_name": self.BOOK_CONTENT_INDEX_NAME,
+                    "tenant_id": tenant_id,
+                    "success": True,
+                }
+            finally:
+                Path(temp_path).unlink(missing_ok=True)
+
+        except Exception as e:
+            logger.error(f"書籍ベクトル化エラー: {str(e)}")
+            raise ValueError(f"Error occurred during vector indexing: {str(e)}")

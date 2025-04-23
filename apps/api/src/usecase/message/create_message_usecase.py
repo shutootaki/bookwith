@@ -11,6 +11,7 @@ from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_title import ChatTitle
 from src.infrastructure.memory.memory_service import MemoryService
+from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
 from src.infrastructure.vector import get_vector_store
 
 if TYPE_CHECKING:
@@ -95,7 +96,6 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             chat_id=chat_id,
             user_id=sender_id,
             message_count=message_count,
-            message_repository=self.message_repository,
         )
 
         # 新しい順（降順）で必要な分だけ取得し、古い順（昇順）に並べ直す
@@ -152,7 +152,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             return
 
         # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
-        vector_store = get_vector_store("BookContentIndex")
+        vector_store = get_vector_store(MemoryVectorStore.BOOK_CONTENT_INDEX_NAME)
         vector_store_retriever = vector_store.as_retriever(
             search_kwargs={
                 "k": 4,
