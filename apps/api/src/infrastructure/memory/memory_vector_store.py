@@ -320,6 +320,7 @@ class MemoryVectorStore:
     async def create_book_vector_index(self, file: UploadFile, tenant_id: str) -> dict:
         """EPUBファイルを処理してベクトルストアにインデックス化する."""
         try:
+            # note: tempファイルじゃなくて、gcsから取得すればいいだけかも
             with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
                 file_content = await file.read()
                 temp_file.write(file_content)

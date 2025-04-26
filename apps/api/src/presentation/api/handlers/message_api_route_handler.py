@@ -111,7 +111,7 @@ async def stream_create_message(
 ) -> StreamingResponse:
     """新しいメッセージを作成し、AI の応答をストリーミングで返す."""
     try:
-        response_stream = create_message_usecase.execute(
+        response_stream = await create_message_usecase.execute(
             content=message_create.content,
             sender_id=message_create.sender_id,
             chat_id=message_create.chat_id,

@@ -1,9 +1,14 @@
 import logging
+from typing import TYPE_CHECKING, cast
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
+
+if TYPE_CHECKING:
+    from starlette.types import HTTPExceptionHandler
+
 
 logger = logging.getLogger(__name__)
 
@@ -129,9 +134,9 @@ async def internal_exception_handler(request: Request, exc: Exception) -> JSONRe
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(AppException, app_exception_handler)
+    app.add_exception_handler(AppException, cast("HTTPExceptionHandler", app_exception_handler))
 
-    app.add_exception_handler(RequestValidationError, validation_exception_handler)
-    app.add_exception_handler(ValidationError, validation_exception_handler)
+    app.add_exception_handler(RequestValidationError, cast("HTTPExceptionHandler", validation_exception_handler))
+    app.add_exception_handler(ValidationError, cast("HTTPExceptionHandler", validation_exception_handler))
 
     app.add_exception_handler(Exception, internal_exception_handler)

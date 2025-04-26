@@ -1,24 +1,18 @@
 {
+  // ========================= general =========================
+  "files.insertFinalNewline": true,
+  "editor.formatOnSave": true,
+
+  // ========================= typescript =========================
   "typescript.tsdk": "./node_modules/typescript/lib",
   // https://github.com/tailwindlabs/tailwindcss/discussions/5258#discussioncomment-1979394
   "css.lint.unknownAtRules": "ignore",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always"
   },
-  "exportall.config.folderListener": [
-    "/apps/reader/src/components",
-    "/apps/reader/src/hooks",
-    "/apps/reader/src/components/base",
-    "/apps/reader/src/hooks/remote",
-    "/apps/reader/src/components/pages",
-    "/apps/website/src/components",
-    "/apps/reader/src/hooks/theme",
-    "/apps/reader/src/models"
-  ],
-  "editor.formatOnSave": true,
-  "files.insertFinalNewline": true,
+
+  // ========================= python =========================
   "[python]": {
-    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports.ruff": "explicit",
       "source.fixAll.ruff": "explicit"
@@ -27,25 +21,11 @@
   },
   "python.defaultInterpreterPath": "${workspaceFolder}/apps/api/.venv/bin/python",
   "ruff.path": ["${workspaceFolder}/apps/api/.venv/bin/ruff"],
+  "cSpell.words": ["unsummarized"],
   "mypy-type-checker.path": ["${workspaceFolder}/apps/api/.venv/bin/mypy"],
   "mypy-type-checker.args": [
-    "--config=${workspaceFolder}/apps/api/pyproject.toml"
+    "--config-file=${workspaceFolder}/apps/api/pyproject.toml"
   ],
-  "mypy.dmypyExecutable": "${workspaceFolder}/apps/api/.venv/bin/dmypy",
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.completeFunctionParens": true,
-  "python.testing.pytestArgs": ["tests"],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true,
-  "mypy.configFile": "apps/api/pyproject.toml",
-  "mypy.enabled": true,
-  "python.analysis.extraPaths": [
-    "${workspaceFolder}/apps/api/src",
-    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages"
-  ],
-  "python.autoComplete.extraPaths": [
-    "${workspaceFolder}/apps/api/src",
-    "${workspaceFolder}/apps/api/.venv/lib/python3.13/site-packages"
-  ],
-  "cSpell.words": ["unsummarized"]
+  "python.analysis.extraPaths": ["${workspaceFolder}/apps/api"]
 }

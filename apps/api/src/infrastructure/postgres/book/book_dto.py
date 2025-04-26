@@ -1,15 +1,15 @@
-from typing import Any
+from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     JSON,
-    Column,
     DateTime,
     Float,
     ForeignKey,
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db import Base
 from src.domain.book.entities.book import Book
@@ -20,29 +20,34 @@ from src.domain.book.value_objects.book_title import BookTitle
 from src.domain.book.value_objects.tennant_id import TenantId
 from src.infrastructure.postgres.db_util import TimestampMixin
 
+if TYPE_CHECKING:
+    from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
+    from src.infrastructure.postgres.chat.chat_dto import ChatDTO
+    from src.infrastructure.postgres.user.user_dto import UserDTO
 
-class BookDTO(Base, TimestampMixin):
+
+class BookDTO(TimestampMixin, Base):
     __tablename__ = "books"
 
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), index=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
 
-    name = Column(String, index=True)
-    author = Column(String, index=True, nullable=True)
-    file_path = Column(String)
-    cover_path = Column(String, nullable=True)
-    size = Column(Integer)
-    cfi = Column(String, nullable=True)
-    percentage = Column(Float, default=0)
-    book_metadata = Column(JSON, nullable=True)
-    definitions = Column(JSON, default=list)
-    configuration = Column(JSON, nullable=True)
-    deleted_at = Column(DateTime, nullable=True)
-    tenant_id = Column(String, nullable=True)
+    name: Mapped[str] = mapped_column(String, index=True)
+    author: Mapped[str | None] = mapped_column(String, index=True, nullable=True)
+    file_path: Mapped[str] = mapped_column(String)
+    cover_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    size: Mapped[int] = mapped_column(Integer)
+    cfi: Mapped[str | None] = mapped_column(String, nullable=True)
+    percentage: Mapped[float] = mapped_column(Float, default=0)
+    book_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    definitions: Mapped[list[str] | None] = mapped_column(JSON, default=list)
+    configuration: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    tenant_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    user = relationship("UserDTO", back_populates="books")
-    annotations = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
-    chats = relationship("ChatDTO", back_populates="book", cascade="all, delete-orphan")
+    user: Mapped["UserDTO"] = relationship("UserDTO", back_populates="books")
+    annotations: Mapped[list["AnnotationDTO"]] = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
+    chats: Mapped[list["ChatDTO"]] = relationship("ChatDTO", back_populates="book", cascade="all, delete-orphan")
 
     def to_entity(self) -> Book:
         book_id = BookId(self.id)
@@ -80,15 +85,15 @@ class BookDTO(Base, TimestampMixin):
         return Book(
             id=book_id,
             title=book_title,
-            user_id=self.user_id,
-            file_path=self.file_path,
+            user_id=str(self.user_id),
+            file_path=str(self.file_path),
             description=book_description,
             status=book_status,
             tenant_id=tenant_id,
-            author=self.author,
-            cover_path=self.cover_path,
+            author=str(self.author),
+            cover_path=str(self.cover_path),
             size=self.size,
-            cfi=self.cfi,
+            cfi=str(self.cfi),
             percentage=self.percentage,
             book_metadata=self.book_metadata,
             definitions=self.definitions,

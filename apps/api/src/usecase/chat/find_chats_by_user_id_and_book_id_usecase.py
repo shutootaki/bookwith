@@ -9,7 +9,7 @@ from src.domain.chat.value_objects.user_id import UserId
 class FindChatsByUserIdAndBookIdUseCase(ABC):
     @abstractmethod
     def execute(self, user_id: UserId, book_id: BookId) -> list[Chat]:
-        """ユーザーIDと本IDに紐づくChatをすべて取得する"""
+        """ユーザーIDと本IDに紐づくChatをすべて取得する."""
 
 
 class FindChatsByUserIdAndBookIdUseCaseImpl(FindChatsByUserIdAndBookIdUseCase):
@@ -17,5 +17,5 @@ class FindChatsByUserIdAndBookIdUseCaseImpl(FindChatsByUserIdAndBookIdUseCase):
         self.chat_repository = chat_repository
 
     def execute(self, user_id: UserId, book_id: BookId) -> list[Chat]:
-        """ユーザーIDと本IDに紐づくChatをすべて取得する"""
+        """ユーザーIDと本IDに紐づくChatをすべて取得する."""
         return self.chat_repository.find_by_user_id_and_book_id(user_id, book_id)

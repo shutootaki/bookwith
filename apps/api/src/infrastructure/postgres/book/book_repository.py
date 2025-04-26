@@ -36,7 +36,8 @@ class PostgresBookRepository(BookRepository):
                         }
 
                         for annotation in to_update:
-                            if anno_obj := anno_map.get(annotation.get("id")):
+                            annotation_id = annotation.get("id")
+                            if annotation_id is not None and (anno_obj := anno_map.get(str(annotation_id))):
                                 for key, value in AnnotationDTO.from_dict(annotation).items():
                                     setattr(anno_obj, key, value)
 

@@ -110,7 +110,7 @@ async def get_covers(
         books = find_books_by_user_id_usecase.execute(user_id)
         gcs_client = GCSClient()
 
-        result = {"success": True, "data": []}
+        book_covers = []
 
         for book in books:
             if not book.cover_path:
@@ -123,7 +123,7 @@ async def get_covers(
             blob = bucket.blob(path)
             cover_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET") if not gcs_client.use_emulator else book.cover_path
 
-            result["data"].append(
+            book_covers.append(
                 {
                     "book_id": book.id.value,
                     "name": book.title.value,
@@ -131,7 +131,7 @@ async def get_covers(
                 }
             )
 
-        return result
+        return {"success": True, "data": book_covers}
     except Exception as e:
         raise HTTPException(
             status_code=500,

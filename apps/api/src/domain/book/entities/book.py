@@ -170,7 +170,7 @@ class Book:
         return self._book_metadata
 
     @property
-    def definitions(self) -> list[dict[str, Any]]:
+    def definitions(self) -> list[str]:
         return self._definitions
 
     @property

@@ -50,7 +50,6 @@ docker.up: ## Starts the backend API within the shared network (see infra reposi
 
 lint: ## Runs linter
 	poetry run mypy src --explicit-package-bases
-	pre-commit run --all-files --show-diff-on-failure
 
 run: configure ## Runs the backend API locally
 	@echo "Running run in $(ENV) environment on port $(PORT)."

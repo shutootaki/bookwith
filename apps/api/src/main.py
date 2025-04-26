@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Generator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +15,23 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
-app = FastAPI(title="BookWith API", description="Book related API service")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    try:
+        init_db()
+        logging.info("Database connection established")
+    except Exception as e:
+        logging.error(f"Database initialization error: {e}")
+
+    yield
+
+    # Shutdown
+    logging.info("Closing database connection")
+
+
+app = FastAPI(title="BookWith API", description="Book related API service", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,20 +40,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-async def startup_db_client() -> None:
-    try:
-        init_db()
-        logging.info("Database connection established")
-    except Exception as e:
-        logging.error(f"Database initialization error: {e}")
-
-
-@app.on_event("shutdown")
-async def shutdown_db_client() -> None:
-    logging.info("Closing database connection")
 
 
 def get_db_session() -> Generator[Session]:
