@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+from src.domain.annotation.entities.annotation import Annotation
 from src.domain.book.entities.book import Book
 from src.domain.book.exceptions.book_exceptions import BookNotFoundException
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
-from src.presentation.api.schemas.book_schema import AnnotationSchemaTmp
+from src.presentation.api.schemas.annotation_schema import AnnotationSchema
 
 
 class UpdateBookUseCase(ABC):
@@ -18,7 +19,7 @@ class UpdateBookUseCase(ABC):
         author: str | None = None,
         cfi: str | None = None,
         percentage: float | None = None,
-        annotations: list[AnnotationSchemaTmp] | None = None,
+        annotations: list[AnnotationSchema] | None = None,
         book_metadata: dict[str, Any] | None = None,
         definitions: list[str] | None = None,
         configuration: dict[str, Any] | None = None,
@@ -37,7 +38,7 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
         author: str | None = None,
         cfi: str | None = None,
         percentage: float | None = None,
-        annotations: list[AnnotationSchemaTmp] | None = None,
+        annotations: list[AnnotationSchema] | None = None,
         book_metadata: dict[str, Any] | None = None,
         definitions: list[str] | None = None,
         configuration: dict[str, Any] | None = None,
@@ -72,7 +73,7 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
             book._configuration = configuration
 
         if annotations is not None:
-            book._annotations = [annotation.model_dump() for annotation in annotations]
+            book._annotations = [Annotation(**annotation.model_dump()) for annotation in annotations]
 
         self.book_repository.save(book)
 

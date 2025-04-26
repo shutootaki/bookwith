@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+from src.domain.annotation.entities.annotation import Annotation
 from src.domain.book.exceptions.book_exceptions import (
     BookAlreadyCompletedException,
     BookAlreadyStartedException,
@@ -34,7 +35,7 @@ class Book:
         updated_at: datetime | None = None,
         completed_at: datetime | None = None,
         deleted_at: datetime | None = None,
-        annotations: list[dict[str, Any]] | None = None,
+        annotations: list[Annotation] | None = None,
     ) -> None:
         self._id = id
         self._title = title
@@ -198,7 +199,7 @@ class Book:
         return self._deleted_at is not None
 
     @property
-    def annotations(self) -> list[dict[str, Any]]:
+    def annotations(self) -> list[Annotation]:
         return self._annotations
 
     @property

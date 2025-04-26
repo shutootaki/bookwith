@@ -2,9 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
-from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum
 from src.domain.book.entities.book import Book
+from src.presentation.api.schemas.annotation_schema import AnnotationSchema
 
 
 class BookCreateRequest(BaseModel):
@@ -17,25 +16,12 @@ class BookCreateRequest(BaseModel):
     book_metadata: str | None = Field(None, description="Book metadata (JSON string)")
 
 
-class AnnotationSchemaTmp(BaseModel):
-    id: str
-    book_id: str = Field(alias="bookId")
-    cfi: str
-    spine: dict[str, Any]
-    type: AnnotationTypeEnum
-    color: AnnotationColorEnum
-    notes: str | None = None
-    text: str
-
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
-
 class BookUpdateRequest(BaseModel):
     name: str | None = Field(None, description="Book name")
     author: str | None = Field(None, description="Author name")
     cfi: str | None = Field(None, description="Current reading position (CFI)")
     percentage: float | None = Field(None, description="Reading progress percentage (%)")
-    annotations: list[AnnotationSchemaTmp] | None = Field(None, description="Annotation information")
+    annotations: list[AnnotationSchema] | None = Field(None, description="Annotation information")
     book_metadata: dict[str, Any] | None = Field(None, description="Book metadata")
     definitions: list[str] | None = Field(None, description="User defined information")
     configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
@@ -43,7 +29,7 @@ class BookUpdateRequest(BaseModel):
 
 class BookDetail(BaseModel):
     id: str
-    annotations: list[AnnotationSchemaTmp] | None = None
+    annotations: list[AnnotationSchema] | None = None
     author: str | None = None
     book_metadata: dict[str, Any] | None = None
     cfi: str | None = None

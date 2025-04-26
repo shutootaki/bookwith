@@ -30,11 +30,13 @@ jobs:
       - name: Setup Python 🐍
         uses: actions/setup-python@v5
         with:
-          python-version: 3.13.2
+          python-version: '3.13.2'
           cache: poetry
 
-      - name: Install Poetry via pipx
-        run: pipx install poetry
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 'latest'
 
       - name: Install dependencies
         run: poetry install
@@ -51,7 +53,7 @@ jobs:
       - name: Setup Python 🐍
         uses: actions/setup-python@v5
         with:
-          python-version: 3.13.2
+          python-version: '3.13.2'
 
       - name: Install pre-commit
         run: |
