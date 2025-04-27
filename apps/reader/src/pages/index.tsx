@@ -111,7 +111,7 @@ export default function Index() {
 }
 
 const Library: React.FC = () => {
-  const { books, mutate: booksMutate } = useLibrary()
+  const { books, error, mutate: booksMutate } = useLibrary()
   const { covers, mutate: coversMutate } = useRemoteCovers()
   const t = useTranslation('home')
 
@@ -169,7 +169,9 @@ const Library: React.FC = () => {
   if (!books) return null
 
   const allSelected = selectedBookIds.size === books.length
-  booksMutate()
+  if (!error) {
+    booksMutate()
+  }
 
   const handleImportOperation = async (
     operation: () => Promise<any>,

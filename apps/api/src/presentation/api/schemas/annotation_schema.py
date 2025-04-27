@@ -9,11 +9,12 @@ from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEn
 class AnnotationSchema(BaseModel):
     id: str
     book_id: str = Field(alias="bookId")
+
     cfi: str
-    spine: dict[str, Any]
-    type: AnnotationTypeEnum
     color: AnnotationColorEnum
     notes: str | None = None
+    spine: dict[str, Any]
     text: str
+    type: AnnotationTypeEnum
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)

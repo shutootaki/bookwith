@@ -7,7 +7,6 @@ from typing import Any
 
 from src.domain.book.entities.book import Book
 from src.domain.book.repositories.book_repository import BookRepository
-from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
 from src.domain.book.value_objects.tennant_id import TenantId
@@ -43,8 +42,7 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
         cover_image: str | None = None,
         book_metadata: str | None = None,
     ) -> Book:
-        """新しいBookを作成して保存し、作成したBookエンティティを返す"""
-        title = BookTitle(book_name if book_name else file_name)
+        """新しいBookを作成して保存し、作成したBookエンティティを返す."""
         decoded_file_data = base64.b64decode(file_data)
 
         metadata: dict[str, Any] = {}
@@ -86,10 +84,9 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
 
             book = Book.create(
                 id=book_id,
-                title=title,
+                name=BookTitle(book_name if book_name else file_name),
                 user_id=user_id,
                 file_path=file_path,
-                description=BookDescription(),
                 author=metadata.get("creator", None),
                 size=len(decoded_file_data),
                 book_metadata=metadata,

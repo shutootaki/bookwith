@@ -6,7 +6,7 @@ from src.config.app_config import AppConfig
 
 class GCSClient:
     def __init__(self, bucket_name: str = "bookwith-storage") -> None:
-        self.config = AppConfig().get_config()
+        self.config = AppConfig.get_config()
         self.bucket_name = bucket_name
         self.use_emulator = self.config.cloud_storage_emulator_host is not None
 

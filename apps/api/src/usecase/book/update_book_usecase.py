@@ -49,12 +49,12 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
         if book is None:
             raise BookNotFoundException(book_id)
 
-        if name is not None and name != book.title.value:
+        if name is not None and name != book.name.value:
             book_title = BookTitle(name)
             book.update_title(book_title)
 
         if author is not None:
-            book._author = author
+            book.author = author
 
         if cfi is not None or percentage is not None:
             current_cfi = "" if book.cfi is None and cfi is None else cfi if cfi is not None else book.cfi
@@ -64,16 +64,16 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
                 book.update_reading_progress(current_cfi, current_percentage)
 
         if book_metadata is not None:
-            book._book_metadata = book_metadata
+            book.book_metadata = book_metadata
 
         if definitions is not None:
-            book._definitions = definitions
+            book.definitions = definitions
 
         if configuration is not None:
-            book._configuration = configuration
+            book.configuration = configuration
 
         if annotations is not None:
-            book._annotations = [Annotation(**annotation.model_dump()) for annotation in annotations]
+            book.annotations = [Annotation(**annotation.model_dump(mode="json")) for annotation in annotations]
 
         self.book_repository.save(book)
 

@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.domain.book.entities.book import Book
+from src.config.app_config import TEST_USER_ID
 from src.presentation.api.schemas.annotation_schema import AnnotationSchema
 
 
@@ -17,6 +17,7 @@ class BookCreateRequest(BaseModel):
 
 
 class BookUpdateRequest(BaseModel):
+    user_id: str = Field(TEST_USER_ID, description="User ID")
     name: str | None = Field(None, description="Book name")
     author: str | None = Field(None, description="Author name")
     cfi: str | None = Field(None, description="Current reading position (CFI)")
@@ -73,23 +74,23 @@ class BulkDeleteResponse(BaseModel):
     message: str | None = None
 
 
-def entity_to_detail(book: Book) -> BookDetail:
-    return BookDetail(
-        id=book.id.value,
-        name=book.title.value,
-        author=book.author,
-        cover_path=book.cover_path,
-        size=book.size,
-        cfi=book.cfi,
-        percentage=book.percentage,
-        book_metadata=book.book_metadata,
-        definitions=book.definitions,
-        configuration=book.configuration,
-        tenant_id=book.tenant_id.value if book.tenant_id else None,
-        created_at=book.created_at,
-        updated_at=book.updated_at,
-        annotations=book.annotations,
-    )
+# def entity_to_detail(book: Book) -> BookDetail:
+#     return BookDetail(
+#         id=book.id.value,
+#         name=book.name.value,
+#         author=book.author,
+#         cover_path=book.cover_path,
+#         size=book.size,
+#         cfi=book.cfi,
+#         percentage=book.percentage,
+#         book_metadata=book.book_metadata,
+#         definitions=book.definitions,
+#         configuration=book.configuration,
+#         tenant_id=book.tenant_id.value if book.tenant_id else None,
+#         created_at=book.created_at,
+#         updated_at=book.updated_at,
+#         annotations=book.annotations,
+#     )
 
 
 class RagProcessResponse(BaseModel):

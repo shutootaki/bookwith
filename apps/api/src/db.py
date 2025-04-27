@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from src.config.app_config import AppConfig
 
-config = AppConfig()
+config = AppConfig.get_config()
 
 
 engine = create_engine(config.database_url, echo=True)

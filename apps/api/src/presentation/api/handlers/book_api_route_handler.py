@@ -36,12 +36,12 @@ from src.presentation.api.error_messages.book_error_message import (
 )
 from src.presentation.api.schemas.book_schema import (
     BookCreateRequest,
+    BookDetail,
     BookFileResponse,
     BookResponse,
     BooksResponse,
     BookUpdateRequest,
     BulkDeleteResponse,
-    entity_to_detail,
 )
 from src.usecase.book.create_book_usecase import CreateBookUseCase
 from src.usecase.book.delete_book_usecase import (
@@ -82,7 +82,7 @@ async def get_books(
 ):
     try:
         books = find_books_usecase.execute()
-        book_details = [entity_to_detail(book) for book in books]
+        book_details = [BookDetail(**book.model_dump(mode="json")) for book in books]
         return BooksResponse(success=True, data=book_details, count=len(book_details))
     except Exception as e:
         raise handle_domain_exception(e)
@@ -95,7 +95,7 @@ async def get_books_by_user(
 ):
     try:
         books = find_books_by_user_id_usecase.execute(user_id)
-        book_details = [entity_to_detail(book) for book in books]
+        book_details = [BookDetail(**book.model_dump(mode="json")) for book in books]
         return BooksResponse(success=True, data=book_details, count=len(book_details))
     except Exception as e:
         raise handle_domain_exception(e)
@@ -126,7 +126,7 @@ async def get_covers(
             book_covers.append(
                 {
                     "book_id": book.id.value,
-                    "name": book.title.value,
+                    "name": book.name.value,
                     "cover_url": cover_url,
                 }
             )
@@ -161,7 +161,7 @@ async def get_book(
 ):
     try:
         book = find_book_by_id_usecase.execute(book_id)
-        return BookResponse(success=True, data=entity_to_detail(book))
+        return BookResponse(success=True, data=BookDetail(**book.model_dump(mode="json")))
     except Exception as e:
         raise handle_domain_exception(e)
 
@@ -267,7 +267,7 @@ async def post_book(
 
         return BookResponse(
             success=True,
-            data=entity_to_detail(book),
+            data=BookDetail(**book.model_dump(mode="json")),
             message="Book successfully added",
         )
     except ValueError as e:
@@ -300,7 +300,7 @@ async def put_book(
 
         return BookResponse(
             success=True,
-            data=entity_to_detail(book),
+            data=BookDetail(**book.model_dump(mode="json")),
             message="Book successfully updated",
         )
     except BookNotFoundException:
