@@ -1,13 +1,20 @@
+from datetime import datetime
+
 from sqlalchemy import DateTime, func
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import Mapped, mapped_column
 
 
 class TimestampMixin:
-    @declared_attr
-    def created_at(cls) -> Mapped[DateTime]:
-        return mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    """Mixin class to add created_at and updated_at timestamps to SQLAlchemy models."""
 
-    @declared_attr
-    def updated_at(cls) -> Mapped[DateTime]:
-        return mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )

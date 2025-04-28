@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, field_validator
+
 from src.domain.annotation.value_objects.annotation_cfi import AnnotationCfi
 from src.domain.annotation.value_objects.annotation_color import AnnotationColor
 from src.domain.annotation.value_objects.annotation_id import AnnotationId
@@ -9,87 +11,91 @@ from src.domain.annotation.value_objects.annotation_text import AnnotationText
 from src.domain.annotation.value_objects.annotation_type import AnnotationType
 
 
-class Annotation:
-    def __init__(
-        self,
-        id: AnnotationId,
-        book_id: str,
-        user_id: str,
-        cfi: AnnotationCfi,
-        text: AnnotationText,
-        notes: AnnotationNotes | None = None,
-        color: AnnotationColor | None = None,
-        type: AnnotationType | None = None,
-        spine: dict[str, Any] | None = None,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
-    ) -> None:
-        self._id = id
-        self._book_id = book_id
-        self._user_id = user_id
-        self._cfi = cfi
-        self._text = text
-        self._notes = notes if notes is not None else AnnotationNotes(None)
-        self._color = color if color is not None else AnnotationColor(None)
-        self._type = type if type is not None else AnnotationType.default()
-        self._spine = spine
-        self._created_at = created_at or datetime.now()
-        self._updated_at = updated_at or datetime.now()
+class Annotation(BaseModel):
+    id: AnnotationId
+    book_id: str
+
+    cfi: AnnotationCfi
+    color: AnnotationColor
+    notes: AnnotationNotes | None = None
+    spine: dict[str, Any] | None = None
+    text: AnnotationText
+    type: AnnotationType
+
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,  # Value Object を許容するため
+        json_encoders={
+            AnnotationId: lambda x: x.value,
+            AnnotationCfi: lambda x: x.value,
+            AnnotationColor: lambda x: x.value,
+            AnnotationType: lambda x: x.value,
+            AnnotationText: lambda x: x.value,
+            AnnotationNotes: lambda x: x.value,
+        },
+    )
 
     def __eq__(self, obj: object) -> bool:
         if isinstance(obj, Annotation):
-            return self._id == obj._id
+            return self.id == obj.id
         return False
 
-    @property
-    def id(self) -> AnnotationId:
-        return self._id
+    @field_validator("id", mode="before")
+    @classmethod
+    def _validate_id(cls, v):
+        if isinstance(v, AnnotationId):
+            return v
+        return AnnotationId(v)
 
-    @property
-    def book_id(self) -> str:
-        return self._book_id
+    @field_validator("cfi", mode="before")
+    @classmethod
+    def _validate_cfi(cls, v):
+        if isinstance(v, AnnotationCfi):
+            return v
+        return AnnotationCfi(v)
 
-    @property
-    def user_id(self) -> str:
-        return self._user_id
+    @field_validator("text", mode="before")
+    @classmethod
+    def _validate_text(cls, v):
+        if isinstance(v, AnnotationText):
+            return v
+        return AnnotationText(v)
 
-    @property
-    def cfi(self) -> AnnotationCfi:
-        return self._cfi
+    @field_validator("notes", mode="before")
+    @classmethod
+    def _validate_notes(cls, v):
+        if v is None or isinstance(v, AnnotationNotes):
+            return v
+        return AnnotationNotes(v)
 
-    @property
-    def text(self) -> AnnotationText:
-        return self._text
+    @field_validator("color", mode="before")
+    @classmethod
+    def _validate_color(cls, v):
+        if isinstance(v, AnnotationColor):
+            return v
+        return AnnotationColor(v)
 
-    @property
-    def notes(self) -> AnnotationNotes:
-        return self._notes
+    @field_validator("type", mode="before")
+    @classmethod
+    def _validate_type(cls, v):
+        if isinstance(v, AnnotationType):
+            return v
+        return AnnotationType(v)
 
-    @property
-    def color(self) -> AnnotationColor:
-        return self._color
-
-    @property
-    def type(self) -> AnnotationType:
-        return self._type
-
-    @property
-    def spine(self) -> dict[str, Any] | None:
-        return self._spine
-
-    @property
-    def created_at(self) -> datetime:
-        return self._created_at
-
-    @property
-    def updated_at(self) -> datetime:
-        return self._updated_at
+    @field_validator("spine", mode="before")
+    @classmethod
+    def _validate_spine(cls, v):
+        # dict 型ならそのまま。必要なら更に検証を追加
+        if isinstance(v, dict):
+            return v
+        raise TypeError("spine must be a dict")
 
     @classmethod
     def create(
         cls,
         book_id: str,
-        user_id: str,
         cfi: str,
         text: str,
         notes: str | None = None,
@@ -101,7 +107,6 @@ class Annotation:
         return cls(
             id=AnnotationId.from_string(id),
             book_id=book_id,
-            user_id=user_id,
             cfi=AnnotationCfi.from_string(cfi),
             text=AnnotationText.from_string(text),
             notes=AnnotationNotes.from_string(notes),

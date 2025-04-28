@@ -15,10 +15,8 @@ def seed_data():
         # 複数のシードデータを一括で追加
         session.add_all(seed_items)
         session.commit()
-        print("Seed data inserted successfully!")
-    except Exception as e:
+    except Exception:
         session.rollback()
-        print("Error seeding data:", e)
     finally:
         session.close()
 

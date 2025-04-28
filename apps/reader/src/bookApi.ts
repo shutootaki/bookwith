@@ -8,8 +8,7 @@ export async function fetchAllBooks(): Promise<BookDetail[]> {
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
     )
     if (!response.ok) {
-      console.error('書籍一覧取得エラー:', await response.json())
-      return []
+      throw new Error('書籍一覧取得エラー:', await response.json())
     }
 
     const responseData = await response.json()

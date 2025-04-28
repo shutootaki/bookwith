@@ -17,7 +17,7 @@ class ChatRepositoryImpl(ChatRepository):
             existing_chat = self._session.query(ChatDTO).filter(ChatDTO.id == chat.id.value).first()
 
             if existing_chat:
-                existing_chat.title = chat.title.value if chat.title else None
+                existing_chat.title = chat.title.value
                 existing_chat.book_id = chat.book_id.value if chat.book_id else None
             else:
                 chat_dto = ChatDTO.from_entity(chat)

@@ -24,5 +24,4 @@ class AppConfig(BaseSettings):
 
     @classmethod
     def get_config(cls) -> Self:
-        """get_config."""
         return cls()

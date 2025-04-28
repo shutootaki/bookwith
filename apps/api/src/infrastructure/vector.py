@@ -22,11 +22,9 @@ def get_vector_store(index_name: str) -> WeaviateVectorStore:
             text_key="content",
             index_name=index_name,
             embedding=OpenAIEmbeddings(
-                model="text-embedding-3-small",
+                model="text-embedding-3-large",
                 max_retries=2,
             ),
         )
-    except Exception as e:
-        # エラーが発生した場合はログに記録し、Noneを返す
-        print(f"ベクトルストアの取得中にエラーが発生しました: {str(e)}")
-        raise e
+    except Exception:
+        raise
