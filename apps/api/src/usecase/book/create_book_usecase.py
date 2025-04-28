@@ -105,8 +105,5 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
 
     def _rollback_storage(self, blobs: list[Any]) -> None:
         for blob in blobs:
-            try:
+            with contextlib.suppress(Exception):
                 blob.delete()
-                print(f"ロールバック: {blob.name} を削除しました")
-            except Exception as delete_error:
-                print(f"ロールバック中にエラーが発生しました: {blob.name}, {str(delete_error)}")

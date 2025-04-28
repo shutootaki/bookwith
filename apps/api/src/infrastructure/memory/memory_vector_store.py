@@ -1,6 +1,7 @@
 import logging
 import tempfile
 import time
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
 from weaviate.collections.classes.config import DataType, Property
+from weaviate.exceptions import WeaviateBaseError, WeaviateQueryException
 
 from src.config.app_config import AppConfig
 
@@ -21,12 +23,12 @@ from src.config.app_config import AppConfig
 logger = logging.getLogger(__name__)
 
 
-def retry_on_error(max_retries=3, initial_delay=1, backoff_factor=2):
+def retry_on_error(max_retries: int = 3, initial_delay: int = 1, backoff_factor: int = 2) -> Callable:
     """エラー発生時に再試行するデコレータ."""
 
-    def decorator(func):
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
             retries = 0
             delay = initial_delay
             while True:
@@ -57,16 +59,17 @@ class MemoryVectorStore:
     TYPE_MESSAGE = "message"
     TYPE_SUMMARY = "summary"
     TYPE_USER_PROFILE = "user_profile"
+    TYPE_HIGHLIGHT = "highlight"  # ハイライト用typeを追加
 
     def __init__(self) -> None:
         """Weaviateクライアントを初期化."""
         self.config = AppConfig.get_config()
         self.client = self._create_client()
         self._ensure_schema()
-        self.embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", max_retries=2)
+        self.embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
 
     @retry_on_error(max_retries=5, initial_delay=2)
-    def _create_client(self):
+    def _create_client(self) -> weaviate.WeaviateClient:
         """Weaviateクライアントを作成."""
         try:
             # タイムアウト設定を追加
@@ -138,9 +141,31 @@ class MemoryVectorStore:
                             data_type=DataType.BOOL,
                             description="要約済みフラグ（メッセージ専用）",
                         ),
+                        Property(
+                            name="book_id",
+                            data_type=DataType.TEXT,
+                            description="書籍ID",
+                            index_searchable=True,
+                        ),
+                        Property(
+                            name="book_title",
+                            data_type=DataType.TEXT,
+                            description="書籍タイトル",
+                            index_searchable=True,
+                        ),
+                        Property(
+                            name="annotation_id",
+                            data_type=DataType.TEXT,
+                            description="アノテーションID",
+                            index_searchable=True,
+                        ),
+                        Property(
+                            name="notes",
+                            data_type=DataType.TEXT,
+                            description="メモ",
+                        ),
                     ],
                 )
-                print(f"Created schema for {self.CHAT_MEMORY_CLASS_NAME}")
         except Exception as e:
             logger.error(f"スキーマ作成エラー: {str(e)}")
             raise
@@ -203,7 +228,6 @@ class MemoryVectorStore:
             for obj in response.objects:
                 collection.data.update(uuid=obj.uuid, properties={"is_summarized": True})
 
-            print(f"{len(response.objects)}件のメッセージを要約済みとしてマーク")
         except Exception as e:
             logger.error(f"メッセージの要約済みマーク更新エラー: {str(e)}")
             raise
@@ -355,3 +379,101 @@ class MemoryVectorStore:
         except Exception as e:
             logger.error(f"書籍ベクトル化エラー: {str(e)}")
             raise ValueError(f"Error occurred during vector indexing: {str(e)}")
+
+    @retry_on_error(max_retries=2)
+    def search_highlights(self, user_id: str, book_id: str, query_vector: list[float], limit: int = 3) -> list[dict[str, Any]]:
+        """ハイライト（type=highlight）をベクトル検索する。"""
+        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+        where_filter = (
+            Filter.by_property("user_id").equal(user_id)
+            & Filter.by_property("book_id").equal(book_id)
+            & Filter.by_property("type").equal(self.TYPE_HIGHLIGHT)
+        )
+        response = collection.query.near_vector(
+            near_vector=query_vector,
+            return_properties=["content", "notes", "created_at", "book_title", "annotation_id"],
+            include_vector=False,
+            filters=where_filter,
+            limit=limit,
+        )
+        results = []
+        for obj in response.objects:
+            item = obj.properties
+            item["id"] = obj.uuid
+            item["_additional"] = {
+                "distance": obj.metadata.distance,
+                "certainty": 1.0 - (obj.metadata.distance or 0.0),
+            }
+            results.append(item)
+        return results
+
+    def delete_memories_by_filter(self, filter_conditions: dict, and_filter: dict | None = None) -> int:
+        """指定されたフィルター条件に一致する記憶をベクトルストアから削除する (Weaviate Client v4)。
+        現時点では、特定のフィルター構造 (type = highlight AND annotation_id IN [...]) にのみ対応。
+
+        Args:
+            filter_conditions: 主なフィルター条件 (例: type)
+            and_filter: 追加のAND条件 (例: annotation_id)
+
+        Returns:
+            削除に成功したオブジェクトの数。
+
+        """
+        if not self.client:
+            logger.error("Weaviateクライアントが初期化されていません。削除処理をスキップします。")
+            return 0
+
+        # 特定のフィルター構造 (type=highlight AND annotation_id IN [...]) のみを処理
+        if (
+            filter_conditions.get("path") == ["type"]
+            and filter_conditions.get("operator") == "Equal"
+            and filter_conditions.get("valueString") == self.TYPE_HIGHLIGHT
+            and and_filter
+            and and_filter.get("path") == ["annotation_id"]
+            and and_filter.get("operator") == "ContainsAny"
+            and "valueTextArray" in and_filter
+        ):
+            annotation_ids = and_filter["valueTextArray"]
+            if not annotation_ids:
+                logger.info("削除対象のAnnotation IDが空です。")
+                return 0
+
+            try:
+                # Weaviate Client v4 の Filter を使用してフィルターを構築
+                # 参考: https://weaviate.io/developers/weaviate/manage-data/delete#delete-multiple-objects-by-id
+                where_filter = Filter.by_property("type").equal(self.TYPE_HIGHLIGHT) & Filter.by_property("annotation_id").contains_any(
+                    annotation_ids
+                )
+
+                collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+
+                # Weaviate Client v4 の delete_many API を呼び出す
+                # verbose=True で詳細な結果を取得
+                # 参考: https://weaviate.io/developers/weaviate/manage-data/delete#optional-parameters
+                response = collection.data.delete_many(where=where_filter, verbose=True)
+
+                successful_count = response.successful
+                failed_count = response.failed
+
+                if failed_count > 0:
+                    # エラーの詳細は response.errors に含まれる可能性がある (ドキュメントからは明確でないが念のため)
+                    errors_info = getattr(response, "errors", "詳細不明")
+                    logger.warning(f"{failed_count}件のハイlight記憶の削除に失敗しました。エラー: {errors_info}")
+
+                logger.info(f"{successful_count}件のハイライト記憶の削除に成功しました (Annotation IDs: {annotation_ids})")
+                return successful_count
+
+            except WeaviateQueryException as wqe:
+                logger.error(f"Weaviateでの記憶削除中にクエリエラーが発生: {str(wqe)}", exc_info=True)
+                return 0
+            except WeaviateBaseError as wbe:  # より一般的なWeaviateエラー
+                logger.error(f"Weaviateでの記憶削除中にエラーが発生: {str(wbe)}", exc_info=True)
+                return 0
+            except Exception as e:
+                # Weaviate 以外の予期せぬエラー
+                logger.error(f"記憶削除中に予期せぬエラーが発生: {str(e)}", exc_info=True)
+                return 0
+        else:
+            # 現状、上記以外のフィルター形式はサポートしない
+            logger.error(f"指定されたフィルター形式は現在サポートされていません: filter={filter_conditions}, and_filter={and_filter}")
+            return 0

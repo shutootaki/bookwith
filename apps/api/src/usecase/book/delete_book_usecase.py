@@ -1,3 +1,4 @@
+import contextlib
 from abc import ABC, abstractmethod
 
 from src.domain.book.exceptions.book_exceptions import BookNotFoundException
@@ -11,7 +12,7 @@ class DeleteBookUseCase(ABC):
 
     @abstractmethod
     def execute(self, book_id: str) -> None:
-        """Delete a specific book"""
+        """Delete a specific book."""
 
 
 class DeleteBookUseCaseImpl(DeleteBookUseCase):
@@ -22,7 +23,7 @@ class DeleteBookUseCaseImpl(DeleteBookUseCase):
         self.gcs_client = GCSClient()
 
     def execute(self, book_id: str) -> None:
-        """Delete a specific book and its related files"""
+        """Delete a specific book and its related files."""
         book_id_obj = BookId(book_id)
         book = self.book_repository.find_by_id(book_id_obj)
 
@@ -40,19 +41,15 @@ class DeleteBookUseCaseImpl(DeleteBookUseCase):
         if book.file_path:
             file_path = book.file_path.replace(f"{self.gcs_client.get_gcs_url()}/{self.gcs_client.bucket_name}/", "")
             blob = bucket.blob(file_path)
-            try:
+            with contextlib.suppress(Exception):
                 blob.delete()
-            except Exception as e:
-                print(f"Error occurred while deleting book file: {str(e)}")
 
         # Delete cover image
         if book.cover_path:
             cover_path = book.cover_path.replace(f"{self.gcs_client.get_gcs_url()}/{self.gcs_client.bucket_name}/", "")
             blob = bucket.blob(cover_path)
-            try:
+            with contextlib.suppress(Exception):
                 blob.delete()
-            except Exception as e:
-                print(f"Error occurred while deleting cover image: {str(e)}")
 
 
 class BulkDeleteBooksUseCase(ABC):
@@ -60,7 +57,7 @@ class BulkDeleteBooksUseCase(ABC):
 
     @abstractmethod
     def execute(self, book_ids: list[str]) -> list[str]:
-        """Bulk delete multiple books and return a list of deleted IDs"""
+        """Bulk delete multiple books and return a list of deleted IDs."""
 
 
 class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
@@ -71,7 +68,7 @@ class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
         self.gcs_client = GCSClient()
 
     def execute(self, book_ids: list[str]) -> list[str]:
-        """Bulk delete multiple books and return a list of deleted IDs"""
+        """Bulk delete multiple books and return a list of deleted IDs."""
         if not book_ids:
             return []
 
@@ -102,10 +99,8 @@ class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
                     "",
                 )
                 blob = bucket.blob(file_path)
-                try:
+                with contextlib.suppress(Exception):
                     blob.delete()
-                except Exception as e:
-                    print(f"Error occurred while deleting book file: {str(e)}")
 
             # Delete cover image
             if book.cover_path:
@@ -114,10 +109,8 @@ class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
                     "",
                 )
                 blob = bucket.blob(cover_path)
-                try:
+                with contextlib.suppress(Exception):
                     blob.delete()
-                except Exception as e:
-                    print(f"Error occurred while deleting cover image: {str(e)}")
 
         # Return a list of deleted ID strings
         return [book_id.value for book_id in deleted_book_ids]

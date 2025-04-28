@@ -5,6 +5,7 @@ from src.db import get_db
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
 from src.domain.message.repositories.message_repository import MessageRepository
+from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.postgres.book.book_repository import PostgresBookRepository
 from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
 from src.infrastructure.postgres.message.message_repository import MessageRepositoryImpl
@@ -79,7 +80,7 @@ from src.usecase.message.find_messages_usecase import (
 
 
 def get_book_repository(db: Session = Depends(get_db)) -> BookRepository:
-    return PostgresBookRepository(db)
+    return PostgresBookRepository(session=db, memory_service=MemoryService())
 
 
 def get_create_book_usecase(
@@ -191,6 +192,7 @@ def get_create_message_usecase(
     return CreateMessageUseCaseImpl(
         message_repository=message_repository,
         chat_repository=chat_repository,
+        memory_service=MemoryService(),
     )
 
 

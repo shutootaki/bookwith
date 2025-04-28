@@ -7,13 +7,15 @@ from sqlalchemy.orm import Session, joinedload
 from src.domain.book.entities.book import Book
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
+from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
 from src.infrastructure.postgres.book.book_dto import BookDTO
 
 
 class PostgresBookRepository(BookRepository):
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, memory_service: MemoryService) -> None:
         self._session = session
+        self.memory_service = memory_service
 
     def save(self, book: Book) -> None:
         session = self._session
@@ -54,10 +56,12 @@ class PostgresBookRepository(BookRepository):
                     inspect(AnnotationDTO),
                     update_mappings,
                 )
+                self.memory_service.add_highlights_to_vector_store(book=book, annotations=to_update)
 
         to_create = [a for a in book.annotations if not a.id.value or a.id.value not in existing_ids]
         if to_create:
             self._session.bulk_save_objects([AnnotationDTO.from_dict(a.model_dump(mode="json")) for a in to_create])
+            self.memory_service.add_highlights_to_vector_store(book=book, annotations=to_create)
 
         session.commit()
 

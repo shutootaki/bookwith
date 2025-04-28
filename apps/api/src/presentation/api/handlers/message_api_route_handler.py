@@ -27,21 +27,6 @@ from src.usecase.message.find_messages_usecase import FindMessagesUseCase
 router = APIRouter(prefix="/messages", tags=["messages"])
 
 
-def _entity_to_response(message: Any) -> dict[str, Any]:
-    """メッセージエンティティをレスポンス形式に変換する."""
-    return {
-        "id": message.id.value,
-        "content": message.content.value,
-        "sender_id": message.sender_id,
-        "sender_type": message.sender_type.value,
-        "chat_id": message.chat_id,
-        "created_at": message.created_at,
-        "updated_at": message.updated_at,
-        "deleted_at": message.deleted_at,
-        "metadata": message.metadata,
-    }
-
-
 @router.get("", response_model=MessageListResponse)
 async def get_all_messages(
     skip: int = Query(0, description="Skip records"),
@@ -55,7 +40,7 @@ async def get_all_messages(
     messages = messages[skip : skip + limit]
 
     return {
-        "data": [_entity_to_response(message) for message in messages],
+        "data": [message.model_dump() for message in messages],
         "total": total,
     }
 
@@ -69,7 +54,7 @@ async def get_messages_by_chat_id(
     messages = find_messages_usecase.execute_find_by_chat_id(chat_id)
 
     return {
-        "data": [_entity_to_response(message) for message in messages],
+        "data": [message.model_dump() for message in messages],
         "total": len(messages),
     }
 
@@ -83,7 +68,7 @@ async def get_messages_by_sender_id(
     messages = find_messages_usecase.execute_find_by_sender_id(sender_id)
 
     return {
-        "data": [_entity_to_response(message) for message in messages],
+        "data": [message.model_dump() for message in messages],
         "total": len(messages),
     }
 
@@ -96,7 +81,7 @@ async def get_message(
     """IDでメッセージを取得する."""
     try:
         message = find_message_usecase.execute(message_id)
-        return _entity_to_response(message)
+        return message.model_dump()
     except MessageNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -111,7 +96,7 @@ async def stream_create_message(
 ) -> StreamingResponse:
     """新しいメッセージを作成し、AI の応答をストリーミングで返す."""
     try:
-        response_stream = await create_message_usecase.execute(
+        response_stream = create_message_usecase.execute(
             content=message_create.content,
             sender_id=message_create.sender_id,
             chat_id=message_create.chat_id,
@@ -119,7 +104,7 @@ async def stream_create_message(
             tenant_id=message_create.tenant_id,
             metadata=message_create.metadata,
         )
-        return StreamingResponse(response_stream, media_type="text/event-stream")
+        return StreamingResponse(response_stream, media_type="text/event-stream")  # type: ignore
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

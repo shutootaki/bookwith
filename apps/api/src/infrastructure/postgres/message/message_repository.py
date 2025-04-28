@@ -122,8 +122,7 @@ class MessageRepositoryImpl(MessageRepository):
         try:
             count = self._session.query(func.count(MessageDTO.id)).filter(MessageDTO.chat_id == chat_id, MessageDTO.deleted_at == None).scalar()
             return count or 0
-        except Exception as e:
-            print(f"メッセージカウント取得中にエラーが発生: {str(e)}")
+        except Exception:
             return 0
 
     def find_chat_ids_by_user_id(self, user_id: str) -> list[str]:
@@ -131,6 +130,5 @@ class MessageRepositoryImpl(MessageRepository):
         try:
             chat_ids = self._session.query(MessageDTO.chat_id).filter(MessageDTO.sender_id == user_id, MessageDTO.deleted_at == None).distinct().all()
             return [chat_id[0] for chat_id in chat_ids]
-        except Exception as e:
-            print(f"チャットID取得中にエラーが発生: {str(e)}")
+        except Exception:
             return []

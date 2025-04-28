@@ -48,11 +48,11 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         self,
         message_repository: MessageRepository,
         chat_repository: ChatRepository,
+        memory_service: MemoryService,
     ) -> None:
         self.message_repository = message_repository
         self.chat_repository = chat_repository
-        # 記憶管理サービスの初期化
-        self.memory_service = MemoryService()
+        self.memory_service = memory_service
 
     async def execute(
         self,
@@ -108,7 +108,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
 
         ai_response_chunks = []
         # tenant_idがNoneの場合は記憶ベースのみ、そうでない場合はハイブリッドレスポンスになる
-        async for chunk in self._stream_ai_response(question=memory_prompt, tenant_id=tenant_id):
+        async for chunk in self._stream_ai_response(question=memory_prompt, tenant_id=tenant_id, user_id=sender_id, book_id=book_id):
             ai_response_chunks.append(chunk)
             yield chunk
 
@@ -128,11 +128,13 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
 
     async def _stream_memory_based_response(self, prompt: str) -> AsyncGenerator[str]:
         """記憶ベースのレスポンスをストリーミングで返す."""
-        model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
+        model = ChatOpenAI(model_name="gpt-4o", streaming=True)
         async for chunk in (model | StrOutputParser()).astream(prompt):
             yield chunk
 
-    async def _stream_ai_response(self, question: str, tenant_id: str | None = None) -> AsyncGenerator[str]:
+    async def _stream_ai_response(
+        self, question: str, tenant_id: str | None = None, user_id: str | None = None, book_id: str | None = None
+    ) -> AsyncGenerator[str]:
         """LLMの応答をストリーミングで返す.
 
         tenant_idがNoneの場合は記憶情報のみを使用し、
@@ -142,7 +144,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         def _format_documents_as_string(documents: list[Document]) -> str:
             return "\n\n".join(doc.page_content for doc in documents)
 
-        model = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
+        model = ChatOpenAI(model_name="gpt-4o", streaming=True)
 
         # tenant_idがない場合は記憶ベースの応答のみを返す
         if tenant_id is None:
@@ -160,11 +162,25 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             }
         )
 
-        # 記憶情報とRAG情報を組み合わせたハイブリッドチェーン
+        highlight_texts = []
+        if user_id and book_id:
+            memory_vector_store = MemoryVectorStore()
+            query_vector = memory_vector_store.encode_text(question)
+            highlights = memory_vector_store.search_highlights(user_id=user_id, book_id=book_id, query_vector=query_vector, limit=3)
+            if highlights:
+                for h in highlights:
+                    highlight_text = h["content"]
+                    if h.get("notes"):
+                        highlight_text += f"\n{h['notes']}"
+                    highlight_texts.append(f"【ハイライト】{highlight_text}")
+            else:
+                highlight_texts = ["No highlights found"]
+
         hybrid_chain: RunnableSerializable[Any, str] = (
             {
-                "context": vector_store_retriever | _format_documents_as_string,
-                "question": RunnablePassthrough(),
+                "book_content": vector_store_retriever | (lambda docs: _format_documents_as_string(docs)),
+                "highlight_texts": lambda _: highlight_texts,
+                "question": lambda _: question,
             }
             | ChatPromptTemplate.from_messages(
                 [
@@ -174,13 +190,14 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
                 ユーザーの質問に対して、以下の情報源を考慮して回答してください：
                 1. ユーザーとの会話履歴（質問に含まれています）
                 2. 関連する書籍の内容（コンテキスト情報として提供されます）
+                3. ユーザーがハイライトした箇所（関連があれば含まれます）
 
-                会話の文脈と書籍の情報の両方を考慮して、一貫性のある適切な回答を提供してください。
-                書籍の情報が関連している場合は、それを優先して使用してください。
+                会話の文脈と書籍の情報、ハイライトの両方を考慮して、一貫性のある適切な回答を提供してください。
+                書籍の情報やハイライトが関連している場合は、それを優先して使用してください。
                 質問に関連する情報がコンテキストに含まれていない場合は、会話の文脈のみに基づいて回答してください。
                 """,
                     ),
-                    ("human", "会話の文脈を含む質問: {question}\n\n書籍からの関連情報: {context}"),
+                    ("human", "会話の文脈を含む質問: {question}\n\n書籍からの関連情報: {book_content}\n\nハイライトした箇所: {highlight_texts}\n\n"),
                 ]
             )
             | model
@@ -204,4 +221,4 @@ It should be in a format that summaries the content of the question.""",
             ]
         )
 
-        return (prompt | ChatOpenAI(name="gpt-4o-mini") | StrOutputParser()).invoke({"question": question})
+        return (prompt | ChatOpenAI(name="gpt-4o") | StrOutputParser()).invoke({"question": question})

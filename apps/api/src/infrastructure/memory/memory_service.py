@@ -9,8 +9,9 @@ from langchain_openai import ChatOpenAI
 from tiktoken.core import Encoding
 
 from src.config.app_config import AppConfig
+from src.domain.annotation.entities.annotation import Annotation
+from src.domain.book.entities.book import Book
 from src.domain.message.entities.message import Message
-from src.domain.message.repositories.message_repository import MessageRepository
 from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
 
 # ロガーの設定
@@ -64,9 +65,6 @@ class MemoryService:
             # ユーザープロファイル記憶を検索
             user_profile_memories = self.memory_store.search_user_profile(user_id=user_id, query_vector=query_vector, limit=profile_limit)
 
-            print(
-                f"ユーザー {user_id} のクエリ '{query[:30]}...' に対して記憶検索: {len(chat_memories)}件のチャット記憶, {len(user_profile_memories)}件のプロファイル記憶"
-            )
             return chat_memories, user_profile_memories
         except Exception as e:
             logger.error(f"記憶検索中にエラーが発生: {str(e)}", exc_info=True)
@@ -87,7 +85,6 @@ class MemoryService:
         # メッセージ数が閾値の倍数に達した場合に要約を実行
         threshold = self.config.memory_summarize_threshold
         if message_count > 0 and message_count % threshold == 0:
-            print(f"チャットID {chat_id} の要約生成を実行 (メッセージ数: {message_count})")
             self.summarize_and_vectorize_background(
                 chat_id=chat_id,
                 user_id=user_id,
@@ -182,7 +179,7 @@ class MemoryService:
             config = AppConfig.get_config()
 
         # システムプロンプト
-        system_prompt = """あなたは役立つAIアシスタントです。ユーザーのプロファイル情報や過去の会話、最近のチャット履歴を考慮して、質問に丁寧に回答してください。
+        system_prompt = """ユーザーのプロファイル情報や過去の会話、最近のチャット履歴を考慮して、質問に回答してください。
     提供された情報を活用しながら、一貫性のあるパーソナライズされた応答を心がけてください。
     以前の会話やユーザープロファイルから得られた情報を自然に組み込み、ユーザーとの関係性を深める対話を行ってください。"""
 
@@ -325,7 +322,6 @@ class MemoryService:
 
             # 要約すべきメッセージがない場合は終了
             if len(unsummarized_messages) < config.memory_summarize_threshold // 2:  # 半分以下なら要約しない
-                print(f"要約すべきメッセージが不足しています（{len(unsummarized_messages)}件）")
                 return
 
             # メッセージを時系列順にソート（get_unsummarized_messagesですでにソート済みだが念のため）
@@ -349,13 +345,11 @@ class MemoryService:
 
             # 要約するメッセージがない場合は終了
             if not message_texts:
-                print("要約するメッセージが見つかりませんでした")
                 return
 
             combined_text = "\n".join(message_texts)
 
             # LLMを使って要約を生成
-            print(f"チャットID {chat_id} の要約を生成開始 ({len(message_texts)}件のメッセージ)")
             summary = self.get_llm_summary(combined_text)
 
             if not summary:
@@ -381,13 +375,11 @@ class MemoryService:
             }
 
             # ベクトルストアに保存
-            summary_memory_id = memory_store.add_memory(vector=vector, metadata=metadata)
-            print(f"チャットID {chat_id} の要約を生成・保存しました (memory_id: {summary_memory_id})")
+            memory_store.add_memory(vector=vector, metadata=metadata)
 
             # 要約済みフラグを更新
             if message_ids:
                 memory_store.mark_messages_as_summarized(user_id=user_id, chat_id=chat_id, message_ids=message_ids)
-                print(f"{len(message_ids)}件のメッセージを要約済みとしてマークしました")
 
         except Exception as e:
             logger.error(f"チャット要約中にエラーが発生: {str(e)}", exc_info=True)
@@ -418,47 +410,31 @@ class MemoryService:
                 ]
             )
 
-            summary_chain = prompt | ChatOpenAI(model_name="gpt-4o-mini") | StrOutputParser()
-            summary = summary_chain.invoke({"text": text_to_summarize})
+            summary_chain = prompt | ChatOpenAI(model_name="gpt-4o") | StrOutputParser()
 
-            print(f"要約生成完了: {len(summary)}文字")
-            return summary
+            return summary_chain.invoke({"text": text_to_summarize})
         except Exception as e:
             logger.error(f"要約生成中にエラー発生: {str(e)}", exc_info=True)
             return None
 
-    def process_batch_summarization(
-        self,
-        user_id: str,
-        message_repository: MessageRepository,
-        memory_store: MemoryVectorStore,
-        config: AppConfig | None = None,
-    ) -> None:
-        """バッチ処理で複数チャットの要約を生成する.
-
-        Args:
-            user_id: ユーザーID
-            message_repository: メッセージリポジトリ
-            memory_store: 記憶ベクトルストア
-            config: アプリケーション設定（Noneの場合は初期化される）
-
-        """
-        if config is None:
-            config = AppConfig.get_config()
-
-        try:
-            # ユーザーの全チャットIDを取得
-            chat_ids = message_repository.find_chat_ids_by_user_id(user_id)
-
-            for chat_id in chat_ids:
-                # 各チャットの要約を生成
-                self.summarize_and_vectorize_background(
-                    chat_id=chat_id,
-                    user_id=user_id,
-                    memory_store=memory_store,
-                    config=config,
-                )
-
-            print(f"ユーザー {user_id} の全チャット ({len(chat_ids)}件) の要約処理をトリガーしました")
-        except Exception as e:
-            logger.error(f"バッチ要約処理中にエラーが発生: {str(e)}", exc_info=True)
+    def add_highlights_to_vector_store(self, book: Book, annotations: list[Annotation]):
+        # BookDetailの構造に従い、annotationsとname, user_idを取得
+        user_id = book.user_id
+        book_title = book.name
+        for annotation in annotations:
+            # ベクトル化するテキスト（ハイライト＋メモ）
+            text_for_vector = annotation.text.value
+            if annotation.notes:
+                text_for_vector += f"\n{annotation.notes.value}"
+            vector = self.memory_store.encode_text(text_for_vector)
+            metadata = {
+                "type": self.memory_store.TYPE_HIGHLIGHT,
+                "content": annotation.text.value,
+                "user_id": user_id,
+                "book_id": book.id.value,
+                "book_title": book_title.value,
+                "notes": annotation.notes.value if annotation.notes else None,
+                "created_at": annotation.created_at if hasattr(annotation, "created_at") else None,
+                "annotation_id": annotation.id.value,
+            }
+            self.memory_store.add_memory(vector, metadata)
