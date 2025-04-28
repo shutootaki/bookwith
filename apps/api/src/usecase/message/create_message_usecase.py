@@ -195,9 +195,10 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
                 会話の文脈と書籍の情報、ハイライトの両方を考慮して、一貫性のある適切な回答を提供してください。
                 書籍の情報やハイライトが関連している場合は、それを優先して使用してください。
                 質問に関連する情報がコンテキストに含まれていない場合は、会話の文脈のみに基づいて回答してください。
+                \n\n書籍からの関連情報:\n {book_content}\n\nハイライトした箇所:\n {highlight_texts}\n\n
                 """,
                     ),
-                    ("human", "会話の文脈を含む質問: {question}\n\n書籍からの関連情報: {book_content}\n\nハイライトした箇所: {highlight_texts}\n\n"),
+                    ("human", "会話の文脈を含む質問: {question}"),
                 ]
             )
             | model

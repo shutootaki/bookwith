@@ -58,7 +58,6 @@ class MemoryVectorStore:
     # メモリタイプ定義
     TYPE_MESSAGE = "message"
     TYPE_SUMMARY = "summary"
-    TYPE_USER_PROFILE = "user_profile"
     TYPE_HIGHLIGHT = "highlight"  # ハイライト用typeを追加
 
     def __init__(self) -> None:
@@ -100,7 +99,7 @@ class MemoryVectorStore:
                         Property(
                             name="type",
                             data_type=DataType.TEXT,
-                            description="記憶の種類（message, summary, user_profile）",
+                            description="記憶の種類（message, summary, ",
                             index_searchable=True,
                         ),
                         Property(
@@ -265,48 +264,6 @@ class MemoryVectorStore:
                 "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
             }
             results.append(item)
-
-        return results
-
-    @retry_on_error(max_retries=2)
-    def search_user_profile(self, user_id: str, query_vector: list[float] | None = None, limit: int = 3) -> list[dict[str, Any]]:
-        """ユーザープロファイルを検索."""
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-
-        # フィルターの作成
-        where_filter = Filter.by_property("user_id").equal(user_id) & Filter.by_property("type").equal(self.TYPE_USER_PROFILE)
-
-        # クエリ実行
-        results = []
-        if query_vector:
-            # ベクトル検索
-            response = collection.query.near_vector(
-                near_vector=query_vector,
-                return_properties=["content", "user_id", "created_at"],
-                include_vector=False,
-                filters=where_filter,
-                limit=limit,
-            )
-
-            # 結果の変換
-            for obj in response.objects:
-                item = obj.properties
-                item["id"] = obj.uuid
-                # 距離情報を取得
-                item["_additional"] = {
-                    "distance": obj.metadata.distance,
-                    "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
-                }
-                results.append(item)
-        else:
-            # 通常の検索
-            response = collection.query.fetch_objects(filters=where_filter, return_properties=["content", "user_id", "created_at"], limit=limit)
-
-            # 結果の変換
-            for obj in response.objects:
-                item = obj.properties
-                item["id"] = obj.uuid
-                results.append(item)
 
         return results
 
