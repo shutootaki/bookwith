@@ -25,26 +25,6 @@ function deserializeData(text: string) {
   return books
 }
 
-export async function pack() {
-  const books = await db?.books.toArray()
-  const covers = await db?.covers.toArray()
-  const files = await db?.files.toArray()
-
-  const zip = new JSZip()
-  // 型の問題を回避するために型アサーションを使用
-  zip.file(DATA_FILENAME, serializeData(books as unknown as BookDetail[]))
-  zip.file('covers.json', JSON.stringify(covers))
-
-  const folder = zip.folder('files')
-  files?.forEach((f) => folder?.file(f.file.name, f.file))
-
-  const date = new Intl.DateTimeFormat('fr-CA').format().replaceAll('-', '')
-
-  return zip.generateAsync({ type: 'blob' }).then((content) => {
-    saveAs(content, `flow_backup_${date}.zip`)
-  })
-}
-
 export async function unpack(file: File) {
   const zip = new JSZip()
   await zip.loadAsync(file)

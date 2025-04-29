@@ -67,9 +67,13 @@ class BookFileResponse(BaseModel):
     message: str | None = None
 
 
+class BulkDeleteRequestBody(BaseModel):
+    book_ids: list[str]
+
+
 class BulkDeleteResponse(BaseModel):
     success: bool
-    deletedIds: list[str]
+    deleted_ids: list[str]
     count: int
     message: str | None = None
 
@@ -77,7 +81,7 @@ class BulkDeleteResponse(BaseModel):
 class RagProcessResponse(BaseModel):
     class RagChunk(BaseModel):
         text: str
-        metadata: dict[str, Any] = Field(default_factory=dict)
+        metadata: dict[str, Any] = {}
 
     success: bool
     message: str | None = None

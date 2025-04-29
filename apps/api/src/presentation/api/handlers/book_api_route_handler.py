@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from src.config.app_config import TEST_USER_ID
@@ -41,6 +41,7 @@ from src.presentation.api.schemas.book_schema import (
     BookResponse,
     BooksResponse,
     BookUpdateRequest,
+    BulkDeleteRequestBody,
     BulkDeleteResponse,
 )
 from src.usecase.book.create_book_usecase import CreateBookUseCase
@@ -141,12 +142,12 @@ async def get_covers(
 
 @router.delete("/bulk-delete", response_model=BulkDeleteResponse)
 async def bulk_delete_books_endpoint(
-    book_ids: list[str] = Body(..., embed=True),
+    body: BulkDeleteRequestBody,
     bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
 ):
     try:
-        deleted_ids = bulk_delete_books_usecase.execute(book_ids)
-        return BulkDeleteResponse(success=True, deletedIds=deleted_ids, count=len(deleted_ids))
+        deleted_ids = bulk_delete_books_usecase.execute(body.book_ids)
+        return BulkDeleteResponse(success=True, deleted_ids=deleted_ids, count=len(deleted_ids))
     except Exception as e:
         raise HTTPException(
             status_code=500,

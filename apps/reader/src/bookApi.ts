@@ -202,7 +202,7 @@ export async function deleteBooksFromAPI(bookIds: string[]): Promise<string[]> {
     }
 
     const data = await response.json()
-    return data.deletedIds || []
+    return data.deleted_ids || []
   } catch (error) {
     console.error('書籍一括削除中のエラー:', error)
     return []

@@ -160,6 +160,7 @@ const NumberField: React.FC<NumberFieldProps> = ({ onChange, ...props }) => {
 
   return (
     <TextField
+      name={props.name}
       as="input"
       type="number"
       placeholder="default"
@@ -185,7 +186,7 @@ const NumberField: React.FC<NumberFieldProps> = ({ onChange, ...props }) => {
       ]}
       mRef={ref}
       // lazy render
-      onBlur={(e) => {
+      onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
         onChange(Number(e.target.value))
       }}
       onClear={() => {

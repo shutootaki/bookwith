@@ -38,7 +38,6 @@ import {
 import { BookDetail, CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
-import { pack } from '../sync'
 import { copy } from '../utils'
 import { Toaster } from '../components/ui/sonner'
 
@@ -408,13 +407,6 @@ const Library: React.FC = () => {
               </>
             ) : (
               <>
-                <Button
-                  variant="secondary"
-                  disabled={!books.length}
-                  onClick={pack}
-                >
-                  {t('export')}
-                </Button>
                 <Button className="relative">
                   <input
                     type="file"

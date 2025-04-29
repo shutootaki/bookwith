@@ -83,7 +83,7 @@ class BookDTO(TimestampMixin, Base):
             author=str(self.author),
             cover_path=str(self.cover_path),
             size=self.size,
-            cfi=str(self.cfi),
+            cfi=self.cfi,
             percentage=self.percentage,
             book_metadata=self.book_metadata,
             definitions=self.definitions,
