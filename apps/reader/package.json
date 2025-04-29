@@ -6,7 +6,14 @@
     "build": "next build",
     "analyze": "cross-env ANALYZE=true next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:eslint": "eslint .",
+    "lint:prettier": "prettier --check .",
+    "fix": "run-s fix:prettier fix:eslint",
+    "fix:eslint": "npm run lint:eslint -- --fix",
+    "fix:prettier": "npm run lint:prettier -- --write",
+    "ts:check": "tsc --noEmit",
+    "ts:watch": "tsc --noEmit -w"
   },
   "dependencies": {
     "@flow/epubjs": "workspace:*",
