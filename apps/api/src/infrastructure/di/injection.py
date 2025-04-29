@@ -2,13 +2,16 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from src.db import get_db
+from src.domain.annotation.repositories.annotation_repository import AnnotationRepository
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
 from src.domain.message.repositories.message_repository import MessageRepository
 from src.infrastructure.memory.memory_service import MemoryService
-from src.infrastructure.postgres.book.book_repository import PostgresBookRepository
+from src.infrastructure.postgres.annotation.annotation_repository import AnnotationRepositoryImpl
+from src.infrastructure.postgres.book.book_repository import BookRepositoryImpl
 from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
 from src.infrastructure.postgres.message.message_repository import MessageRepositoryImpl
+from src.usecase.annotation.update_annotation_use_case import SyncAnnotationsUseCase, SyncAnnotationsUseCaseImpl
 from src.usecase.book.create_book_usecase import (
     CreateBookUseCase,
     CreateBookUseCaseImpl,
@@ -80,17 +83,17 @@ from src.usecase.message.find_messages_usecase import (
 
 
 def get_book_repository(db: Session = Depends(get_db)) -> BookRepository:
-    return PostgresBookRepository(session=db, memory_service=MemoryService())
+    return BookRepositoryImpl(session=db, memory_service=MemoryService())
 
 
 def get_create_book_usecase(
-    book_repository: BookRepository = Depends(get_book_repository),
+    book_repository: BookRepositoryImpl = Depends(get_book_repository),
 ) -> CreateBookUseCase:
     return CreateBookUseCaseImpl(book_repository)
 
 
 def get_find_books_usecase(
-    book_repository: BookRepository = Depends(get_book_repository),
+    book_repository: BookRepositoryImpl = Depends(get_book_repository),
 ) -> FindBooksUseCase:
     return FindBooksUseCaseImpl(book_repository)
 
@@ -200,3 +203,17 @@ def get_delete_message_usecase(
     message_repository: MessageRepository = Depends(get_message_repository),
 ) -> DeleteMessageUseCase:
     return DeleteMessageUseCaseImpl(message_repository)
+
+
+def get_annotation_repository(db: Session = Depends(get_db)) -> AnnotationRepository:
+    return AnnotationRepositoryImpl(session=db, memory_service=MemoryService())
+
+
+def get_sync_annotations_usecase(
+    annotation_repository: AnnotationRepository = Depends(get_annotation_repository),
+    book_repository: BookRepository = Depends(get_book_repository),
+) -> SyncAnnotationsUseCase:
+    return SyncAnnotationsUseCaseImpl(
+        annotation_repository=annotation_repository,
+        book_repository=book_repository,
+    )

@@ -15,7 +15,6 @@ from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
-from weaviate.exceptions import WeaviateBaseError, WeaviateQueryException
 
 from src.config.app_config import AppConfig
 
@@ -374,6 +373,8 @@ class MemoryVectorStore:
     def search_highlights(self, user_id: str, book_id: str, query_vector: list[float], limit: int = 3) -> list[dict[str, Any]]:
         """ハイライト（BookAnnotationコレクション）をベクトル検索する。"""
         collection = self.client.collections.get(self.BOOK_ANNOTATION_COLLECTION_NAME)
+        if not collection.tenants.exists(user_id):
+            collection.tenants.create(user_id)
         collection_with_tenant = collection.with_tenant(user_id)
         where_filter = Filter.by_property("book_id").equal(book_id)
         response = collection_with_tenant.query.near_vector(
@@ -394,70 +395,19 @@ class MemoryVectorStore:
             results.append(item)
         return results
 
-    def delete_memories_by_filter(self, user_id: str, filter_conditions: dict, and_filter: dict | None = None) -> int:
-        """指定されたフィルター条件に一致する記憶をベクトルストアから削除する (Weaviate Client v4)。
-        現時点では、BookAnnotationコレクション内の特定のフィルター構造 (annotation_id IN [...]) にのみ対応。
+    @retry_on_error(max_retries=2)
+    def delete_memory(self, user_id: str, collection_name: str, target: str, key: str) -> None:
+        """メモリを削除."""
+        collection = self.client.collections.get(collection_name)
+        collection_with_tenant = collection.with_tenant(user_id)
 
-        Args:
-            user_id: 削除対象のテナント (ユーザーID)。
-            filter_conditions: 主なフィルター条件 (現在は未使用)。
-            and_filter: 追加のAND条件 (例: annotation_id)。
+        collection_with_tenant.data.delete_many(where=Filter.by_property(target).equal(key))
 
-        Returns:
-            削除に成功したオブジェクトの数。
+    @retry_on_error(max_retries=2)
+    def update_memory(self, user_id: str, collection_name: str, target: str, key: str, properties: dict, vector: list[float]) -> None:
+        """メモリを更新."""
+        collection = self.client.collections.get(collection_name)
+        collection_with_tenant = collection.with_tenant(user_id)
 
-        """
-        if not self.client:
-            logger.error("Weaviateクライアントが初期化されていません。削除処理をスキップします。")
-            return 0
-
-        # BookAnnotationコレクションはテナント分けされている想定
-        collection_name = self.BOOK_ANNOTATION_COLLECTION_NAME
-
-        if (
-            and_filter
-            and and_filter.get("path") == ["annotation_id"]
-            and and_filter.get("operator") == "ContainsAny"
-            and "valueTextArray" in and_filter
-        ):
-            annotation_ids = and_filter["valueTextArray"]
-            if not annotation_ids:
-                logger.info("削除対象のAnnotation IDが空です。")
-                return 0
-
-            try:
-                # ここでテナントを指定する
-                collection = self.client.collections.get(collection_name)
-                collection_with_tenant = collection.with_tenant(user_id)
-
-                # フィルター条件も user_id を含めるように変更 (必要であれば)
-                # Filter.by_property("user_id").equal(user_id) & \ # 必要に応じて追加
-                where_filter = Filter.by_property("annotation_id").contains_any(annotation_ids)
-
-                # テナントを指定して削除
-                response = collection_with_tenant.data.delete_many(where=where_filter, verbose=True)
-
-                successful_count = response.successful
-                failed_count = response.failed
-
-                if failed_count > 0:
-                    errors_info = getattr(response, "errors", "詳細不明")
-                    logger.warning(f"{failed_count}件の {collection_name} 記憶の削除に失敗しました。エラー: {errors_info}")
-
-                logger.info(
-                    f"{successful_count}件の {collection_name} 記憶の削除に成功しました (Tenant: {user_id}, Annotation IDs: {annotation_ids})"
-                )
-                return successful_count
-
-            except WeaviateQueryException as wqe:
-                logger.error(f"Weaviateでの記憶削除中にクエリエラーが発生 (Tenant: {user_id}): {str(wqe)}", exc_info=True)
-                return 0
-            except WeaviateBaseError as wbe:
-                logger.error(f"Weaviateでの記憶削除中にエラーが発生 (Tenant: {user_id}): {str(wbe)}", exc_info=True)
-                return 0
-            except Exception as e:
-                logger.error(f"記憶削除中に予期せぬエラーが発生 (Tenant: {user_id}): {str(e)}", exc_info=True)
-                return 0
-        else:
-            logger.error(f"指定されたフィルター形式は現在サポートされていません: filter={filter_conditions}, and_filter={and_filter}")
-            return 0
+        uuid = collection_with_tenant.query.fetch_objects(filters=Filter.by_property(target).equal(key)).objects[0].uuid
+        collection_with_tenant.data.update(uuid=uuid, properties=properties, vector=vector)

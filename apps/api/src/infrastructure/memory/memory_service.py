@@ -336,7 +336,7 @@ class MemoryService:
             logger.error(f"要約生成中にエラー発生: {str(e)}", exc_info=True)
             return None
 
-    def add_highlights_to_vector_store(self, book: Book, annotations: list[Annotation]):
+    def add_book_annotations(self, book: Book, annotations: list[Annotation]):
         # BookDetailの構造に従い、annotationsとname, user_idを取得
         user_id = book.user_id
         book_title = book.name
@@ -357,4 +357,38 @@ class MemoryService:
             }
             self.memory_store.add_memory(
                 vector=vector, metadata=metadata, user_id=user_id, collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME
+            )
+
+    def delete_book_annotation(self, user_id: str, annotation_id: str) -> None:
+        """ブックのアノテーションを削除."""
+        self.memory_store.delete_memory(
+            user_id=user_id, collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME, target="annotation_id", key=annotation_id
+        )
+
+    def update_book_annotations(self, book: Book, annotations: list[Annotation]) -> None:
+        """ブックのアノテーションを更新."""
+        user_id = book.user_id
+        book_title = book.name
+        for annotation in annotations:
+            # ベクトル化するテキスト（ハイライト＋メモ）
+            text_for_vector = annotation.text.value
+            if annotation.notes:
+                text_for_vector += f"\n{annotation.notes.value}"
+            vector = self.memory_store.encode_text(text_for_vector)
+            metadata: dict[str, Any] = {
+                "annotation_id": annotation.id.value,
+                "book_id": book.id.value,
+                "book_title": book_title.value,
+                "content": annotation.text.value,
+                "created_at": annotation.created_at if hasattr(annotation, "created_at") else None,
+                "notes": annotation.notes.value if annotation.notes else None,
+                "user_id": user_id,
+            }
+            self.memory_store.update_memory(
+                user_id=user_id,
+                collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME,
+                target="annotation_id",
+                key=annotation.id.value,
+                properties=metadata,
+                vector=vector,
             )

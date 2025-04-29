@@ -5,15 +5,18 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import Session, joinedload
 
 from src.domain.book.entities.book import Book
-from src.domain.book.repositories.book_repository import BookRepository
+from src.domain.book.repositories.book_repository import BookRepository as BookRepositoryInterface
 from src.domain.book.value_objects.book_id import BookId
 from src.infrastructure.memory.memory_service import MemoryService
-from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
 from src.infrastructure.postgres.book.book_dto import BookDTO
 
 
-class PostgresBookRepository(BookRepository):
-    def __init__(self, session: Session, memory_service: MemoryService) -> None:
+class BookRepositoryImpl(BookRepositoryInterface):
+    def __init__(
+        self,
+        session: Session,
+        memory_service: MemoryService,
+    ) -> None:
         self._session = session
         self.memory_service = memory_service
 
@@ -23,8 +26,8 @@ class PostgresBookRepository(BookRepository):
         def flatten(d: dict[str, Any]) -> dict[str, Any]:
             return {k: (v["value"] if isinstance(v, dict) and "value" in v else v) for k, v in d.items()}
 
-        # --- upsert Book ---
         book_data = flatten(book.model_dump(mode="json"))
+        book_data.pop("annotations", None)
         dto = session.get(BookDTO, book.id.value)
         col_keys = {c.key for c in inspect(BookDTO).mapper.column_attrs}
 
@@ -35,35 +38,11 @@ class PostgresBookRepository(BookRepository):
         else:
             session.add(BookDTO(**book_data))
 
-        # --- sync Annotations ---
-        ann_objs = book.annotations or []
-        existing_ids = {id_ for (id_,) in session.query(AnnotationDTO.id).filter_by(book_id=book.id.value)}
-        incoming_ids = {a.id.value for a in ann_objs}
-
-        # delete removed
-        to_delete = existing_ids - incoming_ids
-        if to_delete:
-            session.query(AnnotationDTO).filter(AnnotationDTO.id.in_(to_delete)).delete(synchronize_session=False)
-
-        to_update = [a for a in book.annotations if a.id and a.id.value in existing_ids]
-        if to_update:
-            update_mappings = []
-            for a in to_update:
-                update_mappings.append(AnnotationDTO.enum_name_safe(a))
-
-            if update_mappings:
-                self._session.bulk_update_mappings(
-                    inspect(AnnotationDTO),
-                    update_mappings,
-                )
-                self.memory_service.add_highlights_to_vector_store(book=book, annotations=to_update)
-
-        to_create = [a for a in book.annotations if not a.id.value or a.id.value not in existing_ids]
-        if to_create:
-            self._session.bulk_save_objects([AnnotationDTO.from_dict(a.model_dump(mode="json")) for a in to_create])
-            self.memory_service.add_highlights_to_vector_store(book=book, annotations=to_create)
-
-        session.commit()
+        try:
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
 
     def find_by_id(self, book_id: BookId) -> Book | None:
         book_orm = (

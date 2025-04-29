@@ -18,7 +18,7 @@ class DeleteBookUseCase(ABC):
 class DeleteBookUseCaseImpl(DeleteBookUseCase):
     """DeleteBookUseCaseImpl is the implementation of the use case for deleting a book."""
 
-    def __init__(self, book_repository: BookRepository):
+    def __init__(self, book_repository: BookRepository) -> None:
         self.book_repository = book_repository
         self.gcs_client = GCSClient()
 
