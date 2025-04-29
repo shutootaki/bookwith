@@ -17,7 +17,6 @@ class MessageCreate(MessageBase):
     """メッセージ作成リクエストモデル."""
 
     sender_id: str = Field(..., description="送信者ID")
-    tenant_id: str | None = Field(None, description="ベクトルストアのテナントID")
     metadata: dict[str, Any] | None = Field(None, description="メッセージの追加情報")
     book_id: str | None = Field(None, description="メッセージが所属するブックID")
 

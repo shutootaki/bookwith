@@ -207,19 +207,19 @@ class MemoryService:
 
             # 基本メタデータを準備
             metadata = {
-                "content": text,
-                "type": memory_store.TYPE_MESSAGE,
-                "user_id": message.sender_id,
                 "chat_id": message.chat_id,
+                "content": text,
+                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "memory_type": memory_store.TYPE_MESSAGE,
                 "message_id": str(message.id.value),
                 "sender": message.sender_type.value,
-                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "token_count": len(text.split()),
-                # "is_summarized" は add_memory 内でデフォルト設定される
+                "user_id": message.sender_id,
             }
 
             # ベクトルストアに保存
-            memory_id = memory_store.add_memory(vector=vector, metadata=metadata)
+            memory_id = memory_store.add_memory(
+                vector=vector, metadata=metadata, user_id=message.sender_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME
+            )
             logger.info(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
 
         except ValueError as ve:
@@ -284,18 +284,17 @@ class MemoryService:
             summary_id = f"summary_{chat_id}_{timestamp}"
 
             metadata = {
-                "content": summary,
-                "type": memory_store.TYPE_SUMMARY,
-                "user_id": user_id,
                 "chat_id": chat_id,
+                "content": summary,
+                "created_at": timestamp,
+                "memory_type": memory_store.TYPE_SUMMARY,
                 "message_id": summary_id,
                 "sender": "system",
-                "created_at": timestamp,
-                "token_count": len(summary.split()),  # 簡易的なトークンカウント
+                "user_id": user_id,
             }
 
             # ベクトルストアに保存
-            memory_store.add_memory(vector=vector, metadata=metadata)
+            memory_store.add_memory(vector=vector, metadata=metadata, user_id=user_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME)
 
             # 要約済みフラグを更新
             if message_ids:
@@ -347,14 +346,15 @@ class MemoryService:
             if annotation.notes:
                 text_for_vector += f"\n{annotation.notes.value}"
             vector = self.memory_store.encode_text(text_for_vector)
-            metadata = {
-                "type": self.memory_store.TYPE_HIGHLIGHT,
-                "content": annotation.text.value,
-                "user_id": user_id,
+            metadata: dict[str, Any] = {
+                "annotation_id": annotation.id.value,
                 "book_id": book.id.value,
                 "book_title": book_title.value,
-                "notes": annotation.notes.value if annotation.notes else None,
+                "content": annotation.text.value,
                 "created_at": annotation.created_at if hasattr(annotation, "created_at") else None,
-                "annotation_id": annotation.id.value,
+                "notes": annotation.notes.value if annotation.notes else None,
+                "user_id": user_id,
             }
-            self.memory_store.add_memory(vector, metadata)
+            self.memory_store.add_memory(
+                vector=vector, metadata=metadata, user_id=user_id, collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME
+            )

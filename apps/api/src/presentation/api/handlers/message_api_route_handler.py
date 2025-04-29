@@ -101,7 +101,6 @@ async def stream_create_message(
             sender_id=message_create.sender_id,
             chat_id=message_create.chat_id,
             book_id=message_create.book_id,
-            tenant_id=message_create.tenant_id,
             metadata=message_create.metadata,
         )
         return StreamingResponse(response_stream, media_type="text/event-stream")  # type: ignore

@@ -45,7 +45,7 @@ class Message(BaseModel):
 
     def mark_as_deleted(self) -> None:
         if self.is_deleted:
-            raise MessageAlreadyDeletedException()
+            raise MessageAlreadyDeletedException
 
         self.deleted_at = datetime.now()
         self.updated_at = datetime.now()

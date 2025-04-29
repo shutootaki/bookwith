@@ -22,7 +22,6 @@ from src.domain.annotation.value_objects.annotation_type import AnnotationType
 from src.domain.book.entities.book import Book
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
-from src.domain.book.value_objects.tennant_id import TenantId
 from src.infrastructure.postgres.db_util import TimestampMixin
 
 if TYPE_CHECKING:
@@ -48,7 +47,6 @@ class BookDTO(TimestampMixin, Base):
     definitions: Mapped[list[str] | None] = mapped_column(JSON, default=list)
     configuration: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    tenant_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
     user: Mapped["UserDTO"] = relationship("UserDTO", back_populates="books")
     annotations: Mapped[list["AnnotationDTO"]] = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
@@ -57,7 +55,6 @@ class BookDTO(TimestampMixin, Base):
     def to_entity(self) -> Book:
         book_id = BookId(self.id)
         book_title = BookTitle(self.name)
-        tenant_id = TenantId(self.tenant_id) if self.tenant_id else None
 
         # Convert annotations
         annotations_data: list[Annotation] = []
@@ -83,7 +80,6 @@ class BookDTO(TimestampMixin, Base):
             name=book_title,
             user_id=str(self.user_id),
             file_path=str(self.file_path),
-            tenant_id=tenant_id,
             author=str(self.author),
             cover_path=str(self.cover_path),
             size=self.size,
@@ -103,7 +99,6 @@ class BookDTO(TimestampMixin, Base):
         return BookDTO(
             id=book.id.value,
             user_id=book.user_id,
-            tenant_id=book.tenant_id.value if book.tenant_id else None,
             name=book.name.value,
             author=book.author,
             file_path=book.file_path,

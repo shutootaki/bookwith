@@ -12,9 +12,9 @@ from langchain_community.document_loaders import UnstructuredEPubLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_weaviate.vectorstores import WeaviateVectorStore
+from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
-from weaviate.collections.classes.config import DataType, Property
 from weaviate.exceptions import WeaviateBaseError, WeaviateQueryException
 
 from src.config.app_config import AppConfig
@@ -49,22 +49,23 @@ def retry_on_error(max_retries: int = 3, initial_delay: int = 1, backoff_factor:
 
 
 class MemoryVectorStore:
-    """チャット記憶のベクトルストア管理クラス."""
+    """チャット記憶、書籍コンテンツ、アノテーションのベクトルストア管理クラス."""
 
-    # Weaviateのクラス名
-    CHAT_MEMORY_CLASS_NAME = "ChatMemory"
-    BOOK_CONTENT_INDEX_NAME = "BookContentIndex"
+    # Weaviateのコレクション名
+    CHAT_MEMORY_COLLECTION_NAME = "ChatMemory"
+    BOOK_CONTENT_COLLECTION_NAME = "BookContent"
+    BOOK_ANNOTATION_COLLECTION_NAME = "BookAnnotation"
 
-    # メモリタイプ定義
+    # メモリタイプ定義（add_memoryでの分岐用）
     TYPE_MESSAGE = "message"
     TYPE_SUMMARY = "summary"
-    TYPE_HIGHLIGHT = "highlight"  # ハイライト用typeを追加
+    # TYPE_HIGHLIGHT = "highlight"
 
     def __init__(self) -> None:
         """Weaviateクライアントを初期化."""
         self.config = AppConfig.get_config()
         self.client = self._create_client()
-        self._ensure_schema()
+        self._ensure_collections()
         self.embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
 
     @retry_on_error(max_retries=5, initial_delay=2)
@@ -82,36 +83,46 @@ class MemoryVectorStore:
             raise
 
     @retry_on_error(max_retries=3, initial_delay=1)
-    def _ensure_schema(self) -> None:
-        """Weaviateスキーマが存在することを保証."""
+    def _ensure_collections(self) -> None:
+        """Weaviateコレクションが存在することを保証."""
         try:
-            # コレクションが存在しない場合は作成
-            if not self.client.collections.exists(self.CHAT_MEMORY_CLASS_NAME):
+            # --- ChatMemory コレクション ---
+            if not self.client.collections.exists(self.CHAT_MEMORY_COLLECTION_NAME):
                 self.client.collections.create(
-                    name=self.CHAT_MEMORY_CLASS_NAME,
-                    vectorizer_config=None,  # 外部でベクトル化
+                    name=self.CHAT_MEMORY_COLLECTION_NAME,
+                    multi_tenancy_config=Configure.multi_tenancy(
+                        enabled=True,
+                        auto_tenant_activation=True,
+                        auto_tenant_creation=True,
+                    ),
+                    vectorizer_config=None,
                     properties=[
-                        Property(
-                            name="content",
-                            data_type=DataType.TEXT,
-                            description="メッセージ/要約/プロファイル情報の内容",
-                        ),
-                        Property(
-                            name="type",
-                            data_type=DataType.TEXT,
-                            description="記憶の種類（message, summary, ",
-                            index_searchable=True,
-                        ),
-                        Property(
-                            name="user_id",
-                            data_type=DataType.TEXT,
-                            description="ユーザーID",
-                            index_searchable=True,
-                        ),
                         Property(
                             name="chat_id",
                             data_type=DataType.TEXT,
-                            description="チャットID（user_profileの場合はNullまたはダミー値）",
+                            description="チャットID",
+                            index_searchable=True,
+                        ),
+                        Property(
+                            name="content",
+                            data_type=DataType.TEXT,
+                            description="メッセージ/要約の内容",
+                        ),
+                        Property(
+                            name="created_at",
+                            data_type=DataType.DATE,
+                            description="作成日時",
+                        ),
+                        # note: 不要かもしれない
+                        Property(
+                            name="is_summarized",
+                            data_type=DataType.BOOL,
+                            description="要約済みフラグ（メッセージ専用）",
+                        ),
+                        Property(
+                            name="memory_type",
+                            data_type=DataType.TEXT,
+                            description="記憶の種類（message, summary）",
                             index_searchable=True,
                         ),
                         Property(
@@ -126,19 +137,45 @@ class MemoryVectorStore:
                             index_searchable=True,
                         ),
                         Property(
-                            name="created_at",
-                            data_type=DataType.DATE,
-                            description="作成日時",
+                            name="user_id",
+                            data_type=DataType.TEXT,
+                            description="ユーザーID",
+                            index_searchable=True,
                         ),
+                    ],
+                )
+
+            # --- BookContent コレクション ---
+            if not self.client.collections.exists(self.BOOK_CONTENT_COLLECTION_NAME):
+                self.client.collections.create(
+                    name=self.BOOK_CONTENT_COLLECTION_NAME,
+                    vectorizer_config=None,
+                    properties=[
+                        Property(name="content", data_type=DataType.TEXT),
+                    ],
+                    multi_tenancy_config=Configure.multi_tenancy(
+                        enabled=True,
+                        auto_tenant_activation=True,
+                        auto_tenant_creation=True,
+                    ),
+                )
+
+            # --- BookAnnotation コレクション ---
+            if not self.client.collections.exists(self.BOOK_ANNOTATION_COLLECTION_NAME):
+                self.client.collections.create(
+                    name=self.BOOK_ANNOTATION_COLLECTION_NAME,
+                    vectorizer_config=None,
+                    multi_tenancy_config=Configure.multi_tenancy(
+                        enabled=True,
+                        auto_tenant_activation=True,
+                        auto_tenant_creation=True,
+                    ),
+                    properties=[
                         Property(
-                            name="token_count",
-                            data_type=DataType.INT,
-                            description="トークン数（参考情報）",
-                        ),
-                        Property(
-                            name="is_summarized",
-                            data_type=DataType.BOOL,
-                            description="要約済みフラグ（メッセージ専用）",
+                            name="annotation_id",
+                            data_type=DataType.TEXT,
+                            description="アノテーションID",
+                            index_searchable=True,
                         ),
                         Property(
                             name="book_id",
@@ -153,20 +190,31 @@ class MemoryVectorStore:
                             index_searchable=True,
                         ),
                         Property(
-                            name="annotation_id",
+                            name="content",
                             data_type=DataType.TEXT,
-                            description="アノテーションID",
-                            index_searchable=True,
+                            description="ハイライトされた本文",
+                        ),
+                        Property(
+                            name="created_at",
+                            data_type=DataType.DATE,
+                            description="作成日時",
                         ),
                         Property(
                             name="notes",
                             data_type=DataType.TEXT,
                             description="メモ",
                         ),
+                        Property(
+                            name="user_id",
+                            data_type=DataType.TEXT,
+                            description="ユーザーID",
+                            index_searchable=True,
+                        ),
                     ],
                 )
+
         except Exception as e:
-            logger.error(f"スキーマ作成エラー: {str(e)}")
+            logger.error(f"コレクション作成エラー: {str(e)}")
             raise
 
     @retry_on_error(max_retries=2)
@@ -175,28 +223,13 @@ class MemoryVectorStore:
         return self.embedding_model.embed_query(text)
 
     @retry_on_error(max_retries=3)
-    def add_memory(self, vector: list[float], metadata: dict) -> str:
-        """記憶をベクトルストアに追加."""
+    def add_memory(self, vector: list[float], metadata: dict, user_id: str, collection_name: str) -> str:
+        """記憶を適切なベクトルストアコレクションに追加."""
         try:
-            # デフォルト値の設定（必要に応じて）
-            if "is_summarized" not in metadata and metadata.get("type") == self.TYPE_MESSAGE:
-                metadata["is_summarized"] = False
-
-            collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-            return collection.data.insert(properties=metadata, vector=vector)
+            collection = self.client.collections.get(collection_name)
+            return collection.with_tenant(user_id).data.insert(properties=metadata, vector=vector)
         except Exception as e:
-            logger.error(f"メモリ追加エラー: {str(e)}")
-            raise
-
-    @retry_on_error(max_retries=2)
-    def update_memory(self, uuid: str, properties: dict) -> None:
-        """記憶のプロパティを更新."""
-        try:
-            collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-            collection.data.update(uuid=uuid, properties=properties)
-            logger.debug(f"記憶 {uuid} を更新しました")
-        except Exception as e:
-            logger.error(f"メモリ更新エラー: {str(e)}")
+            logger.error(f"{collection_name} へのメモリ追加エラー: {str(e)}")
             raise
 
     @retry_on_error(max_retries=2)
@@ -206,62 +239,65 @@ class MemoryVectorStore:
             return
 
         try:
-            collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+            collection = self.client.collections.get(self.CHAT_MEMORY_COLLECTION_NAME)
+            collection_with_tenant = collection.with_tenant(user_id)
 
-            # メッセージIDのリストに基づいてフィルタを作成
             where_filter = (
                 Filter.by_property("user_id").equal(user_id)
                 & Filter.by_property("chat_id").equal(chat_id)
-                & Filter.by_property("type").equal(self.TYPE_MESSAGE)
+                & Filter.by_property("memory_type").equal(self.TYPE_MESSAGE)
                 & Filter.by_property("message_id").contains_any(message_ids)
             )
 
-            # 対象となるオブジェクトを取得
-            response = collection.query.fetch_objects(
+            response = collection_with_tenant.query.fetch_objects(
                 filters=where_filter,
                 return_properties=["message_id"],
-                limit=len(message_ids) + 10,  # 少し余裕を持たせる
+                limit=len(message_ids) + 10,
             )
 
-            # 各オブジェクトを更新
             for obj in response.objects:
-                collection.data.update(uuid=obj.uuid, properties={"is_summarized": True})
+                collection_with_tenant.data.update(uuid=obj.uuid, properties={"is_summarized": True})
 
         except Exception as e:
-            logger.error(f"メッセージの要約済みマーク更新エラー: {str(e)}")
+            logger.error(f"メッセージの要約済みマーク更新エラー (Tenant: {user_id}): {str(e)}")
             raise
 
     @retry_on_error(max_retries=2)
     def search_chat_memories(self, user_id: str, chat_id: str, query_vector: list[float], limit: int = 5) -> list[dict[str, Any]]:
-        """チャットIDによる関連記憶のベクトル検索."""
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+        """チャットIDによる関連記憶のベクトル検索 (ChatMemoryコレクションから)."""
+        collection = self.client.collections.get(self.CHAT_MEMORY_COLLECTION_NAME)
+        collection_with_tenant = collection.with_tenant(user_id)
 
-        # フィルターの作成
         memory_types = [self.TYPE_MESSAGE, self.TYPE_SUMMARY]
         where_filter = (
             Filter.by_property("user_id").equal(user_id)
             & Filter.by_property("chat_id").equal(chat_id)
-            & Filter.by_property("type").contains_any(memory_types)
+            & Filter.by_property("memory_type").contains_any(memory_types)
         )
 
-        # クエリ実行
-        response = collection.query.near_vector(
+        response = collection_with_tenant.query.near_vector(
             near_vector=query_vector,
-            return_properties=["content", "type", "user_id", "chat_id", "message_id", "sender", "created_at", "token_count"],
+            return_properties=[
+                "content",
+                "memory_type",
+                "user_id",
+                "chat_id",
+                "message_id",
+                "sender",
+                "created_at",
+            ],
             include_vector=False,
             filters=where_filter,
             limit=limit,
         )
 
-        # 結果の変換
         results = []
         for obj in response.objects:
             item = obj.properties
             item["id"] = obj.uuid
-            # 距離情報を取得
             item["_additional"] = {
                 "distance": obj.metadata.distance,
-                "certainty": 1.0 - (obj.metadata.distance or 0.0),  # 距離を確実性に変換
+                "certainty": 1.0 - (obj.metadata.distance or 0.0),
             }
             results.append(item)
 
@@ -269,26 +305,24 @@ class MemoryVectorStore:
 
     @retry_on_error(max_retries=2)
     def get_unsummarized_messages(self, user_id: str, chat_id: str, max_count: int = 100) -> list[dict[str, Any]]:
-        """要約されていないメッセージを取得."""
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+        """要約されていないメッセージを取得 (ChatMemoryコレクションから)."""
+        collection = self.client.collections.get(self.CHAT_MEMORY_COLLECTION_NAME)
+        collection_with_tenant = collection.with_tenant(user_id)
 
-        # フィルターの作成
         where_filter = (
             Filter.by_property("user_id").equal(user_id)
             & Filter.by_property("chat_id").equal(chat_id)
-            & Filter.by_property("type").equal(self.TYPE_MESSAGE)
+            & Filter.by_property("memory_type").equal(self.TYPE_MESSAGE)
             & Filter.by_property("is_summarized").equal(False)
         )
 
-        # クエリ実行（作成日時順）
-        response = collection.query.fetch_objects(
+        response = collection_with_tenant.query.fetch_objects(
             filters=where_filter,
-            return_properties=["content", "message_id", "sender", "created_at", "token_count"],
+            return_properties=["content", "message_id", "sender", "created_at"],
             limit=max_count,
-            sort=[{"path": ["created_at"], "order": "asc"}],  # 古い順にソート
+            sort=[{"path": ["created_at"], "order": "asc"}],
         )
 
-        # 結果の変換
         results = []
         for obj in response.objects:
             item = obj.properties
@@ -298,10 +332,9 @@ class MemoryVectorStore:
         return results
 
     @retry_on_error(max_retries=3)
-    async def create_book_vector_index(self, file: UploadFile, tenant_id: str) -> dict:
-        """EPUBファイルを処理してベクトルストアにインデックス化する."""
+    async def create_book_vector_index(self, file: UploadFile, user_id: str) -> dict:
+        """EPUBファイルを処理してBookContentコレクションにベクトルインデックス化する."""
         try:
-            # note: tempファイルじゃなくて、gcsから取得すればいいだけかも
             with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
                 file_content = await file.read()
                 temp_file.write(file_content)
@@ -315,19 +348,19 @@ class MemoryVectorStore:
 
                 WeaviateVectorStore.from_documents(
                     documents=split_docs,
-                    embedding=self.embedding_model,  # 既存のエンベディングモデルを再利用
-                    client=self.client,  # 既存のクライアントを再利用
-                    index_name=self.BOOK_CONTENT_INDEX_NAME,
+                    embedding=self.embedding_model,
+                    client=self.client,
+                    index_name=self.BOOK_CONTENT_COLLECTION_NAME,
                     text_key="content",
-                    tenant=tenant_id,
+                    tenant=user_id,
                 )
 
                 return {
                     "message": "Upload and processing completed successfully",
                     "file_name": file.filename,
                     "chunk_count": len(split_docs),
-                    "index_name": self.BOOK_CONTENT_INDEX_NAME,
-                    "tenant_id": tenant_id,
+                    "index_name": self.BOOK_CONTENT_COLLECTION_NAME,
+                    "user_id": user_id,
                     "success": True,
                 }
             finally:
@@ -339,16 +372,13 @@ class MemoryVectorStore:
 
     @retry_on_error(max_retries=2)
     def search_highlights(self, user_id: str, book_id: str, query_vector: list[float], limit: int = 3) -> list[dict[str, Any]]:
-        """ハイライト（type=highlight）をベクトル検索する。"""
-        collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
-        where_filter = (
-            Filter.by_property("user_id").equal(user_id)
-            & Filter.by_property("book_id").equal(book_id)
-            & Filter.by_property("type").equal(self.TYPE_HIGHLIGHT)
-        )
-        response = collection.query.near_vector(
+        """ハイライト（BookAnnotationコレクション）をベクトル検索する。"""
+        collection = self.client.collections.get(self.BOOK_ANNOTATION_COLLECTION_NAME)
+        collection_with_tenant = collection.with_tenant(user_id)
+        where_filter = Filter.by_property("book_id").equal(book_id)
+        response = collection_with_tenant.query.near_vector(
             near_vector=query_vector,
-            return_properties=["content", "notes", "created_at", "book_title", "annotation_id"],
+            return_properties=["content", "notes", "created_at", "book_title", "annotation_id", "user_id", "book_id"],
             include_vector=False,
             filters=where_filter,
             limit=limit,
@@ -364,13 +394,14 @@ class MemoryVectorStore:
             results.append(item)
         return results
 
-    def delete_memories_by_filter(self, filter_conditions: dict, and_filter: dict | None = None) -> int:
+    def delete_memories_by_filter(self, user_id: str, filter_conditions: dict, and_filter: dict | None = None) -> int:
         """指定されたフィルター条件に一致する記憶をベクトルストアから削除する (Weaviate Client v4)。
-        現時点では、特定のフィルター構造 (type = highlight AND annotation_id IN [...]) にのみ対応。
+        現時点では、BookAnnotationコレクション内の特定のフィルター構造 (annotation_id IN [...]) にのみ対応。
 
         Args:
-            filter_conditions: 主なフィルター条件 (例: type)
-            and_filter: 追加のAND条件 (例: annotation_id)
+            user_id: 削除対象のテナント (ユーザーID)。
+            filter_conditions: 主なフィルター条件 (現在は未使用)。
+            and_filter: 追加のAND条件 (例: annotation_id)。
 
         Returns:
             削除に成功したオブジェクトの数。
@@ -380,12 +411,11 @@ class MemoryVectorStore:
             logger.error("Weaviateクライアントが初期化されていません。削除処理をスキップします。")
             return 0
 
-        # 特定のフィルター構造 (type=highlight AND annotation_id IN [...]) のみを処理
+        # BookAnnotationコレクションはテナント分けされている想定
+        collection_name = self.BOOK_ANNOTATION_COLLECTION_NAME
+
         if (
-            filter_conditions.get("path") == ["type"]
-            and filter_conditions.get("operator") == "Equal"
-            and filter_conditions.get("valueString") == self.TYPE_HIGHLIGHT
-            and and_filter
+            and_filter
             and and_filter.get("path") == ["annotation_id"]
             and and_filter.get("operator") == "ContainsAny"
             and "valueTextArray" in and_filter
@@ -396,41 +426,38 @@ class MemoryVectorStore:
                 return 0
 
             try:
-                # Weaviate Client v4 の Filter を使用してフィルターを構築
-                # 参考: https://weaviate.io/developers/weaviate/manage-data/delete#delete-multiple-objects-by-id
-                where_filter = Filter.by_property("type").equal(self.TYPE_HIGHLIGHT) & Filter.by_property("annotation_id").contains_any(
-                    annotation_ids
-                )
+                # ここでテナントを指定する
+                collection = self.client.collections.get(collection_name)
+                collection_with_tenant = collection.with_tenant(user_id)
 
-                collection = self.client.collections.get(self.CHAT_MEMORY_CLASS_NAME)
+                # フィルター条件も user_id を含めるように変更 (必要であれば)
+                # Filter.by_property("user_id").equal(user_id) & \ # 必要に応じて追加
+                where_filter = Filter.by_property("annotation_id").contains_any(annotation_ids)
 
-                # Weaviate Client v4 の delete_many API を呼び出す
-                # verbose=True で詳細な結果を取得
-                # 参考: https://weaviate.io/developers/weaviate/manage-data/delete#optional-parameters
-                response = collection.data.delete_many(where=where_filter, verbose=True)
+                # テナントを指定して削除
+                response = collection_with_tenant.data.delete_many(where=where_filter, verbose=True)
 
                 successful_count = response.successful
                 failed_count = response.failed
 
                 if failed_count > 0:
-                    # エラーの詳細は response.errors に含まれる可能性がある (ドキュメントからは明確でないが念のため)
                     errors_info = getattr(response, "errors", "詳細不明")
-                    logger.warning(f"{failed_count}件のハイlight記憶の削除に失敗しました。エラー: {errors_info}")
+                    logger.warning(f"{failed_count}件の {collection_name} 記憶の削除に失敗しました。エラー: {errors_info}")
 
-                logger.info(f"{successful_count}件のハイライト記憶の削除に成功しました (Annotation IDs: {annotation_ids})")
+                logger.info(
+                    f"{successful_count}件の {collection_name} 記憶の削除に成功しました (Tenant: {user_id}, Annotation IDs: {annotation_ids})"
+                )
                 return successful_count
 
             except WeaviateQueryException as wqe:
-                logger.error(f"Weaviateでの記憶削除中にクエリエラーが発生: {str(wqe)}", exc_info=True)
+                logger.error(f"Weaviateでの記憶削除中にクエリエラーが発生 (Tenant: {user_id}): {str(wqe)}", exc_info=True)
                 return 0
-            except WeaviateBaseError as wbe:  # より一般的なWeaviateエラー
-                logger.error(f"Weaviateでの記憶削除中にエラーが発生: {str(wbe)}", exc_info=True)
+            except WeaviateBaseError as wbe:
+                logger.error(f"Weaviateでの記憶削除中にエラーが発生 (Tenant: {user_id}): {str(wbe)}", exc_info=True)
                 return 0
             except Exception as e:
-                # Weaviate 以外の予期せぬエラー
-                logger.error(f"記憶削除中に予期せぬエラーが発生: {str(e)}", exc_info=True)
+                logger.error(f"記憶削除中に予期せぬエラーが発生 (Tenant: {user_id}): {str(e)}", exc_info=True)
                 return 0
         else:
-            # 現状、上記以外のフィルター形式はサポートしない
             logger.error(f"指定されたフィルター形式は現在サポートされていません: filter={filter_conditions}, and_filter={and_filter}")
             return 0

@@ -5,6 +5,7 @@ import { fileToEpub, indexEpub } from './epub'
 import { mapExtToMimes } from './mime'
 import { toDataUrl } from './fileUtils'
 import { unpack } from './sync'
+import { TEST_USER_ID } from './pages/_app'
 
 export async function addBook(
   file: File,
@@ -42,7 +43,7 @@ export async function addBook(
       return null
     }
 
-    await indexEpub(file, bookData.tenant_id || '')
+    await indexEpub(file, TEST_USER_ID)
 
     setLoading?.(undefined)
     return bookData

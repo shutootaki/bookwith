@@ -37,7 +37,6 @@ class CreateMessageUseCase(ABC):
         sender_id: str,
         chat_id: str,
         book_id: str | None = None,
-        tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
@@ -60,7 +59,6 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         sender_id: str,
         chat_id: str,
         book_id: str | None = None,
-        tenant_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ):
         """ユーザーメッセージを保存し、AIの応答をストリーミングで返す."""
@@ -68,7 +66,6 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         chat = self.chat_repository.find_by_id(chat_id_obj)
 
         if chat is None:
-            # TODO: タイトル生成を非同期にするか検討
             chat_title = self._get_chat_title(content)
             new_chat = Chat(id=chat_id_obj, user_id=UserId(sender_id), title=ChatTitle(chat_title), book_id=BookId(book_id) if book_id else None)
             self.chat_repository.save(new_chat)
@@ -85,10 +82,11 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         self.message_repository.save(user_message)
 
         # メッセージをベクトル化（同期処理）
+        # note: メッセージをベクトル化する必要があるのか？
         self.memory_service.vectorize_message(user_message)
 
         # チャットのメッセージ数を取得
-        # todo: 全件取得によるパフォーマンスの影響を考慮
+        # todo: 全件取得によるパフォーマンスの影響を考慮する
         message_count = self.message_repository.count_by_chat_id(chat_id)
 
         # 必要に応じて要約を実行（同期処理）
@@ -107,8 +105,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         )
 
         ai_response_chunks = []
-        # tenant_idがNoneの場合は記憶ベースのみ、そうでない場合はハイブリッドレスポンスになる
-        async for chunk in self._stream_ai_response(question=memory_prompt, tenant_id=tenant_id, user_id=sender_id, book_id=book_id):
+        async for chunk in self._stream_ai_response(question=memory_prompt, user_id=sender_id, book_id=book_id):
             ai_response_chunks.append(chunk)
             yield chunk
 
@@ -133,7 +130,10 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             yield chunk
 
     async def _stream_ai_response(
-        self, question: str, tenant_id: str | None = None, user_id: str | None = None, book_id: str | None = None
+        self,
+        question: str,
+        user_id: str,
+        book_id: str | None = None,
     ) -> AsyncGenerator[str]:
         """LLMの応答をストリーミングで返す.
 
@@ -147,18 +147,18 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         model = ChatOpenAI(model_name="gpt-4o", streaming=True)
 
         # tenant_idがない場合は記憶ベースの応答のみを返す
-        if tenant_id is None:
+        if book_id is None:
             basic_chain: RunnableSerializable[Any, str] = RunnablePassthrough() | model | StrOutputParser()
             async for chunk in basic_chain.astream(question):
                 yield chunk
             return
 
         # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
-        vector_store = get_vector_store(MemoryVectorStore.BOOK_CONTENT_INDEX_NAME)
+        vector_store = get_vector_store(MemoryVectorStore.BOOK_CONTENT_COLLECTION_NAME)
         vector_store_retriever = vector_store.as_retriever(
             search_kwargs={
                 "k": 4,
-                "tenant": tenant_id,
+                "tenant": user_id,
             }
         )
 

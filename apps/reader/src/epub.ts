@@ -4,10 +4,10 @@ export async function fileToEpub(file: File) {
   return ePub(data)
 }
 
-export const indexEpub = async (file: File, tenantId: string) => {
+export const indexEpub = async (file: File, userId: string) => {
   const formData = new FormData()
   formData.append('file', file)
-  formData.append('tenant_id', tenantId)
+  formData.append('user_id', userId)
 
   try {
     await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {

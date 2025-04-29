@@ -13,12 +13,12 @@ router = APIRouter()
 
 @router.post("/rag", response_model=RagProcessResponse)
 async def upload_and_process_rag(
-    tenant_id: str = Form(...),
+    user_id: str = Form(...),
     file: UploadFile = File(...),
     usecase: CreateBookVectorIndexUseCase = Depends(get_create_book_vector_index_usecase),
 ):
     try:
-        return await usecase.execute(file, tenant_id)
+        return await usecase.execute(file, user_id)
     except ValueError as e:
         raise BadRequestException(str(e))
     except Exception as e:
