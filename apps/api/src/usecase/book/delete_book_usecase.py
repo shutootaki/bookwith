@@ -5,6 +5,7 @@ from src.domain.book.exceptions.book_exceptions import BookNotFoundException
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.infrastructure.external.gcs import GCSClient
+from src.infrastructure.memory.memory_service import MemoryService
 
 
 class DeleteBookUseCase(ABC):
@@ -18,8 +19,9 @@ class DeleteBookUseCase(ABC):
 class DeleteBookUseCaseImpl(DeleteBookUseCase):
     """DeleteBookUseCaseImpl is the implementation of the use case for deleting a book."""
 
-    def __init__(self, book_repository: BookRepository):
+    def __init__(self, book_repository: BookRepository, memory_service: MemoryService) -> None:
         self.book_repository = book_repository
+        self.memory_service = memory_service
         self.gcs_client = GCSClient()
 
     def execute(self, book_id: str) -> None:
@@ -63,8 +65,9 @@ class BulkDeleteBooksUseCase(ABC):
 class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
     """BulkDeleteBooksUseCaseImpl is the implementation of the use case for bulk deleting multiple books."""
 
-    def __init__(self, book_repository: BookRepository):
+    def __init__(self, book_repository: BookRepository, memory_service: MemoryService) -> None:
         self.book_repository = book_repository
+        self.memory_service = memory_service
         self.gcs_client = GCSClient()
 
     def execute(self, book_ids: list[str]) -> list[str]:

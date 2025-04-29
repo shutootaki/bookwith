@@ -1,4 +1,4 @@
 from src.infrastructure.postgres.book.book_dto import BookDTO
-from src.infrastructure.postgres.book.book_repository import PostgresBookRepository
+from src.infrastructure.postgres.book.book_repository import BookRepositoryImpl
 
-__all__ = ["BookDTO", "PostgresBookRepository"]
+__all__ = ["BookDTO", "BookRepositoryImpl"]

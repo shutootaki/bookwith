@@ -1521,14 +1521,14 @@ six = "*"
 
 [[package]]
 name = "langsmith"
-version = "0.3.37"
+version = "0.3.38"
 description = "Client library to connect to the LangSmith LLM Tracing and Evaluation Platform."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "langsmith-0.3.37-py3-none-any.whl", hash = "sha256:bdecca4eb48ba1799e821a33dbdca318ab202faa71a5bfa7d2358be6c3fd7eeb"},
-    {file = "langsmith-0.3.37.tar.gz", hash = "sha256:d49d9a12d24d3984d5b3e2b5915b525b4a29a4706ea9cadde43c980fba43fab0"},
+    {file = "langsmith-0.3.38-py3-none-any.whl", hash = "sha256:af706747fddcecb33c6147cd401ee83ded55b9458410885839993b55b8dea6f3"},
+    {file = "langsmith-0.3.38.tar.gz", hash = "sha256:24e2c26c0e1b24e7d3b954693c52e9764f168a4d8787f213b56c6067ba308d27"},
 ]
 
 [package.dependencies]
@@ -2942,14 +2942,14 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "setuptools"
-version = "79.0.1"
+version = "80.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "setuptools-79.0.1-py3-none-any.whl", hash = "sha256:e147c0549f27767ba362f9da434eab9c5dc0045d5304feb602a0af001089fc51"},
-    {file = "setuptools-79.0.1.tar.gz", hash = "sha256:128ce7b8f33c3079fd1b067ecbb4051a66e8526e7b65f6cec075dfc650ddfa88"},
+    {file = "setuptools-80.0.0-py3-none-any.whl", hash = "sha256:a38f898dcd6e5380f4da4381a87ec90bd0a7eec23d204a5552e80ee3cab6bd27"},
+    {file = "setuptools-80.0.0.tar.gz", hash = "sha256:c40a5b3729d58dd749c0f08f1a07d134fb8a0a3d7f87dc33e7c5e1f762138650"},
 ]
 
 [package.extras]

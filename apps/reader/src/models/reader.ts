@@ -134,6 +134,23 @@ export class BookTab extends BaseTab {
     })
   }
 
+  syncAnnotations(changes: Partial<BookDetail>) {
+    // don't wait promise resolve to make valtio batch updates
+    this.book = { ...this.book, ...changes }
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}/annotations`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(changes),
+      },
+    ).catch((error) => {
+      console.error('書籍の更新に失敗しました:', error)
+    })
+  }
+
   annotationRange?: Range
   setAnnotationRange(cfi: string) {
     const range = this.view?.contents.range(cfi)
@@ -199,7 +216,7 @@ export class BookTab extends BaseTab {
         text,
       }
 
-      this.updateBook({
+      this.syncAnnotations({
         annotations: [...snapshot(this.book.annotations), annotation],
       })
     } else {
@@ -212,7 +229,7 @@ export class BookTab extends BaseTab {
         text,
       }
       this.book.annotations.splice(i, 1, annotation)
-      this.updateBook({
+      this.syncAnnotations({
         annotations: [...snapshot(this.book.annotations)],
       })
     }
@@ -223,7 +240,7 @@ export class BookTab extends BaseTab {
       return
     }
 
-    return this.updateBook({
+    return this.syncAnnotations({
       annotations: snapshot(this.book.annotations).filter((a) => a.cfi !== cfi),
     })
   }

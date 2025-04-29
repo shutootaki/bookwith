@@ -174,7 +174,6 @@ export async function createBook(
         annotations: responseData.data.annotations || [],
         configuration: responseData.data.configuration,
         hasCover: !!responseData.data.cover_path,
-        tenant_id: responseData.data.tenant_id,
       }
     }
     return null

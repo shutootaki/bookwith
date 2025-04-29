@@ -41,7 +41,7 @@ class BookDetail(BaseModel):
     name: str
     percentage: float = 0
     size: int
-    tenant_id: str | None = None
+    user_id: str | None = None
     created_at: Any
     updated_at: Any
 
@@ -74,25 +74,6 @@ class BulkDeleteResponse(BaseModel):
     message: str | None = None
 
 
-# def entity_to_detail(book: Book) -> BookDetail:
-#     return BookDetail(
-#         id=book.id.value,
-#         name=book.name.value,
-#         author=book.author,
-#         cover_path=book.cover_path,
-#         size=book.size,
-#         cfi=book.cfi,
-#         percentage=book.percentage,
-#         book_metadata=book.book_metadata,
-#         definitions=book.definitions,
-#         configuration=book.configuration,
-#         tenant_id=book.tenant_id.value if book.tenant_id else None,
-#         created_at=book.created_at,
-#         updated_at=book.updated_at,
-#         annotations=book.annotations,
-#     )
-
-
 class RagProcessResponse(BaseModel):
     class RagChunk(BaseModel):
         text: str
@@ -102,6 +83,6 @@ class RagProcessResponse(BaseModel):
     message: str | None = None
     file_name: str
     chunk_count: int
-    tenant_id: str | None = None
+    user_id: str | None = None
     index_name: str | None = None
     chunks: list[RagChunk] | None = None

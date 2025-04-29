@@ -33,9 +33,7 @@ class MemoryService:
         self.config = AppConfig.get_config()
         self.memory_store = MemoryVectorStore()
 
-    def search_relevant_memories(
-        self, user_id: str, chat_id: str, query: str, chat_limit: int | None = None, profile_limit: int | None = None
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    def search_relevant_memories(self, user_id: str, chat_id: str, query: str, chat_limit: int | None = None) -> list[dict[str, Any]]:
         """ユーザークエリに関連する記憶を検索.
 
         Args:
@@ -43,32 +41,23 @@ class MemoryService:
             chat_id: チャットID
             query: ユーザーの質問/クエリ
             chat_limit: 取得するチャット記憶の数
-            profile_limit: 取得するプロファイル記憶の数
 
         Returns:
-            (チャット記憶リスト, ユーザープロファイル記憶リスト)のタプル
+            チャット記憶リスト
 
         """
         # デフォルト値設定
         if chat_limit is None:
             chat_limit = self.config.memory_chat_results
-        if profile_limit is None:
-            profile_limit = self.config.memory_profile_results
 
         try:
             # クエリをベクトル化
             query_vector = self.memory_store.encode_text(query)
 
-            # チャット記憶を検索
-            chat_memories = self.memory_store.search_chat_memories(user_id=user_id, chat_id=chat_id, query_vector=query_vector, limit=chat_limit)
-
-            # ユーザープロファイル記憶を検索
-            user_profile_memories = self.memory_store.search_user_profile(user_id=user_id, query_vector=query_vector, limit=profile_limit)
-
-            return chat_memories, user_profile_memories
+            return self.memory_store.search_chat_memories(user_id=user_id, chat_id=chat_id, query_vector=query_vector, limit=chat_limit)
         except Exception as e:
             logger.error(f"記憶検索中にエラーが発生: {str(e)}", exc_info=True)
-            return [], []  # エラー時は空リストを返す
+            return []
 
     def vectorize_message(self, message: Message) -> None:
         """メッセージを同期的にベクトル化.
@@ -106,13 +95,12 @@ class MemoryService:
 
         """
         # 関連する記憶を検索
-        chat_memories, user_profile_memories = self.search_relevant_memories(user_id=user_id, chat_id=chat_id, query=user_query)
+        chat_memories = self.search_relevant_memories(user_id=user_id, chat_id=chat_id, query=user_query)
 
         # プロンプトを構築
         return self.create_memory_prompt(
             buffer=buffer,
             chat_memories=chat_memories,
-            user_profile_memories=user_profile_memories,
             user_query=user_query,
             config=self.config,
         )
@@ -154,124 +142,56 @@ class MemoryService:
             return text
         return text[:max_chars] + "..."
 
-    def create_memory_prompt(  # noqa: C901
+    def create_memory_prompt(
         self,
         buffer: list[Message],
         chat_memories: list[dict[str, Any]],
-        user_profile_memories: list[dict[str, Any]],
         user_query: str,
         config: AppConfig | None = None,
     ) -> str:
-        """記憶情報を含むプロンプトを構築する.
-
-        Args:
-            buffer: 最新のメッセージバッファ
-            chat_memories: チャット関連の記憶検索結果
-            user_profile_memories: ユーザープロファイル関連の記憶検索結果
-            user_query: ユーザーの最新のクエリ
-            config: アプリケーション設定
-
-        Returns:
-            構築されたプロンプト
-
-        """
         if config is None:
             config = AppConfig.get_config()
 
-        # システムプロンプト
-        system_prompt = """ユーザーのプロファイル情報や過去の会話、最近のチャット履歴を考慮して、質問に回答してください。
-    提供された情報を活用しながら、一貫性のあるパーソナライズされた応答を心がけてください。
-    以前の会話やユーザープロファイルから得られた情報を自然に組み込み、ユーザーとの関係性を深める対話を行ってください。"""
+        system_prompt = (
+            "ユーザーのプロファイル情報や過去の会話、最近のチャット履歴を考慮して、質問に回答してください。"
+            "提供された情報を活用しながら、一貫性のあるパーソナライズされた応答を心がけてください。"
+        )
 
-        # プロンプトパーツを準備（後で結合する）
-        prompt_parts = []
-        prompt_parts.append(system_prompt)
+        prompt_parts = [system_prompt]
 
-        # ユーザープロファイル情報のフォーマット
-        if user_profile_memories:
-            profile_context = "\n--- ユーザープロファイル情報 ---\n"
-            profile_items = []
-
-            for mem in user_profile_memories:
-                profile_items.append(self.format_memory_item(mem, "[ユーザープロファイル]: "))
-
-            profile_context += "\n".join(profile_items)
-            prompt_parts.append(profile_context)
-
-        # 関連する過去の会話スニペットのフォーマット
         if chat_memories:
-            memory_context = "\n--- 関連する過去の会話 ---\n"
-            memory_items = []
+            memory_items = [
+                self.format_memory_item(
+                    mem,
+                    f"[過去の{'メッセージ' if mem.get('type') == 'message' else '要約'} by "
+                    f"{'ユーザー' if mem.get('sender') == 'user' else 'AI' if mem.get('sender') == 'assistant' else 'システム'}]: ",
+                )
+                for mem in chat_memories
+            ]
+            prompt_parts.append("\n--- 関連する過去の会話 ---\n" + "\n".join(memory_items))
 
-            for mem in chat_memories:
-                sender = mem.get("sender", "不明")
-                mem_type = mem.get("type", "message")
-
-                # 日本語に変換
-                sender_ja = "ユーザー" if sender == "user" else "AI" if sender == "assistant" else "システム"
-                mem_type_ja = "メッセージ" if mem_type == "message" else "要約"
-
-                prefix = f"[過去の{mem_type_ja} by {sender_ja}]: "
-                memory_items.append(self.format_memory_item(mem, prefix))
-
-            memory_context += "\n".join(memory_items)
-            prompt_parts.append(memory_context)
-
-        # 最近のチャット履歴のフォーマット
         if buffer:
-            history_context = "\n--- 最近のチャット履歴 (古い順) ---\n"
-            history_items = []
+            history_items = [
+                f"{'ユーザー' if msg.sender_type.value == 'user' else 'AI'}: {msg.content.value}" for msg in reversed(buffer) if not msg.is_deleted
+            ]
+            prompt_parts.append("\n--- 最近のチャット履歴 (古い順) ---\n" + "\n".join(history_items))
 
-            # バッファは新しい順に並んでいるので、古い順に反転
-            for msg in reversed(buffer):
-                if msg.is_deleted:
-                    continue
+        prompt_parts.append(f"\nユーザー: {user_query}\nAI:")
 
-                sender = "ユーザー" if msg.sender_type.value == "user" else "AI"
-                history_items.append(f"{sender}: {msg.content.value}")
-
-            history_context += "\n".join(history_items)
-            prompt_parts.append(history_context)
-
-        # ユーザークエリを追加
-        prompt_parts.append(f"\nユーザー: {user_query}")
-        prompt_parts.append("\nAI:")  # AIの回答を開始する合図
-
-        # 全てのパーツを結合
         full_prompt = "\n".join(prompt_parts)
-
-        # トークン数チェック
         estimated_tokens = self.estimate_tokens(full_prompt)
-        max_tokens = config.max_prompt_tokens or 8192  # デフォルト値を設定
+        max_tokens = config.max_prompt_tokens or 8192
 
         if estimated_tokens > max_tokens:
-            logger.warning(f"プロンプトが大きすぎます: {estimated_tokens}トークン。{max_tokens}トークン以下に切り詰めます。")
-
-            # 切り詰め戦略
-            # 1. システムプロンプトは保持
-            # 2. ユーザークエリとAI:は保持
-            # 3. 履歴、記憶、プロファイルを適宜切り詰め
-
-            # 保持する必須部分
-            system_part = prompt_parts[0]
-            query_part = f"\nユーザー: {user_query}\nAI:"
-
-            required_tokens = self.estimate_tokens(system_part + query_part)
-            remaining_tokens = max_tokens - required_tokens
-
-            # 残りのパーツを配分（優先度付け）
-            other_parts = prompt_parts[1:-2]  # システムプロンプトとクエリ部分を除く
-
-            if other_parts:
-                # 均等に配分する単純な方法
-                tokens_per_part = remaining_tokens // len(other_parts)
-                truncated_parts = []
-
-                for part in other_parts:
-                    truncated_parts.append(self.truncate_text_to_tokens(part, tokens_per_part))
-
-                # 再構築
-                full_prompt = system_part + "\n" + "\n".join(truncated_parts) + query_part
+            # システムプロンプトとクエリ部分は必ず残す
+            required = prompt_parts[0] + prompt_parts[-1]
+            remain_tokens = max_tokens - self.estimate_tokens(required)
+            # 履歴・記憶部分を均等に切り詰め
+            middle_parts = prompt_parts[1:-1]
+            if middle_parts:
+                per_part = max(remain_tokens // len(middle_parts), 1)
+                truncated = [self.truncate_text_to_tokens(p, per_part) for p in middle_parts]
+                full_prompt = prompt_parts[0] + "\n" + "\n".join(truncated) + prompt_parts[-1]
 
         return full_prompt
 
@@ -287,19 +207,19 @@ class MemoryService:
 
             # 基本メタデータを準備
             metadata = {
-                "content": text,
-                "type": memory_store.TYPE_MESSAGE,
-                "user_id": message.sender_id,
                 "chat_id": message.chat_id,
+                "content": text,
+                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "memory_type": memory_store.TYPE_MESSAGE,
                 "message_id": str(message.id.value),
                 "sender": message.sender_type.value,
-                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "token_count": len(text.split()),
-                # "is_summarized" は add_memory 内でデフォルト設定される
+                "user_id": message.sender_id,
             }
 
             # ベクトルストアに保存
-            memory_id = memory_store.add_memory(vector=vector, metadata=metadata)
+            memory_id = memory_store.add_memory(
+                vector=vector, metadata=metadata, user_id=message.sender_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME
+            )
             logger.info(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
 
         except ValueError as ve:
@@ -364,18 +284,17 @@ class MemoryService:
             summary_id = f"summary_{chat_id}_{timestamp}"
 
             metadata = {
-                "content": summary,
-                "type": memory_store.TYPE_SUMMARY,
-                "user_id": user_id,
                 "chat_id": chat_id,
+                "content": summary,
+                "created_at": timestamp,
+                "memory_type": memory_store.TYPE_SUMMARY,
                 "message_id": summary_id,
                 "sender": "system",
-                "created_at": timestamp,
-                "token_count": len(summary.split()),  # 簡易的なトークンカウント
+                "user_id": user_id,
             }
 
             # ベクトルストアに保存
-            memory_store.add_memory(vector=vector, metadata=metadata)
+            memory_store.add_memory(vector=vector, metadata=metadata, user_id=user_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME)
 
             # 要約済みフラグを更新
             if message_ids:
@@ -417,7 +336,7 @@ class MemoryService:
             logger.error(f"要約生成中にエラー発生: {str(e)}", exc_info=True)
             return None
 
-    def add_highlights_to_vector_store(self, book: Book, annotations: list[Annotation]):
+    def add_book_annotations(self, book: Book, annotations: list[Annotation]):
         # BookDetailの構造に従い、annotationsとname, user_idを取得
         user_id = book.user_id
         book_title = book.name
@@ -427,14 +346,49 @@ class MemoryService:
             if annotation.notes:
                 text_for_vector += f"\n{annotation.notes.value}"
             vector = self.memory_store.encode_text(text_for_vector)
-            metadata = {
-                "type": self.memory_store.TYPE_HIGHLIGHT,
-                "content": annotation.text.value,
-                "user_id": user_id,
+            metadata: dict[str, Any] = {
+                "annotation_id": annotation.id.value,
                 "book_id": book.id.value,
                 "book_title": book_title.value,
-                "notes": annotation.notes.value if annotation.notes else None,
+                "content": annotation.text.value,
                 "created_at": annotation.created_at if hasattr(annotation, "created_at") else None,
-                "annotation_id": annotation.id.value,
+                "notes": annotation.notes.value if annotation.notes else None,
+                "user_id": user_id,
             }
-            self.memory_store.add_memory(vector, metadata)
+            self.memory_store.add_memory(
+                vector=vector, metadata=metadata, user_id=user_id, collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME
+            )
+
+    def delete_book_annotation(self, user_id: str, annotation_id: str) -> None:
+        """ブックのアノテーションを削除."""
+        self.memory_store.delete_memory(
+            user_id=user_id, collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME, target="annotation_id", key=annotation_id
+        )
+
+    def update_book_annotations(self, book: Book, annotations: list[Annotation]) -> None:
+        """ブックのアノテーションを更新."""
+        user_id = book.user_id
+        book_title = book.name
+        for annotation in annotations:
+            # ベクトル化するテキスト（ハイライト＋メモ）
+            text_for_vector = annotation.text.value
+            if annotation.notes:
+                text_for_vector += f"\n{annotation.notes.value}"
+            vector = self.memory_store.encode_text(text_for_vector)
+            metadata: dict[str, Any] = {
+                "annotation_id": annotation.id.value,
+                "book_id": book.id.value,
+                "book_title": book_title.value,
+                "content": annotation.text.value,
+                "created_at": annotation.created_at if hasattr(annotation, "created_at") else None,
+                "notes": annotation.notes.value if annotation.notes else None,
+                "user_id": user_id,
+            }
+            self.memory_store.update_memory(
+                user_id=user_id,
+                collection_name=self.memory_store.BOOK_ANNOTATION_COLLECTION_NAME,
+                target="annotation_id",
+                key=annotation.id.value,
+                properties=metadata,
+                vector=vector,
+            )

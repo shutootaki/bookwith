@@ -67,7 +67,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
               chat_id: chatId || uuidv4(),
               sender_id: TEST_USER_ID,
               book_id: focusedBookTab?.book.id,
-              tenant_id: focusedBookTab?.book?.tenant_id ?? undefined,
               metadata: {},
             }),
           },

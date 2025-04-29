@@ -23,7 +23,6 @@ class Book(BaseModel):
     definitions: list[str] = Field(default_factory=list)
     configuration: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.now)
-    tenant_id: TenantId | None = None
     updated_at: datetime = Field(default_factory=datetime.now)
     deleted_at: datetime | None = None
     annotations: list[Annotation] = Field(default_factory=list)
@@ -48,7 +47,6 @@ class Book(BaseModel):
         cover_path: str | None = None,
         size: int = 0,
         book_metadata: dict[str, Any] | None = None,
-        tenant_id: TenantId | None = None,
     ) -> "Book":
         # Pydanticがデフォルト値を処理するため、ここでは単純にインスタンス化する
         return cls(
@@ -60,7 +58,6 @@ class Book(BaseModel):
             cover_path=cover_path,
             size=size,
             book_metadata=book_metadata or {},
-            tenant_id=tenant_id,
         )
 
     def update_title(self, name: BookTitle) -> None:

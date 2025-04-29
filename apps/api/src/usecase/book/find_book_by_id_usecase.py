@@ -14,13 +14,12 @@ class FindBookByIdUseCase(ABC):
     @abstractmethod
     def execute(self, book_id: str) -> Book:
         """IDで特定の書籍を取得する"""
-        pass
 
 
 class FindBookByIdUseCaseImpl(FindBookByIdUseCase):
     """FindBookByIdUseCaseImplは、IDで特定の書籍を取得するユースケース実装。"""
 
-    def __init__(self, book_repository: BookRepository):
+    def __init__(self, book_repository: BookRepository) -> None:
         self.book_repository = book_repository
 
     def execute(self, book_id: str) -> Book:

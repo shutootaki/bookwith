@@ -9,7 +9,6 @@ from src.domain.book.entities.book import Book
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
-from src.domain.book.value_objects.tennant_id import TenantId
 from src.infrastructure.external.gcs import GCSClient
 
 
@@ -54,7 +53,6 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
         gcs_base_url = f"{self.gcs_client.get_gcs_url()}/{self.gcs_client.bucket_name}"
 
         book_id = BookId.generate()
-        tenant_id = TenantId.generate(user_id, book_id.value)
         book_id_value = book_id.value
         book_base_path = f"books/{user_id}/{book_id_value}"
 
@@ -90,7 +88,6 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
                 author=metadata.get("creator", None),
                 size=len(decoded_file_data),
                 book_metadata=metadata,
-                tenant_id=tenant_id,
                 cover_path=cover_path,
             )
 
