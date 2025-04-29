@@ -12,7 +12,7 @@ from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_title import ChatTitle
 from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
-from src.infrastructure.vector import get_vector_store
+from src.infrastructure.vector import get_book_content_vector_store
 
 if TYPE_CHECKING:
     from langchain_core.runnables import RunnableSerializable
@@ -154,7 +154,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             return
 
         # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
-        vector_store = get_vector_store(MemoryVectorStore.BOOK_CONTENT_COLLECTION_NAME)
+        vector_store = get_book_content_vector_store()
         vector_store_retriever = vector_store.as_retriever(
             search_kwargs={
                 "k": 4,

@@ -119,13 +119,13 @@ def get_update_book_usecase(
 def get_delete_book_usecase(
     book_repository: BookRepository = Depends(get_book_repository),
 ) -> DeleteBookUseCase:
-    return DeleteBookUseCaseImpl(book_repository)
+    return DeleteBookUseCaseImpl(book_repository, memory_service=MemoryService())
 
 
 def get_bulk_delete_books_usecase(
     book_repository: BookRepository = Depends(get_book_repository),
 ) -> BulkDeleteBooksUseCase:
-    return BulkDeleteBooksUseCaseImpl(book_repository)
+    return BulkDeleteBooksUseCaseImpl(book_repository, memory_service=MemoryService())
 
 
 def get_chat_repository(db: Session = Depends(get_db)) -> ChatRepository:

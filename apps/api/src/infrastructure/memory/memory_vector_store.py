@@ -151,6 +151,7 @@ class MemoryVectorStore:
                     vectorizer_config=None,
                     properties=[
                         Property(name="content", data_type=DataType.TEXT),
+                        Property(name="book_id", data_type=DataType.TEXT),
                     ],
                     multi_tenancy_config=Configure.multi_tenancy(
                         enabled=True,
