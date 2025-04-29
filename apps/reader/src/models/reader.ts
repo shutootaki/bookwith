@@ -382,6 +382,7 @@ export class BookTab extends BaseTab {
     this.epub.loaded.navigation.then((nav) => {
       this.nav = nav
     })
+    console.log(this.epub)
     this.epub.loaded.spine.then((spine: any) => {
       const sections = spine.spineItems as ISection[]
       // https://github.com/futurepress/epub.js/issues/887#issuecomment-700736486
@@ -407,15 +408,20 @@ export class BookTab extends BaseTab {
         allowScriptedContent: true,
       }),
     )
+    console.log('rendition', this.rendition)
+    console.log('location', this.location)
+    console.log('book.cfi', this.book.cfi)
     this.rendition.display(
       this.location?.start.cfi ?? this.book.cfi ?? undefined,
     )
     this.rendition.themes.default(defaultStyle)
     this.rendition.hooks.render.register((view: any) => {
+      console.log('hooks.render', view)
       this.onRender?.()
     })
 
     this.rendition.on('relocated', (loc: Location) => {
+      console.log('relocated', loc)
       this.rendered = true
       this.timeline.unshift({
         location: loc,
@@ -443,9 +449,25 @@ export class BookTab extends BaseTab {
       }
     })
 
+    this.rendition.on('attached', (...args: any[]) => {
+      console.log('attached', args)
+    })
+    this.rendition.on('started', (...args: any[]) => {
+      console.log('started', args)
+    })
+    this.rendition.on('displayed', (...args: any[]) => {
+      console.log('displayed', args)
+    })
     this.rendition.on('rendered', (section: ISection, view: any) => {
+      console.log('rendered', [section, view])
       this.section = ref(section)
       this.iframe = ref(view.window as Window)
+    })
+    this.rendition.on('selected', (...args: any[]) => {
+      console.log('selected', args)
+    })
+    this.rendition.on('removed', (...args: any[]) => {
+      console.log('removed', args)
     })
   }
 

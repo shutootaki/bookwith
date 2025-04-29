@@ -104,6 +104,7 @@ export async function handleFiles(
   try {
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i]
+      if (!file) continue
       try {
         setImportProgress?.({
           total: fileArray.length,
