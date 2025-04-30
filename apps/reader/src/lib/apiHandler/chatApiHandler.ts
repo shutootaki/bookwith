@@ -1,51 +1,46 @@
 import { components } from '../openapi-schema/schema'
 
-export const getUserChats = async (
-  userId: string,
-): Promise<components['schemas']['ChatsResponse']> => {
+import { apiClient } from './apiClient'
+
+type ChatsResponse = components['schemas']['ChatsResponse']
+type MessageListResponse = components['schemas']['MessageListResponse']
+
+/**
+ * Fetches all chats for a specific user using the apiClient.
+ * @param userId The ID of the user whose chats are to be fetched.
+ * @returns A promise that resolves to ChatsResponse.
+ * @throws Throws an error if the API request fails.
+ */
+export const getUserChats = async (userId: string): Promise<ChatsResponse> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/chats/user/${userId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
+    const responseData = await apiClient<ChatsResponse>(
+      `/chats/user/${userId}`,
+      { method: 'GET' },
     )
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch chats: ${response.statusText}`)
-    }
-
-    return await response.json()
+    return responseData
   } catch (error) {
-    console.error('Error fetching user chats:', error)
+    console.error(`Error fetching user chats for user ${userId}:`, error)
     throw error
   }
 }
 
+/**
+ * Fetches all messages for a specific chat using the apiClient.
+ * @param chatId The ID of the chat whose messages are to be fetched.
+ * @returns A promise that resolves to MessageListResponse.
+ * @throws Throws an error if the API request fails.
+ */
 export const getChatMessages = async (
   chatId: string,
-): Promise<components['schemas']['MessageListResponse']> => {
+): Promise<MessageListResponse> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages/${chatId}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
+    const responseData = await apiClient<MessageListResponse>(
+      `/messages/${chatId}`,
+      { method: 'GET' },
     )
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch chat messages: ${response.statusText}`)
-    }
-
-    return (await response.json()).data
+    return responseData
   } catch (error) {
-    console.error('Error fetching chat messages:', error)
+    console.error(`Error fetching messages for chat ${chatId}:`, error)
     throw error
   }
 }

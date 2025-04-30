@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 from fastapi.responses import StreamingResponse
 
 from src.domain.message.exceptions.message_exceptions import (
@@ -7,7 +7,6 @@ from src.domain.message.exceptions.message_exceptions import (
 from src.infrastructure.di.injection import (
     get_create_message_usecase,
     get_delete_message_usecase,
-    get_find_message_by_id_usecase,
     get_find_messages_usecase,
 )
 from src.presentation.api.error_messages.message_error_message import MessageErrorMessage
@@ -19,28 +18,9 @@ from src.presentation.api.schemas.message_schema import (
 )
 from src.usecase.message.create_message_usecase import CreateMessageUseCase
 from src.usecase.message.delete_message_usecase import DeleteMessageUseCase
-from src.usecase.message.find_message_by_id_usecase import FindMessageByIdUseCase
 from src.usecase.message.find_messages_usecase import FindMessagesUseCase
 
 router = APIRouter(prefix="/messages", tags=["messages"])
-
-
-@router.get("", response_model=MessageListResponse)
-async def get_all_messages(
-    skip: int = Query(0, description="Skip records"),
-    limit: int = Query(100, description="Limit records"),
-    find_messages_usecase: FindMessagesUseCase = Depends(get_find_messages_usecase),
-) -> MessageListResponse:
-    """全てのメッセージを取得する."""
-    messages = find_messages_usecase.execute_find_all()
-    total = len(messages)
-
-    messages = messages[skip : skip + limit]
-
-    return MessageListResponse(
-        messages=[MessageResponse(**message.model_dump()) for message in messages],
-        total=total,
-    )
 
 
 @router.get("/{chat_id}", response_model=MessageListResponse)
@@ -52,25 +32,20 @@ async def get_messages_by_chat_id(
     messages = find_messages_usecase.execute_find_by_chat_id(chat_id)
 
     return MessageListResponse(
-        messages=[MessageResponse(**message.model_dump()) for message in messages],
+        messages=[
+            MessageResponse(
+                id=message.id.value,
+                content=message.content.value,
+                sender_id=message.sender_id,
+                sender_type=message.sender_type.value,
+                chat_id=message.chat_id,
+                created_at=message.created_at,
+                metadata=message.metadata,
+            )
+            for message in messages
+        ],
         total=len(messages),
     )
-
-
-@router.get("/id/{message_id}", response_model=MessageResponse)
-async def get_message(
-    message_id: str = Path(..., description="取得するメッセージID"),
-    find_message_usecase: FindMessageByIdUseCase = Depends(get_find_message_by_id_usecase),
-) -> MessageResponse:
-    """IDでメッセージを取得する."""
-    try:
-        message = find_message_usecase.execute(message_id)
-        return MessageResponse(**message.model_dump())
-    except MessageNotFoundException:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=MessageErrorMessage.MESSAGE_NOT_FOUND,
-        )
 
 
 @router.post("", status_code=status.HTTP_200_OK)

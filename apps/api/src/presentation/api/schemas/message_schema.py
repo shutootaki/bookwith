@@ -45,7 +45,6 @@ class MessageResponse(BaseSchemaModel):
     sender_type: SenderTypeEnum
     chat_id: str
     created_at: datetime
-    updated_at: datetime
     metadata: dict[str, Any] | None = None
 
 

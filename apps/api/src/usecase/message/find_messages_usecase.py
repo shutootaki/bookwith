@@ -19,7 +19,7 @@ class FindMessagesUseCase(ABC):
 
 
 class FindMessagesUseCaseImpl(FindMessagesUseCase):
-    def __init__(self, message_repository: MessageRepository):
+    def __init__(self, message_repository: MessageRepository) -> None:
         self.message_repository = message_repository
 
     def execute_find_all(self) -> list[Message]:

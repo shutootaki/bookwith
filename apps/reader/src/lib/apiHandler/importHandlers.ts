@@ -8,10 +8,12 @@ import { components } from '../openapi-schema/schema'
 
 import { createBook, fetchAllBooks } from './bookApiHandler'
 
+type BookDetail = components['schemas']['BookDetail']
+
 export async function addBook(
   file: File,
   setLoading?: (id: string | undefined) => void,
-) {
+): Promise<BookDetail | null> {
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
 
@@ -39,6 +41,7 @@ export async function addBook(
 
     if (!bookData) {
       console.error('APIへの書籍登録に失敗しました')
+      setLoading?.(undefined)
       return null
     }
 
@@ -56,18 +59,27 @@ export async function addBook(
 export async function fetchBook(
   url: string,
   setLoading?: (id: string | undefined) => void,
-) {
+): Promise<BookDetail | null> {
   const filename = decodeURIComponent(/\/([^/]*\.epub)$/i.exec(url)?.[1] ?? '')
 
   const existingBooks = await fetchAllBooks()
   const book = existingBooks?.find((b) => b.name === filename)
 
-  return (
-    book ??
-    fetch(url)
-      .then((res) => res.blob())
-      .then((blob) => addBook(new File([blob], filename), setLoading))
-  )
+  if (book) {
+    return book
+  }
+
+  try {
+    const res = await fetch(url)
+    if (!res.ok) {
+      throw new Error(`Failed to fetch book from URL: ${res.statusText}`)
+    }
+    const blob = await res.blob()
+    return await addBook(new File([blob], filename), setLoading)
+  } catch (error) {
+    console.error(`Error fetching or adding book from URL ${url}:`, error)
+    return null
+  }
 }
 
 export async function handleFiles(
@@ -87,7 +99,7 @@ export async function handleFiles(
   }) => void,
 ) {
   const fileArray = Array.from(files)
-  const newBooks = []
+  const newBooks: BookDetail[] = []
 
   setImportProgress?.({
     total: fileArray.length,
@@ -100,6 +112,8 @@ export async function handleFiles(
   let completedCount = 0
   let successCount = 0
   let failedCount = 0
+
+  const existingBooks = await fetchAllBooks()
 
   try {
     for (let i = 0; i < fileArray.length; i++) {
@@ -185,7 +199,6 @@ export async function handleFiles(
           continue
         }
 
-        // ファイルの処理進行状況を段階的に更新
         setImportProgress?.({
           total: fileArray.length,
           completed: completedCount,
@@ -199,7 +212,6 @@ export async function handleFiles(
           },
         })
 
-        const existingBooks = await fetchAllBooks()
         let book = existingBooks?.find((b) => b.name === file.name)
 
         setImportProgress?.({
@@ -210,18 +222,15 @@ export async function handleFiles(
           failed: failedCount,
           currentFile: {
             name: file.name,
-            progress: 40, // 既存の本をチェック完了
+            progress: 40,
             index: i,
           },
         })
 
-        // 書籍のインポート処理を進捗を報告するラッパー関数
         const trackingSetLoading = (id: string | undefined) => {
-          // 既存の処理を維持しつつ、進捗状態も更新
           setLoading?.(id)
 
           if (id) {
-            // idが設定されている場合は処理中
             setImportProgress?.({
               total: fileArray.length,
               completed: completedCount,
@@ -251,7 +260,11 @@ export async function handleFiles(
         }
 
         if (!book) {
-          book = (await addBook(file, trackingSetLoading)) || undefined
+          const addedBook = await addBook(file, trackingSetLoading)
+          if (addedBook) {
+            book = addedBook
+            existingBooks.push(addedBook)
+          }
         }
 
         if (book) {
@@ -285,7 +298,6 @@ export async function handleFiles(
       } catch (error) {
         console.error(`ファイルのインポート中にエラーが発生しました: ${error}`)
 
-        // エラー発生を通知
         setImportProgress?.({
           total: fileArray.length,
           completed: completedCount,

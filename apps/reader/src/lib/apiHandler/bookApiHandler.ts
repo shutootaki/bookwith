@@ -1,156 +1,120 @@
-import { TEST_USER_ID } from '../../pages/_app'
 import { components } from '../openapi-schema/schema'
 
-export async function fetchAllBooks(): Promise<
-  components['schemas']['BookDetail'][]
-> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
-    )
-    if (!response.ok) {
-      throw new Error('書籍一覧取得エラー:', await response.json())
-    }
+import { apiClient } from './apiClient'
 
-    const responseData = await response.json()
-    if (responseData?.success && Array.isArray(responseData?.data)) {
-      return responseData.data.map((book: any) => ({
-        id: book.id,
-        name: book.name,
-        author: book.author,
-        size: book.size,
-        metadata: book.book_metadata,
-        createdAt: new Date(book.created_at).getTime(),
-        updatedAt: book.updated_at
-          ? new Date(book.updated_at).getTime()
-          : undefined,
-        cfi: book.cfi,
-        percentage: book.percentage || 0,
-        definitions: book.definitions || [],
-        annotations: [],
-        configuration: book.configuration,
-        hasCover: book.has_cover || false,
-      }))
-    }
-    return []
+type BookCreateRequest = components['schemas']['BookCreateRequest']
+type BooksResponse = components['schemas']['BooksResponse']
+type BookResponse = components['schemas']['BookResponse']
+type BookFileResponse = components['schemas']['BookFileResponse']
+type BulkDeleteResponse = components['schemas']['BulkDeleteResponse']
+type BookDetail = components['schemas']['BookDetail']
+
+/**
+ * Fetches all books from the API.
+ * Returns data directly conforming to the BookDetail schema.
+ * @returns A promise that resolves to an array of BookDetail or an empty array on error.
+ */
+export async function fetchAllBooks(): Promise<BookDetail[]> {
+  try {
+    const responseData = await apiClient<BooksResponse>('/books', {
+      method: 'GET',
+    })
+    return responseData?.books || []
   } catch (error) {
-    console.error('書籍一覧取得中のエラー:', error)
+    console.error('Error fetching all books:', error)
     return []
   }
 }
 
-interface BookFileResponse {
-  success: boolean
-  url?: string
-  error?: string
-}
-
-interface BookFileData {
-  id: string
-  file: File
-}
-
+/**
+ * Gets the download URL for a book file and then fetches the file itself.
+ * @param bookId The ID of the book to fetch.
+ * @returns A promise resolving to {id: string, file: File} or undefined if an error occurs.
+ */
 export const getBookFile = async (
   bookId: string,
-): Promise<BookFileData | undefined> => {
+): Promise<
+  | {
+      id: string
+      file: File
+    }
+  | undefined
+> => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}/file?user_id=${TEST_USER_ID}`,
+    const responseData = await apiClient<BookFileResponse>(
+      `/books/${bookId}/file`,
+      { method: 'GET' },
     )
-    if (!response.ok)
-      throw new Error(
-        `書籍ファイルの取得に失敗しました: ${response.statusText}`,
-      )
 
-    const data: BookFileResponse = await response.json()
-    if (!data.success || !data.url)
-      throw new Error('ブックファイルのURLが取得できませんでした')
+    const fileUrl = responseData?.url
+    if (!fileUrl) {
+      throw new Error('Book file URL not found in API response.')
+    }
 
-    const fileResponse = await fetch(data.url)
-    if (!fileResponse.ok)
+    const fileResponse = await fetch(fileUrl)
+    if (!fileResponse.ok) {
       throw new Error(
-        `ファイルのダウンロードに失敗しました: ${fileResponse.statusText}`,
+        `Failed to download file from ${fileUrl}: ${fileResponse.status} ${fileResponse.statusText}`,
       )
+    }
 
     const blob = await fileResponse.blob()
-    const fileName = data.url.split('/').pop() || 'book.epub'
+    const fileName = fileUrl.split('/').pop() || `book_${bookId}.epub`
     const file = new File([blob], fileName, { type: 'application/epub+zip' })
 
     return { id: bookId, file }
   } catch (error) {
-    console.error('書籍ファイルの取得に失敗しました:', error)
+    console.error(`Error getting book file for ID ${bookId}:`, error)
     return undefined
   }
 }
 
+/**
+ * Creates a new book entry via the API.
+ * Returns data directly conforming to the BookDetail schema.
+ * @param bookRequest Data for the new book, conforming to BookCreateRequest schema.
+ * @returns A promise resolving to the created BookDetail or null on error.
+ */
 export async function createBook(
-  bookRequest: components['schemas']['BookCreateRequest'],
-): Promise<components['schemas']['BookDetail'] | null> {
+  bookRequest: BookCreateRequest,
+): Promise<BookDetail | null> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bookRequest),
-      },
-    )
+    const responseData = await apiClient<BookResponse>('/books', {
+      method: 'POST',
+      body: bookRequest,
+    })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('書籍登録エラー:', errorData)
+    const createdApiBook = responseData?.bookDetail
+    if (!createdApiBook) {
+      console.error('API did not return book data after creation.')
       return null
     }
 
-    const responseData = await response.json()
-    if (responseData?.success && responseData?.data) {
-      return {
-        id: responseData.data.id,
-        name: responseData.data.name,
-        size: responseData.data.size,
-        author: responseData.data.author,
-        bookMetadata: responseData.data.book_metadata,
-        createdAt: responseData.data.created_at,
-        updatedAt: responseData.data.updated_at,
-        cfi: responseData.data.cfi,
-        percentage: responseData.data.percentage,
-        definitions: responseData.data.definitions || [],
-        annotations: responseData.data.annotations || [],
-        configuration: responseData.data.configuration,
-        hasCover: !!responseData.data.cover_path,
-      }
-    }
-    return null
+    return createdApiBook
   } catch (error) {
-    console.error('書籍登録中のエラー:', error)
+    console.error('Error creating book:', error)
     return null
   }
 }
 
+/**
+ * Deletes multiple books via the API using their IDs.
+ * @param bookIds An array of book IDs to delete.
+ * @returns A promise resolving to an array of successfully deleted book IDs.
+ */
 export async function deleteBooksFromAPI(bookIds: string[]): Promise<string[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/bulk-delete`,
+    const responseData = await apiClient<BulkDeleteResponse>(
+      '/books/bulk-delete',
       {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ book_ids: bookIds }),
+        body: { book_ids: bookIds },
       },
     )
 
-    if (!response.ok) {
-      console.error('書籍一括削除エラー:', await response.json())
-      return []
-    }
-
-    const data = await response.json()
-    return data.deleted_ids || []
+    return responseData?.deletedIds || []
   } catch (error) {
-    console.error('書籍一括削除中のエラー:', error)
+    console.error('Error deleting books:', error)
     return []
   }
 }
