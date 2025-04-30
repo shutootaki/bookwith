@@ -1,6 +1,8 @@
+import useSWR from 'swr'
+
 import { Annotation } from '@flow/epubjs/types/annotations'
 import { PackagingMetadataObject } from '@flow/epubjs/types/packaging'
-import useSWR from 'swr'
+
 import { TypographyConfiguration } from '../state'
 
 export interface BookDetail {

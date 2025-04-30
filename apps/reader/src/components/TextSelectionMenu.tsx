@@ -20,7 +20,7 @@ import {
   useTranslation,
   useTypography,
 } from '../hooks'
-import { BookTab, reader } from '../models'
+import { BookTab } from '../models'
 import { isTouchScreen, scale } from '../platform'
 import { copy, keys, last } from '../utils'
 

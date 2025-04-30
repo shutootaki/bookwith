@@ -41,6 +41,7 @@ const FindMatches: React.FC<FindMatchProps> = ({ tab }) => {
           setClickedAnnotation(true)
         })
       } catch (error) {
+        console.error(error)
         // ignore matched text in `<title>`
       }
     })
@@ -89,6 +90,7 @@ const Definition: React.FC<DefinitionProps> = ({ tab, definition }) => {
           setClickedAnnotation(true)
         })
       } catch (error) {
+        console.error(error)
         // ignore matched text in `<title>`
       }
     })

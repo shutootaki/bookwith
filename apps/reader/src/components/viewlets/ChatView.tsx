@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react'
 import { History, PlusCircle } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+
+import { useTranslation } from '@flow/reader/hooks'
+
+import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeyword'
+import { chatService } from '../../services/api/chatService'
+import { MessageResponse } from '../../services/api/types'
 import { PaneViewProps, PaneView } from '../base'
-import { useTranslation, useAction } from '@flow/reader/hooks'
 
 import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
 import { ChatPane } from './chat/ChatPane'
 import { Message } from './chat/types'
-import { chatService } from '../../services/api/chatService'
-import { v4 as uuidv4 } from 'uuid'
-import { MessageResponse } from '../../services/api/types'
-import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeyword'
 
 export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [messages, setMessages] = useState<Message[]>([])

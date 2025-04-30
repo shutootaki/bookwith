@@ -1,6 +1,7 @@
-import baseConfig from '../../eslint.config.js';
-import tseslint from 'typescript-eslint';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
+
+import baseConfig from '../../eslint.config.js';
 
 export default tseslint.config(
   ...baseConfig,
@@ -14,6 +15,12 @@ export default tseslint.config(
       '@next/next/no-img-element': 'off',
       'react/jsx-key': 'off',
       'react/no-children-prop': 'off',
+      '@typescript-eslint/no-unused-expressions': [
+        'error',
+        {
+          'allowTernary': true
+        }
+      ],
       'react-hooks/exhaustive-deps': [
         'warn',
         {

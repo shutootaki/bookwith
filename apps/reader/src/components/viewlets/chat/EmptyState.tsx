@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { useTranslation } from '@flow/reader/hooks'
 
 export const EmptyState: React.FC = () => {

@@ -59,8 +59,10 @@ export const ThemeView: React.FC<PaneViewProps> = (props) => {
   )
 }
 
-interface BackgroundProps extends ComponentProps<'div'> {}
-const Background: React.FC<BackgroundProps> = ({ className, ...props }) => {
+const Background: React.FC<ComponentProps<'div'>> = ({
+  className,
+  ...props
+}) => {
   return (
     <div
       className={clsx('border-outline-variant light h-6 w-6 border', className)}

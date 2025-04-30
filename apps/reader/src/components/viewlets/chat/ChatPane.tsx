@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useRef } from 'react'
 import { Loader } from 'lucide-react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+
+import { useTranslation } from '@flow/reader/hooks'
+
 import { useReaderSnapshot } from '../../../models'
-import { ChatMessage } from './ChatMessage'
+import { TEST_USER_ID } from '../../../pages/_app'
+
 import { ChatInputForm } from './ChatInputForm'
+import { ChatMessage } from './ChatMessage'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
-import { useTranslation } from '@flow/reader/hooks'
-import { TEST_USER_ID } from '../../../pages/_app'
 
 interface ChatPaneProps {
   messages: Message[]
@@ -36,9 +39,48 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  const updateAssistantMessage = useCallback(
+    (content: string) => {
+      setMessages((prev) => {
+        const messagesSnapshot = [...prev]
+        const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
+        if (lastMessage?.sender_type === 'assistant') {
+          lastMessage.text = content
+        }
+        return messagesSnapshot
+      })
+    },
+    [setMessages],
+  )
+
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
+
+  const processStream = useCallback(
+    async (stream: ReadableStream) => {
+      const reader = stream.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedContent = ''
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          const chunk = decoder.decode(value, { stream: true })
+          accumulatedContent += chunk
+
+          updateAssistantMessage(accumulatedContent)
+          scrollToBottom()
+        }
+      } catch (error) {
+        console.error('Stream processing error:', error)
+        throw error
+      }
+    },
+    [scrollToBottom, updateAssistantMessage],
+  )
 
   const handleSend = useCallback(
     async (e: React.FormEvent | React.KeyboardEvent) => {
@@ -75,50 +117,25 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         if (!response.ok || !response.body) throw new Error(t('chat.error'))
 
         await processStream(response.body)
-      } catch (error) {
+      } catch {
         updateAssistantMessage(t('chat.error'))
       } finally {
         setIsLoading(false)
       }
     },
-    [text, isLoading, chatId, focusedBookTab, t, scrollToBottom],
+    [
+      text,
+      isLoading,
+      chatId,
+      focusedBookTab,
+      t,
+      updateAssistantMessage,
+      setMessages,
+      setText,
+      setIsLoading,
+      processStream,
+    ],
   )
-
-  const processStream = useCallback(
-    async (stream: ReadableStream) => {
-      const reader = stream.getReader()
-      const decoder = new TextDecoder()
-      let accumulatedContent = ''
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          const chunk = decoder.decode(value, { stream: true })
-          accumulatedContent += chunk
-
-          updateAssistantMessage(accumulatedContent)
-          scrollToBottom()
-        }
-      } catch (error) {
-        console.error('Stream processing error:', error)
-        throw error
-      }
-    },
-    [scrollToBottom],
-  )
-
-  const updateAssistantMessage = useCallback((content: string) => {
-    setMessages((prev) => {
-      const messagesSnapshot = [...prev]
-      const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
-      if (lastMessage?.sender_type === 'assistant') {
-        lastMessage.text = content
-      }
-      return messagesSnapshot
-    })
-  }, [])
 
   return (
     <div className="mx-auto flex h-full w-full max-w-4xl flex-col">

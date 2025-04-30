@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+
 import { TextAreaRefType } from './types'
 
 export const useAutoResize = (text: string, textareaRef: TextAreaRefType) => {

@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useSetAtom } from 'jotai'
 import React, {
   ComponentProps,
   FC,
@@ -11,7 +12,6 @@ import React, {
 import { MdChevronRight, MdWebAsset } from 'react-icons/md'
 import { RiBookLine } from 'react-icons/ri'
 import { PhotoSlider } from 'react-photo-view'
-import { useSetAtom } from 'jotai'
 import { useSnapshot } from 'valtio'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
@@ -67,7 +67,7 @@ function handleKeyDown(tab?: BookTab) {
           e.shiftKey ? tab?.prev() : tab?.next()
           break
       }
-    } catch (error) {
+    } catch {
       // ignore `rendition is undefined` error
     }
   }
@@ -517,8 +517,7 @@ const ReaderPaneFooter: FC<FooterProps> = ({ tab }) => {
   )
 }
 
-interface LineProps extends ComponentProps<'div'> {}
-const Bar: FC<LineProps> = ({ className, ...props }) => {
+const Bar: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
   return (
     <div
       className={clsx(

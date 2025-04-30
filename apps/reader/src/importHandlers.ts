@@ -2,10 +2,10 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { createBook, fetchAllBooks } from './bookApi'
 import { fileToEpub, indexEpub } from './epub'
-import { mapExtToMimes } from './mime'
 import { toDataUrl } from './fileUtils'
-import { unpack } from './sync'
+import { mapExtToMimes } from './mime'
 import { TEST_USER_ID } from './pages/_app'
+import { unpack } from './sync'
 
 export async function addBook(
   file: File,

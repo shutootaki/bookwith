@@ -1,5 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import { Loader, MessageSquare } from 'lucide-react'
+import React, { useEffect, useState, useCallback } from 'react'
+
 import { useTranslation } from '@flow/reader/hooks'
+
+import { TEST_USER_ID } from '../../../pages/_app'
+import { chatService } from '../../../services/api/chatService'
+import { ChatResponse } from '../../../services/api/types'
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,11 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from '../../ui/command'
-import { chatService } from '../../../services/api/chatService'
-import { ChatResponse } from '../../../services/api/types'
-import { TEST_USER_ID } from '../../../pages/_app'
-import { Loader, MessageSquare } from 'lucide-react'
-import { DialogTitle, DialogDescription } from '../../ui/dialog'
+import { DialogTitle } from '../../ui/dialog'
 
 interface ChatHistoryCommandDialogProps {
   open: boolean
@@ -28,24 +30,24 @@ export const ChatHistoryCommandDialog: React.FC<
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (open) {
-      fetchChatHistory()
-    }
-  }, [open])
-
-  const fetchChatHistory = async () => {
+  const fetchChatHistory = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
       const chats = await chatService.getUserChats(TEST_USER_ID)
       setChatHistory(chats)
-    } catch (err) {
+    } catch {
       setError(t('chat.history_fetch_error'))
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [t])
+
+  useEffect(() => {
+    if (open) {
+      fetchChatHistory()
+    }
+  }, [open, fetchChatHistory])
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>

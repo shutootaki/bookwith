@@ -10,6 +10,7 @@ import {
 } from 'react-icons/md'
 import { useSet } from 'react-use'
 import { toast } from 'sonner'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import ImportProgress, {
   ImportProgressState,
 } from '../components/ImportProgress'
+import { Toaster } from '../components/ui/sonner'
 import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
 import { useBoolean } from '../hooks'
 import {
@@ -39,7 +41,6 @@ import { BookDetail, CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { copy } from '../utils'
-import { Toaster } from '../components/ui/sonner'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 

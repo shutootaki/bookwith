@@ -1,4 +1,3 @@
-import { saveAs } from 'file-saver'
 import JSZip from 'jszip'
 
 import { BookRecord, db } from './db'
@@ -9,18 +8,10 @@ interface SerializedBooks {
   books: BookDetail[]
 }
 
-const VERSION = 1
 export const DATA_FILENAME = 'data.json'
 
-function serializeData(books?: BookDetail[]) {
-  return JSON.stringify({
-    version: VERSION,
-    books,
-  })
-}
-
 function deserializeData(text: string) {
-  const { version, books } = JSON.parse(text) as SerializedBooks
+  const { books } = JSON.parse(text) as SerializedBooks
 
   return books
 }

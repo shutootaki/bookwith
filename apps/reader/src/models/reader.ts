@@ -9,11 +9,11 @@ import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
 import { fileToEpub, getBookFile } from '../file'
+import { BookDetail } from '../hooks'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
 import { dfs, find, INode } from './tree'
-import { BookDetail } from '../hooks'
 
 function updateIndex(array: any[], deletedItemIndex: number) {
   const last = array.length - 1
@@ -105,7 +105,7 @@ export class BookTab extends BaseTab {
     try {
       const el = section.document.querySelector(selector)
       if (el) this.display(section.cfiFromElement(el), returnable)
-    } catch (err) {
+    } catch {
       this.display(section.href, returnable)
     }
   }
