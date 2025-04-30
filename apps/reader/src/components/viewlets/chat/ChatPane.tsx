@@ -44,7 +44,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
       setMessages((prev) => {
         const messagesSnapshot = [...prev]
         const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
-        if (lastMessage?.sender_type === 'assistant') {
+        if (lastMessage?.senderType === 'assistant') {
           lastMessage.text = content
         }
         return messagesSnapshot
@@ -91,12 +91,12 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
 
       setMessages((prev) => [
         ...prev,
-        { sender_type: 'user', text: trimmedText },
+        { senderType: 'user', text: trimmedText },
       ])
       setText('')
       setIsLoading(true)
 
-      setMessages((prev) => [...prev, { sender_type: 'assistant', text: '' }])
+      setMessages((prev) => [...prev, { senderType: 'assistant', text: '' }])
 
       try {
         const response = await fetch(

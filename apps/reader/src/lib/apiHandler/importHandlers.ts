@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { createBook, fetchAllBooks } from './bookApi'
-import { fileToEpub, indexEpub } from './epub'
-import { fileToBase64, toDataUrl } from './fileUtils'
-import { mapExtToMimes } from './mime'
-import { TEST_USER_ID } from './pages/_app'
-import { components } from './lib/openapi-schema/schema'
+import { fileToEpub, indexEpub } from '../../epub'
+import { fileToBase64, toDataUrl } from '../../fileUtils'
+import { mapExtToMimes } from '../../mime'
+import { TEST_USER_ID } from '../../pages/_app'
+import { components } from '../openapi-schema/schema'
+
+import { createBook, fetchAllBooks } from './bookApiHandler'
 
 export async function addBook(
   file: File,
@@ -51,6 +52,7 @@ export async function addBook(
     return null
   }
 }
+
 export async function fetchBook(
   url: string,
   setLoading?: (id: string | undefined) => void,

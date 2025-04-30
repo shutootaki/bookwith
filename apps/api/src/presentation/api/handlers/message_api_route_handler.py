@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.responses import StreamingResponse
 
@@ -32,45 +30,31 @@ async def get_all_messages(
     skip: int = Query(0, description="Skip records"),
     limit: int = Query(100, description="Limit records"),
     find_messages_usecase: FindMessagesUseCase = Depends(get_find_messages_usecase),
-) -> dict[str, Any]:
+) -> MessageListResponse:
     """全てのメッセージを取得する."""
     messages = find_messages_usecase.execute_find_all()
     total = len(messages)
 
     messages = messages[skip : skip + limit]
 
-    return {
-        "data": [message.model_dump() for message in messages],
-        "total": total,
-    }
+    return MessageListResponse(
+        messages=[MessageResponse(**message.model_dump()) for message in messages],
+        total=total,
+    )
 
 
 @router.get("/{chat_id}", response_model=MessageListResponse)
 async def get_messages_by_chat_id(
     chat_id: str = Path(..., description="メッセージを検索するチャットID"),
     find_messages_usecase: FindMessagesUseCase = Depends(get_find_messages_usecase),
-) -> dict[str, Any]:
+) -> MessageListResponse:
     """チャットIDでメッセージを検索する."""
     messages = find_messages_usecase.execute_find_by_chat_id(chat_id)
 
-    return {
-        "data": [message.model_dump() for message in messages],
-        "total": len(messages),
-    }
-
-
-@router.get("/sender/{sender_id}", response_model=MessageListResponse)
-async def get_messages_by_sender_id(
-    sender_id: str = Path(..., description="メッセージを検索する送信者ID"),
-    find_messages_usecase: FindMessagesUseCase = Depends(get_find_messages_usecase),
-) -> dict[str, Any]:
-    """送信者IDでメッセージを検索する."""
-    messages = find_messages_usecase.execute_find_by_sender_id(sender_id)
-
-    return {
-        "data": [message.model_dump() for message in messages],
-        "total": len(messages),
-    }
+    return MessageListResponse(
+        messages=[MessageResponse(**message.model_dump()) for message in messages],
+        total=len(messages),
+    )
 
 
 @router.get("/id/{message_id}", response_model=MessageResponse)

@@ -21,6 +21,7 @@ from src.presentation.api.error_messages.chat_error_message import ChatErrorMess
 from src.presentation.api.schemas.chat_schema import (
     ChatCreateRequest,
     ChatResponse,
+    ChatsResponse,
     ChatUpdateTitleRequest,
 )
 from src.usecase.chat.create_chat_usecase import CreateChatUseCase
@@ -99,26 +100,28 @@ async def get_chat_by_id(
         )
 
 
-@router.get("/user/{user_id}", response_model=list[ChatResponse])
+@router.get("/user/{user_id}", response_model=ChatsResponse)
 async def get_chats_by_user_id(
     user_id: str,
     find_chats_by_user_id_usecase: FindChatsByUserIdUseCase = Depends(get_find_chats_by_user_id_usecase),
-):
+) -> ChatsResponse:
     """ユーザーIDに紐づくチャットをすべて取得する."""
     try:
         chats = find_chats_by_user_id_usecase.execute(UserId(value=user_id))
 
-        return [
-            ChatResponse(
-                id=chat.id.value,
-                user_id=chat.user_id.value,
-                title=chat.title.value if chat.title else None,
-                book_id=chat.book_id.value if chat.book_id else None,
-                created_at=chat.created_at,
-                updated_at=chat.updated_at,
-            )
-            for chat in chats
-        ]
+        return ChatsResponse(
+            chats=[
+                ChatResponse(
+                    id=chat.id.value,
+                    user_id=chat.user_id.value,
+                    title=chat.title.value if chat.title else None,
+                    book_id=chat.book_id.value if chat.book_id else None,
+                    created_at=chat.created_at,
+                    updated_at=chat.updated_at,
+                )
+                for chat in chats
+            ],
+        )
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,6 +1,5 @@
-import { fileToBase64 } from './fileUtils'
-import { TEST_USER_ID } from './pages/_app'
-import { components } from './lib/openapi-schema/schema'
+import { TEST_USER_ID } from '../../pages/_app'
+import { components } from '../openapi-schema/schema'
 
 export async function fetchAllBooks(): Promise<
   components['schemas']['BookDetail'][]

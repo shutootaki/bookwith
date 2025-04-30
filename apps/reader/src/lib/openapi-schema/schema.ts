@@ -48,26 +48,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/messages/sender/{sender_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Messages By Sender Id
-         * @description 送信者IDでメッセージを検索する.
-         */
-        get: operations["get_messages_by_sender_id_messages_sender__sender_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/messages/id/{message_id}": {
         parameters: {
             query?: never;
@@ -517,20 +497,12 @@ export interface components {
         };
         /** BookFileResponse */
         BookFileResponse: {
-            /** Success */
-            success: boolean;
             /** Url */
             url: string;
-            /** Message */
-            message?: string | null;
         };
         /** BookResponse */
         BookResponse: {
-            /** Success */
-            success: boolean;
-            data: components["schemas"]["BookDetail"];
-            /** Message */
-            message?: string | null;
+            bookDetail: components["schemas"]["BookDetail"];
         };
         /** BookUpdateRequest */
         BookUpdateRequest: {
@@ -587,14 +559,10 @@ export interface components {
         };
         /** BooksResponse */
         BooksResponse: {
-            /** Success */
-            success: boolean;
-            /** Data */
-            data: components["schemas"]["BookDetail"][];
+            /** Books */
+            books: components["schemas"]["BookDetail"][];
             /** Count */
             count: number;
-            /** Message */
-            message?: string | null;
         };
         /** BulkDeleteRequestBody */
         BulkDeleteRequestBody: {
@@ -603,14 +571,10 @@ export interface components {
         };
         /** BulkDeleteResponse */
         BulkDeleteResponse: {
-            /** Success */
-            success: boolean;
             /** Deletedids */
             deletedIds: string[];
             /** Count */
             count: number;
-            /** Message */
-            message?: string | null;
         };
         /** ChatCreateRequest */
         ChatCreateRequest: {
@@ -673,6 +637,28 @@ export interface components {
              */
             title: string;
         };
+        /** ChatsResponse */
+        ChatsResponse: {
+            /**
+             * Chats
+             * @description チャットリスト
+             */
+            chats: components["schemas"]["ChatResponse"][];
+        };
+        /** CoverData */
+        CoverData: {
+            /** Bookid */
+            bookId: string;
+            /** Name */
+            name: string;
+            /** Coverurl */
+            coverUrl: string;
+        };
+        /** CoversResponse */
+        CoversResponse: {
+            /** Covers */
+            covers: components["schemas"]["CoverData"][];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -727,8 +713,8 @@ export interface components {
          * @description メッセージリストレスポンスモデル.
          */
         MessageListResponse: {
-            /** Data */
-            data: components["schemas"]["MessageResponse"][];
+            /** Messages */
+            messages: components["schemas"]["MessageResponse"][];
             /** Total */
             total: number;
         };
@@ -775,10 +761,6 @@ export interface components {
         };
         /** RagProcessResponse */
         RagProcessResponse: {
-            /** Success */
-            success: boolean;
-            /** Message */
-            message?: string | null;
             /** Filename */
             fileName: string;
             /** Chunkcount */
@@ -887,38 +869,6 @@ export interface operations {
             path: {
                 /** @description メッセージを検索するチャットID */
                 chat_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MessageListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_messages_by_sender_id_messages_sender__sender_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description メッセージを検索する送信者ID */
-                sender_id: string;
             };
             cookie?: never;
         };
@@ -1179,7 +1129,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CoversResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1532,7 +1482,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChatResponse"][];
+                    "application/json": components["schemas"]["ChatsResponse"];
                 };
             };
             /** @description Validation Error */

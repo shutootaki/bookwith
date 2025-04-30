@@ -51,22 +51,16 @@ class BookDetail(BaseSchemaModel):
 
 
 class BookResponse(BaseSchemaModel):
-    success: bool
-    data: BookDetail
-    message: str | None = None
+    book_detail: BookDetail
 
 
 class BooksResponse(BaseSchemaModel):
-    success: bool
-    data: list[BookDetail]
+    books: list[BookDetail]
     count: int
-    message: str | None = None
 
 
 class BookFileResponse(BaseSchemaModel):
-    success: bool
     url: str
-    message: str | None = None
 
 
 class BulkDeleteRequestBody(BaseSchemaModel):
@@ -74,10 +68,8 @@ class BulkDeleteRequestBody(BaseSchemaModel):
 
 
 class BulkDeleteResponse(BaseSchemaModel):
-    success: bool
     deleted_ids: list[str]
     count: int
-    message: str | None = None
 
 
 class RagProcessResponse(BaseSchemaModel):
@@ -85,10 +77,17 @@ class RagProcessResponse(BaseSchemaModel):
         text: str
         metadata: dict[str, Any] = {}
 
-    success: bool
-    message: str | None = None
     file_name: str
     chunk_count: int
     user_id: str | None = None
     index_name: str | None = None
     chunks: list[RagChunk] | None = None
+
+
+class CoversResponse(BaseSchemaModel):
+    class CoverData(BaseSchemaModel):
+        book_id: str
+        name: str
+        cover_url: str
+
+    covers: list[CoverData]

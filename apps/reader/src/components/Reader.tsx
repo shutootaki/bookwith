@@ -17,7 +17,6 @@ import { useSnapshot } from 'valtio'
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 import { navbarState } from '@flow/reader/state'
 
-import { handleFiles } from '../file'
 import { useEventListener } from '../hooks'
 import {
   hasSelection,
@@ -28,6 +27,7 @@ import {
   useTranslation,
   useTypography,
 } from '../hooks'
+import { handleFiles } from '../lib/apiHandler/importHandlers'
 import { BookTab, reader, useReaderSnapshot } from '../models'
 import { isTouchScreen } from '../platform'
 import { updateCustomStyle } from '../styles'

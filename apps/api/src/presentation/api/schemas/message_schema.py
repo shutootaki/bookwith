@@ -52,7 +52,7 @@ class MessageResponse(BaseSchemaModel):
 class MessageListResponse(BaseSchemaModel):
     """メッセージリストレスポンスモデル."""
 
-    data: list[MessageResponse]
+    messages: list[MessageResponse]
     total: int
 
 

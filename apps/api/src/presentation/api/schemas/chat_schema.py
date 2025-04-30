@@ -22,3 +22,7 @@ class ChatResponse(BaseSchemaModel):
     book_id: str | None = Field(None, description="関連する本のID")
     created_at: datetime = Field(..., description="作成日時")
     updated_at: datetime = Field(..., description="更新日時")
+
+
+class ChatsResponse(BaseSchemaModel):
+    chats: list[ChatResponse] = Field(..., description="チャットリスト")

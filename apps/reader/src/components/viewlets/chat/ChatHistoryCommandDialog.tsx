@@ -3,9 +3,9 @@ import React, { useEffect, useState, useCallback } from 'react'
 
 import { useTranslation } from '@flow/reader/hooks'
 
+import { getUserChats } from '../../../lib/apiHandler/chatApiHandler'
+import { components } from '../../../lib/openapi-schema/schema'
 import { TEST_USER_ID } from '../../../pages/_app'
-import { chatService } from '../../../services/api/chatService'
-import { ChatResponse } from '../../../services/api/types'
 import {
   CommandDialog,
   CommandEmpty,
@@ -26,7 +26,9 @@ export const ChatHistoryCommandDialog: React.FC<
   ChatHistoryCommandDialogProps
 > = ({ open, onOpenChange, onSelectChat }) => {
   const t = useTranslation()
-  const [chatHistory, setChatHistory] = useState<ChatResponse[]>([])
+  const [chatHistory, setChatHistory] = useState<
+    components['schemas']['ChatResponse'][]
+  >([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -34,8 +36,8 @@ export const ChatHistoryCommandDialog: React.FC<
     setIsLoading(true)
     setError(null)
     try {
-      const chats = await chatService.getUserChats(TEST_USER_ID)
-      setChatHistory(chats)
+      const chats = await getUserChats(TEST_USER_ID)
+      setChatHistory(chats.chats)
     } catch {
       setError(t('chat.history_fetch_error'))
     } finally {
@@ -79,7 +81,7 @@ export const ChatHistoryCommandDialog: React.FC<
                 <div className="text-muted-foreground w-full text-xs">
                   <span>
                     {t('chat.created_at')}:{' '}
-                    {new Date(chat.updated_at).toLocaleString()}
+                    {new Date(chat.updatedAt).toLocaleString()}
                   </span>
                 </div>
               </CommandItem>

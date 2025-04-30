@@ -3,8 +3,8 @@ import { useSnapshot } from 'valtio'
 
 import { colorMap } from '../annotation'
 import { useSetAction } from '../hooks'
-import { BookTab, compareHref } from '../models'
 import { components } from '../lib/openapi-schema/schema'
+import { BookTab, compareHref } from '../models'
 
 // avoid click penetration
 let clickedAnnotation = false

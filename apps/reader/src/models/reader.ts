@@ -8,12 +8,13 @@ import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
-import { fileToEpub, getBookFile } from '../file'
+import { fileToEpub } from '../epub'
+import { getBookFile } from '../lib/apiHandler/bookApiHandler'
+import { components } from '../lib/openapi-schema/schema'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
 import { dfs, find, INode } from './tree'
-import { components } from '../lib/openapi-schema/schema'
 
 function updateIndex(array: any[], deletedItemIndex: number) {
   const last = array.length - 1

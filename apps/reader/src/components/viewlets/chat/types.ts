@@ -1,6 +1,8 @@
+import { components } from '../../../lib/openapi-schema/schema'
+
 export interface Message {
   text: string
-  sender_type: 'user' | 'assistant'
+  senderType: components['schemas']['SenderTypeEnum']
 }
 
 export interface TextAreaRefType {

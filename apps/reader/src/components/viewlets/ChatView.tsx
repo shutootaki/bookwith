@@ -5,8 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useTranslation } from '@flow/reader/hooks'
 
 import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeyword'
-import { chatService } from '../../services/api/chatService'
-import { MessageResponse } from '../../services/api/types'
+import { getChatMessages } from '../../lib/apiHandler/chatApiHandler'
 import { PaneViewProps, PaneView } from '../base'
 
 import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
@@ -41,11 +40,10 @@ export const ChatView: React.FC<PaneViewProps> = (props) => {
       setIsLoading(true)
       setSelectedChatId(chatId)
 
-      const chatMessages = await chatService.getChatMessages(chatId)
-
-      const uiMessages = chatMessages.map((msg: MessageResponse) => ({
+      const chatMessages = await getChatMessages(chatId)
+      const uiMessages = chatMessages.messages.map((msg) => ({
         text: msg.content,
-        sender_type: msg.sender_type,
+        senderType: msg.senderType,
       }))
 
       setMessages(uiMessages)

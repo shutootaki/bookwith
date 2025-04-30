@@ -28,7 +28,6 @@ import ImportProgress, {
   ImportProgressState,
 } from '../components/ImportProgress'
 import { Toaster } from '../components/ui/sonner'
-import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
 import { useBoolean } from '../hooks'
 import {
   useDisablePinchZooming,
@@ -37,11 +36,12 @@ import {
   useRemoteCovers,
   useTranslation,
 } from '../hooks'
-import { CoversResponse } from '../hooks/useLibrary'
+import { deleteBooksFromAPI } from '../lib/apiHandler/bookApiHandler'
+import { fetchBook, handleFiles } from '../lib/apiHandler/importHandlers'
+import { components } from '../lib/openapi-schema/schema'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { copy } from '../utils'
-import { components } from '../lib/openapi-schema/schema'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
@@ -460,7 +460,7 @@ const Library: React.FC = () => {
 
 interface BookProps {
   book: components['schemas']['BookDetail']
-  covers?: CoversResponse
+  covers: components['schemas']['CoversResponse']['covers']
   select?: boolean
   selected?: boolean
   loading?: boolean
@@ -477,8 +477,8 @@ const Book: React.FC<BookProps> = ({
   const router = useRouter()
   const mobile = useMobile()
 
-  const coverData = covers?.data?.find((c) => c.book_id === book.id)
-  const cover = coverData?.cover_url
+  const coverData = covers.find((c) => c.bookId === book.id)
+  const cover = coverData?.coverUrl
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
 
