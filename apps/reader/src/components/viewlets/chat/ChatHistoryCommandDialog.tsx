@@ -27,7 +27,7 @@ export const ChatHistoryCommandDialog: React.FC<
 > = ({ open, onOpenChange, onSelectChat }) => {
   const t = useTranslation()
   const [chatHistory, setChatHistory] = useState<
-    components['schemas']['ChatResponse'][]
+    components['schemas']['ChatsResponse']['chats']
   >([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

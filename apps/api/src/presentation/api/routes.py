@@ -8,8 +8,8 @@ from src.presentation.api.handlers.rag_api_route_handler import router as rag_ro
 
 
 def setup_routes(app: FastAPI) -> None:
-    app.include_router(message_router)
-    app.include_router(rag_router)
-    app.include_router(book_router)
-    app.include_router(annotation_router)
-    app.include_router(chat_router)
+    app.include_router(message_router, prefix="/messages", tags=["messages"])
+    app.include_router(rag_router, prefix="/rag", tags=["rag"])
+    app.include_router(book_router, prefix="/books", tags=["books"])
+    app.include_router(annotation_router, prefix="/books/{book_id}/annotations", tags=["annotations"])
+    app.include_router(chat_router, prefix="/chats", tags=["chats"])

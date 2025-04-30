@@ -20,7 +20,29 @@ from src.usecase.message.create_message_usecase import CreateMessageUseCase
 from src.usecase.message.delete_message_usecase import DeleteMessageUseCase
 from src.usecase.message.find_messages_usecase import FindMessagesUseCase
 
-router = APIRouter(prefix="/messages", tags=["messages"])
+router = APIRouter()
+
+
+@router.post("", status_code=status.HTTP_200_OK)
+async def stream_create_message(
+    message_create: MessageCreate,
+    create_message_usecase: CreateMessageUseCase = Depends(get_create_message_usecase),
+) -> StreamingResponse:
+    """新しいメッセージを作成し、AI の応答をストリーミングで返す."""
+    try:
+        response_stream = create_message_usecase.execute(
+            content=message_create.content,
+            sender_id=message_create.sender_id,
+            chat_id=message_create.chat_id,
+            book_id=message_create.book_id,
+            metadata=message_create.metadata,
+        )
+        return StreamingResponse(response_stream, media_type="text/event-stream")  # type: ignore
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"{MessageErrorMessage.MESSAGE_CREATE_FAILED} {str(e)}",
+        )
 
 
 @router.get("/{chat_id}", response_model=MessageListResponse)
@@ -46,28 +68,6 @@ async def get_messages_by_chat_id(
         ],
         total=len(messages),
     )
-
-
-@router.post("", status_code=status.HTTP_200_OK)
-async def stream_create_message(
-    message_create: MessageCreate,
-    create_message_usecase: CreateMessageUseCase = Depends(get_create_message_usecase),
-) -> StreamingResponse:
-    """新しいメッセージを作成し、AI の応答をストリーミングで返す."""
-    try:
-        response_stream = create_message_usecase.execute(
-            content=message_create.content,
-            sender_id=message_create.sender_id,
-            chat_id=message_create.chat_id,
-            book_id=message_create.book_id,
-            metadata=message_create.metadata,
-        )
-        return StreamingResponse(response_stream, media_type="text/event-stream")  # type: ignore
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"{MessageErrorMessage.MESSAGE_CREATE_FAILED} {str(e)}",
-        )
 
 
 @router.delete("/{message_id}", status_code=status.HTTP_200_OK)

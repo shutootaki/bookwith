@@ -10,7 +10,7 @@ import { fetcher } from './fetcher'
  */
 export const useGetUserChats = (userId: string | null) => {
   const { data, error, isValidating, mutate } = useSWR<
-    components['schemas']['ChatResponse'][]
+    components['schemas']['ChatsResponse']
   >(
     // userId が null でない場合のみ fetch する
     userId

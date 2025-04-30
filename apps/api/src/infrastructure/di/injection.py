@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from src.db import get_db
+from src.config.db import get_db
 from src.domain.annotation.repositories.annotation_repository import AnnotationRepository
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository

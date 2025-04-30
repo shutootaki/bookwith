@@ -4,8 +4,7 @@ from src.infrastructure.di.injection import get_sync_annotations_usecase
 from src.presentation.api.schemas.book_schema import BookUpdateRequest
 from src.usecase.annotation.update_annotation_use_case import SyncAnnotationsUseCase
 
-# Router configuration
-router = APIRouter(prefix="/books/{book_id}/annotations", tags=["annotations"])
+router = APIRouter()
 
 
 @router.put("", status_code=status.HTTP_204_NO_CONTENT)

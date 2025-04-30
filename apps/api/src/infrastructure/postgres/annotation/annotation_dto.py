@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db import Base
+from src.config.db import Base
 from src.domain.annotation.entities.annotation import Annotation
 from src.domain.annotation.value_objects.annotation_color import AnnotationColorEnum
 from src.domain.annotation.value_objects.annotation_type import AnnotationTypeEnum

@@ -1,3 +1,4 @@
+import { TEST_USER_ID } from '../../pages/_app'
 import { components } from '../openapi-schema/schema'
 
 import { apiClient } from './apiClient'
@@ -16,9 +17,12 @@ type BookDetail = components['schemas']['BookDetail']
  */
 export async function fetchAllBooks(): Promise<BookDetail[]> {
   try {
-    const responseData = await apiClient<BooksResponse>('/books', {
-      method: 'GET',
-    })
+    const responseData = await apiClient<BooksResponse>(
+      `/books/user/${TEST_USER_ID}`,
+      {
+        method: 'GET',
+      },
+    )
     return responseData?.books || []
   } catch (error) {
     console.error('Error fetching all books:', error)

@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db import Base
+from src.config.db import Base
 from src.infrastructure.postgres.db_util import TimestampMixin
 
 if TYPE_CHECKING:
