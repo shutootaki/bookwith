@@ -52,7 +52,7 @@
     "jszip": "^3.10.1",
     "langchain": "^0.3.19",
     "lucide-react": "^0.475.0",
-    "next": "15.2.4",
+    "next": "15.3.1",
     "next-seo": "5.4.0",
     "next-themes": "^0.4.6",
     "nookies": "^2.5.2",
@@ -84,10 +84,12 @@
     "@types/react": "19.1.0",
     "@types/uuid": "^8.3.4",
     "autoprefixer": "10.4.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "next-pwa": "5.6.0",
     "postcss": "8.4.12",
     "tailwindcss": "3.2.0",
-    "type-fest": "2.12.2"
+    "type-fest": "2.12.2",
+    "typescript-eslint": "^8.31.1"
   },
   "pnpm": {
     "overrides": {
