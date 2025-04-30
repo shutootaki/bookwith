@@ -19,6 +19,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ErrorBoundary fallback={<Fallback />}>
+      {/* @ts-ignore */}
       <LiteralProvider>
         <Theme />
         <Layout>

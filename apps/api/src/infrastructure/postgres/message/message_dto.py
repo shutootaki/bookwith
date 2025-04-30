@@ -5,7 +5,7 @@ from sqlalchemy import JSON, DateTime, ForeignKey, String
 from sqlalchemy import Enum as SQLAlchemyEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db import Base
+from src.config.db import Base
 from src.domain.message.entities.message import Message
 from src.domain.message.value_objects.message_content import MessageContent
 from src.domain.message.value_objects.message_id import MessageId

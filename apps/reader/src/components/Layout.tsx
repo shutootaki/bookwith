@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useAtom } from 'jotai'
 import { ComponentProps, PropsWithChildren, useEffect, useState } from 'react'
 import { useMemo } from 'react'
 import { IconType } from 'react-icons'
@@ -12,7 +13,6 @@ import {
   MdChat,
 } from 'react-icons/md'
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
-import { useAtom } from 'jotai'
 
 import {
   Env,
@@ -253,8 +253,7 @@ function NavigationBar() {
   )
 }
 
-interface ActionBarProps extends ComponentProps<'ul'> {}
-function ActionBar({ className, ...props }: ActionBarProps) {
+function ActionBar({ className, ...props }: ComponentProps<'ul'>) {
   return (
     <ul className={clsx('ActionBar flex sm:flex-col', className)} {...props} />
   )
@@ -332,8 +331,7 @@ const SideBar: React.FC = () => {
   )
 }
 
-interface ReaderProps extends ComponentProps<'div'> {}
-const Reader: React.FC<PropsWithChildren<ReaderProps>> = ({
+const Reader: React.FC<PropsWithChildren<ComponentProps<'div'>>> = ({
   className,
   ...props
 }) => {

@@ -1,5 +1,5 @@
 from src.config.app_config import TEST_USER_ID
-from src.db import SessionLocal
+from src.config.db import SessionLocal
 from src.infrastructure.postgres.user.user_dto import UserDTO
 
 # ※ 初回のみ、テーブル作成を実行（すでにテーブルが存在する場合は不要）

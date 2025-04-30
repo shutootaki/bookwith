@@ -10,6 +10,7 @@ import {
 } from 'react-icons/md'
 import { useSet } from 'react-use'
 import { toast } from 'sonner'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +27,7 @@ import { ReaderGridView, Button, TextField, DropZone } from '../components'
 import ImportProgress, {
   ImportProgressState,
 } from '../components/ImportProgress'
-import { fetchBook, handleFiles, deleteBooksFromAPI } from '../file'
+import { Toaster } from '../components/ui/sonner'
 import { useBoolean } from '../hooks'
 import {
   useDisablePinchZooming,
@@ -35,11 +36,12 @@ import {
   useRemoteCovers,
   useTranslation,
 } from '../hooks'
-import { BookDetail, CoversResponse } from '../hooks/useLibrary'
+import { deleteBooksFromAPI } from '../lib/apiHandler/bookApiHandler'
+import { fetchBook, handleFiles } from '../lib/apiHandler/importHandlers'
+import { components } from '../lib/openapi-schema/schema'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { copy } from '../utils'
-import { Toaster } from '../components/ui/sonner'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
@@ -457,8 +459,8 @@ const Library: React.FC = () => {
 }
 
 interface BookProps {
-  book: BookDetail
-  covers?: CoversResponse
+  book: components['schemas']['BookDetail']
+  covers: components['schemas']['CoversResponse']['covers']
   select?: boolean
   selected?: boolean
   loading?: boolean
@@ -475,8 +477,8 @@ const Book: React.FC<BookProps> = ({
   const router = useRouter()
   const mobile = useMobile()
 
-  const coverData = covers?.data?.find((c) => c.book_id === book.id)
-  const cover = coverData?.cover_url
+  const coverData = covers.find((c) => c.bookId === book.id)
+  const cover = coverData?.coverUrl
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
 
@@ -532,7 +534,9 @@ const Book: React.FC<BookProps> = ({
         className="line-clamp-2 text-on-surface-variant typescale-body-small lg:typescale-body-medium mt-2 w-full"
         title={book.name}
       >
-        {book.book_metadata.title || book.name}
+        {typeof book.bookMetadata?.title === 'string' && book.bookMetadata.title
+          ? book.bookMetadata.title
+          : book.name}
       </div>
     </div>
   )

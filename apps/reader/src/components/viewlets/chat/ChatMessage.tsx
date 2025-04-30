@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import React, { useState } from 'react'
+
 import { FormattedText } from '../../FormattedText'
 import { Button } from '../../ui/button'
+
 import { Message } from './types'
 
 interface ChatMessageProps {
@@ -21,7 +23,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     }
   }
 
-  return message.sender_type === 'user' ? (
+  return message.senderType === 'user' ? (
     <div className="flex justify-end">
       <div className="max-w-[80%]">
         <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">

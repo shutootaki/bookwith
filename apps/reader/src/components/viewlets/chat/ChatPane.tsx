@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useRef } from 'react'
 import { Loader } from 'lucide-react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+
+import { useTranslation } from '@flow/reader/hooks'
+
 import { useReaderSnapshot } from '../../../models'
-import { ChatMessage } from './ChatMessage'
+import { TEST_USER_ID } from '../../../pages/_app'
+
 import { ChatInputForm } from './ChatInputForm'
+import { ChatMessage } from './ChatMessage'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
-import { useTranslation } from '@flow/reader/hooks'
-import { TEST_USER_ID } from '../../../pages/_app'
 
 interface ChatPaneProps {
   messages: Message[]
@@ -36,53 +39,23 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  const updateAssistantMessage = useCallback(
+    (content: string) => {
+      setMessages((prev) => {
+        const messagesSnapshot = [...prev]
+        const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
+        if (lastMessage?.senderType === 'assistant') {
+          lastMessage.text = content
+        }
+        return messagesSnapshot
+      })
+    },
+    [setMessages],
+  )
+
   useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
-
-  const handleSend = useCallback(
-    async (e: React.FormEvent | React.KeyboardEvent) => {
-      e.preventDefault()
-      if (!text.trim() || isLoading) return
-
-      const trimmedText = text.trim()
-
-      setMessages((prev) => [
-        ...prev,
-        { sender_type: 'user', text: trimmedText },
-      ])
-      setText('')
-      setIsLoading(true)
-
-      setMessages((prev) => [...prev, { sender_type: 'assistant', text: '' }])
-
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: trimmedText,
-              chat_id: chatId || uuidv4(),
-              sender_id: TEST_USER_ID,
-              book_id: focusedBookTab?.book.id,
-              metadata: {},
-            }),
-          },
-        )
-
-        if (!response.ok || !response.body) throw new Error(t('chat.error'))
-
-        await processStream(response.body)
-      } catch (error) {
-        updateAssistantMessage(t('chat.error'))
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [text, isLoading, chatId, focusedBookTab, t, scrollToBottom],
-  )
 
   const processStream = useCallback(
     async (stream: ReadableStream) => {
@@ -106,19 +79,63 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         throw error
       }
     },
-    [scrollToBottom],
+    [scrollToBottom, updateAssistantMessage],
   )
 
-  const updateAssistantMessage = useCallback((content: string) => {
-    setMessages((prev) => {
-      const messagesSnapshot = [...prev]
-      const lastMessage = messagesSnapshot[messagesSnapshot.length - 1]
-      if (lastMessage?.sender_type === 'assistant') {
-        lastMessage.text = content
+  const handleSend = useCallback(
+    async (e: React.FormEvent | React.KeyboardEvent) => {
+      e.preventDefault()
+      if (!text.trim() || isLoading) return
+
+      const trimmedText = text.trim()
+
+      setMessages((prev) => [
+        ...prev,
+        { senderType: 'user', text: trimmedText },
+      ])
+      setText('')
+      setIsLoading(true)
+
+      setMessages((prev) => [...prev, { senderType: 'assistant', text: '' }])
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/messages`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: trimmedText,
+              chat_id: chatId || uuidv4(),
+              sender_id: TEST_USER_ID,
+              book_id: focusedBookTab?.book.id,
+              metadata: {},
+            }),
+          },
+        )
+
+        if (!response.ok || !response.body) throw new Error(t('chat.error'))
+
+        await processStream(response.body)
+      } catch {
+        updateAssistantMessage(t('chat.error'))
+      } finally {
+        setIsLoading(false)
       }
-      return messagesSnapshot
-    })
-  }, [])
+    },
+    [
+      text,
+      isLoading,
+      chatId,
+      focusedBookTab,
+      t,
+      updateAssistantMessage,
+      setMessages,
+      setText,
+      setIsLoading,
+      processStream,
+    ],
+  )
 
   return (
     <div className="mx-auto flex h-full w-full max-w-4xl flex-col">

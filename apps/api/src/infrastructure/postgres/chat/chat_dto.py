@@ -8,7 +8,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db import Base
+from src.config.db import Base
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_id import ChatId

@@ -36,7 +36,6 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
 function GoogleTagManager() {
   if (!GTM_ID) return null
   return (
-    // eslint-disable-next-line @next/next/next-script-for-ga
     <script
       dangerouslySetInnerHTML={{
         __html: `

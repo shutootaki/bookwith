@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
+
+import { useTranslation } from '../hooks'
+
 import { Progress } from './ui/progress'
 import { CircularProgress } from './ui/spinner'
-import { useTranslation } from '../hooks'
 
 export interface ImportProgressState {
   total: number

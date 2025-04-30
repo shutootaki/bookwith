@@ -10,10 +10,10 @@ import {
   reader,
 } from '@flow/reader/models'
 
+import { useIntermediateKeyword } from '../../hooks/useIntermediateKeyword'
 import { TextField } from '../Form'
 import { Row } from '../Row'
 import { PaneViewProps, PaneView } from '../base'
-import { useIntermediateKeyword } from '../../hooks/useIntermediateKeyword'
 
 export const SearchView: React.FC<PaneViewProps> = (props) => {
   const [action] = useAction()
@@ -50,7 +50,9 @@ export const SearchView: React.FC<PaneViewProps> = (props) => {
             hideLabel
             value={keyword}
             placeholder={t('search.title')}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setKeyword(e.target.value)
+            }}
             onClear={() => setKeyword('')}
           />
         </div>

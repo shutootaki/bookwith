@@ -16,7 +16,6 @@ from src.infrastructure.di.injection import (
     get_delete_book_usecase,
     get_find_book_by_id_usecase,
     get_find_books_by_user_id_usecase,
-    get_find_books_usecase,
     get_update_book_usecase,
 )
 from src.infrastructure.external.gcs import GCSClient
@@ -26,7 +25,6 @@ from src.presentation.api.error_messages.book_error_message import (
     BOOK_ALREADY_STARTED,
     BOOK_BULK_DELETE_ERROR,
     BOOK_COVER_FETCH_ERROR,
-    BOOK_COVER_NOT_FOUND,
     BOOK_CREATE_ERROR,
     BOOK_DELETE_ERROR,
     BOOK_FILE_NOT_FOUND,
@@ -43,6 +41,7 @@ from src.presentation.api.schemas.book_schema import (
     BookUpdateRequest,
     BulkDeleteRequestBody,
     BulkDeleteResponse,
+    CoversResponse,
 )
 from src.usecase.book.create_book_usecase import CreateBookUseCase
 from src.usecase.book.delete_book_usecase import (
@@ -52,15 +51,12 @@ from src.usecase.book.delete_book_usecase import (
 from src.usecase.book.find_book_by_id_usecase import FindBookByIdUseCase
 from src.usecase.book.find_books_usecase import (
     FindBooksByUserIdUseCase,
-    FindBooksUseCase,
 )
 from src.usecase.book.update_book_usecase import UpdateBookUseCase
 
-# Router configuration
-router = APIRouter(prefix="/books", tags=["book"])
+router = APIRouter()
 
 
-# Error handling utility function
 def handle_domain_exception(e: Exception) -> HTTPException:
     if isinstance(e, BookNotFoundException):
         return HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
@@ -77,16 +73,29 @@ def handle_domain_exception(e: Exception) -> HTTPException:
     return HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("", response_model=BooksResponse)
-async def get_books(
-    find_books_usecase: FindBooksUseCase = Depends(get_find_books_usecase),
+@router.post("", response_model=BookResponse)
+async def post_book(
+    body: BookCreateRequest,
+    create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
 ):
     try:
-        books = find_books_usecase.execute()
-        book_details = [BookDetail(**book.model_dump(mode="json")) for book in books]
-        return BooksResponse(success=True, data=book_details, count=len(book_details))
+        book = create_book_usecase.execute(
+            user_id=body.user_id,
+            file_name=body.file_name,
+            file_data=body.file_data,
+            book_name=body.book_name,
+            cover_image=body.cover_image,
+            book_metadata=body.book_metadata,
+        )
+
+        return BookResponse(book_detail=BookDetail(**book.model_dump(mode="json")))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise handle_domain_exception(e)
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_CREATE_ERROR.format(error=str(e)),
+        )
 
 
 @router.get("/user/{user_id}", response_model=BooksResponse)
@@ -97,16 +106,16 @@ async def get_books_by_user(
     try:
         books = find_books_by_user_id_usecase.execute(user_id)
         book_details = [BookDetail(**book.model_dump(mode="json")) for book in books]
-        return BooksResponse(success=True, data=book_details, count=len(book_details))
+        return BooksResponse(books=book_details, count=len(book_details))
     except Exception as e:
         raise handle_domain_exception(e)
 
 
-@router.get("/covers")
+@router.get("/covers", response_model=CoversResponse)
 async def get_covers(
     user_id: str = TEST_USER_ID,
     find_books_by_user_id_usecase: FindBooksByUserIdUseCase = Depends(get_find_books_by_user_id_usecase),
-):
+) -> CoversResponse:
     try:
         books = find_books_by_user_id_usecase.execute(user_id)
         gcs_client = GCSClient()
@@ -132,26 +141,11 @@ async def get_covers(
                 }
             )
 
-        return {"success": True, "data": book_covers}
+        return CoversResponse(covers=[CoversResponse.CoverData(**book_cover) for book_cover in book_covers])
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=BOOK_COVER_FETCH_ERROR.format(error=str(e)),
-        )
-
-
-@router.delete("/bulk-delete", response_model=BulkDeleteResponse)
-async def bulk_delete_books_endpoint(
-    body: BulkDeleteRequestBody,
-    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
-):
-    try:
-        deleted_ids = bulk_delete_books_usecase.execute(body.book_ids)
-        return BulkDeleteResponse(success=True, deleted_ids=deleted_ids, count=len(deleted_ids))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=BOOK_BULK_DELETE_ERROR.format(error=str(e)),
         )
 
 
@@ -162,51 +156,9 @@ async def get_book(
 ):
     try:
         book = find_book_by_id_usecase.execute(book_id)
-        return BookResponse(success=True, data=BookDetail(**book.model_dump(mode="json")))
+        return BookResponse(book_detail=BookDetail(**book.model_dump(mode="json")))
     except Exception as e:
         raise handle_domain_exception(e)
-
-
-@router.get("/{book_id}/cover")
-async def get_book_cover(
-    book_id: str,
-    user_id: str,
-    find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
-):
-    try:
-        book = find_book_by_id_usecase.execute(book_id)
-
-        if not book.cover_path:
-            raise HTTPException(status_code=404, detail=BOOK_COVER_NOT_FOUND)
-
-        # Ownership verification
-        if book.user_id != user_id:
-            raise BookPermissionDeniedException
-
-        gcs_client = GCSClient()
-
-        if gcs_client.use_emulator:
-            # Return direct URL in emulator environment
-            return JSONResponse(content={"cover_path": book.cover_path})
-        # Generate signed URL in production environment
-        path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
-
-        # Generate signed URL
-        bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
-        blob = bucket.blob(path)
-        signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
-
-        return JSONResponse(content={"cover_path": signed_url})
-
-    except BookPermissionDeniedException:
-        raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
-    except BookNotFoundException:
-        raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
-        )
 
 
 @router.get("/{book_id}/file", response_model=BookFileResponse)
@@ -228,7 +180,7 @@ async def get_book_file(
         gcs_client = GCSClient()
 
         if gcs_client.use_emulator:
-            return BookFileResponse(success=True, url=book.file_path)
+            return BookFileResponse(url=book.file_path)
         path = book.file_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
 
         # Generate signed URL
@@ -236,7 +188,7 @@ async def get_book_file(
         blob = bucket.blob(path)
         signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
 
-        return BookFileResponse(success=True, url=signed_url)
+        return BookFileResponse(url=signed_url)
 
     except BookFileNotFoundException:
         raise HTTPException(status_code=404, detail=BOOK_FILE_NOT_FOUND)
@@ -248,35 +200,6 @@ async def get_book_file(
         raise HTTPException(
             status_code=500,
             detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
-        )
-
-
-@router.post("", response_model=BookResponse)
-async def post_book(
-    body: BookCreateRequest,
-    create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
-):
-    try:
-        book = create_book_usecase.execute(
-            user_id=body.user_id,
-            file_name=body.file_name,
-            file_data=body.file_data,
-            book_name=body.book_name,
-            cover_image=body.cover_image,
-            book_metadata=body.book_metadata,
-        )
-
-        return BookResponse(
-            success=True,
-            data=BookDetail(**book.model_dump(mode="json")),
-            message="Book successfully added",
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=BOOK_CREATE_ERROR.format(error=str(e)),
         )
 
 
@@ -299,11 +222,7 @@ async def put_book(
             configuration=changes.configuration,
         )
 
-        return BookResponse(
-            success=True,
-            data=BookDetail(**book.model_dump(mode="json")),
-            message="Book successfully updated",
-        )
+        return BookResponse(book_detail=BookDetail(**book.model_dump(mode="json")))
     except BookNotFoundException:
         raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
     except ValueError as e:
@@ -335,3 +254,60 @@ async def delete_book(
             status_code=500,
             detail=BOOK_DELETE_ERROR.format(error=str(e)),
         )
+
+
+@router.delete("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_books_endpoint(
+    body: BulkDeleteRequestBody,
+    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
+):
+    try:
+        deleted_ids = bulk_delete_books_usecase.execute(body.book_ids)
+        return BulkDeleteResponse(deleted_ids=deleted_ids, count=len(deleted_ids))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_BULK_DELETE_ERROR.format(error=str(e)),
+        )
+
+
+# @router.get("/{book_id}/cover")
+# async def get_book_cover(
+#     book_id: str,
+#     user_id: str,
+#     find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
+# ):
+#     try:
+#         book = find_book_by_id_usecase.execute(book_id)
+
+#         if not book.cover_path:
+#             raise HTTPException(status_code=404, detail=BOOK_COVER_NOT_FOUND)
+
+#         # Ownership verification
+#         if book.user_id != user_id:
+#             raise BookPermissionDeniedException
+
+#         gcs_client = GCSClient()
+
+#         if gcs_client.use_emulator:
+#             # Return direct URL in emulator environment
+#             return JSONResponse(content={"cover_path": book.cover_path})
+#         # Generate signed URL in production environment
+#         path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
+
+#         # Generate signed URL
+#         bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
+#         blob = bucket.blob(path)
+#         signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
+
+#         return JSONResponse(content={"cover_path": signed_url})
+
+#     except BookPermissionDeniedException:
+#         raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
+#     except BookNotFoundException:
+#         raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=500,
+#             detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
+#         )

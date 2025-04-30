@@ -11,10 +11,10 @@ from src.usecase.book.create_book_vector_index_usecase import CreateBookVectorIn
 router = APIRouter()
 
 
-@router.post("/rag", response_model=RagProcessResponse)
+@router.post("", response_model=RagProcessResponse)
 async def upload_and_process_rag(
     user_id: str = Form(...),
-    file: UploadFile = File(...),
+    file: UploadFile = File(...),  # noqa: B008
     usecase: CreateBookVectorIndexUseCase = Depends(get_create_book_vector_index_usecase),
 ):
     try:

@@ -1,12 +1,14 @@
+from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
 from src.config.app_config import TEST_USER_ID
 from src.presentation.api.schemas.annotation_schema import AnnotationSchema
+from src.presentation.api.schemas.base_schema import BaseSchemaModel
 
 
-class BookCreateRequest(BaseModel):
+class BookCreateRequest(BaseSchemaModel):
     user_id: str = Field(..., description="User ID")
     file_data: str = Field(..., description="Base64 encoded file data")
     file_name: str = Field(..., description="File name")
@@ -16,7 +18,7 @@ class BookCreateRequest(BaseModel):
     book_metadata: str | None = Field(None, description="Book metadata (JSON string)")
 
 
-class BookUpdateRequest(BaseModel):
+class BookUpdateRequest(BaseSchemaModel):
     user_id: str = Field(TEST_USER_ID, description="User ID")
     name: str | None = Field(None, description="Book name")
     author: str | None = Field(None, description="Author name")
@@ -28,7 +30,7 @@ class BookUpdateRequest(BaseModel):
     configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
 
 
-class BookDetail(BaseModel):
+class BookDetail(BaseSchemaModel):
     id: str
     annotations: list[AnnotationSchema] | None = None
     author: str | None = None
@@ -42,51 +44,50 @@ class BookDetail(BaseModel):
     percentage: float = 0
     size: int
     user_id: str | None = None
-    created_at: Any
-    updated_at: Any
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class BookResponse(BaseModel):
-    success: bool
-    data: BookDetail
-    message: str | None = None
+class BookResponse(BaseSchemaModel):
+    book_detail: BookDetail
 
 
-class BooksResponse(BaseModel):
-    success: bool
-    data: list[BookDetail]
+class BooksResponse(BaseSchemaModel):
+    books: list[BookDetail]
     count: int
-    message: str | None = None
 
 
-class BookFileResponse(BaseModel):
-    success: bool
+class BookFileResponse(BaseSchemaModel):
     url: str
-    message: str | None = None
 
 
-class BulkDeleteRequestBody(BaseModel):
+class BulkDeleteRequestBody(BaseSchemaModel):
     book_ids: list[str]
 
 
-class BulkDeleteResponse(BaseModel):
-    success: bool
+class BulkDeleteResponse(BaseSchemaModel):
     deleted_ids: list[str]
     count: int
-    message: str | None = None
 
 
-class RagProcessResponse(BaseModel):
-    class RagChunk(BaseModel):
+class RagProcessResponse(BaseSchemaModel):
+    class RagChunk(BaseSchemaModel):
         text: str
         metadata: dict[str, Any] = {}
 
-    success: bool
-    message: str | None = None
     file_name: str
     chunk_count: int
     user_id: str | None = None
     index_name: str | None = None
     chunks: list[RagChunk] | None = None
+
+
+class CoversResponse(BaseSchemaModel):
+    class CoverData(BaseSchemaModel):
+        book_id: str
+        name: str
+        cover_url: str
+
+    covers: list[CoverData]

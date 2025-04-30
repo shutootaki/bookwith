@@ -6,6 +6,7 @@ import { PaneView, PaneViewProps } from '../base'
 
 export const ImageView: React.FC<PaneViewProps> = (props) => {
   const { focusedBookTab } = useReaderSnapshot()
+  // @ts-ignore
   const sections = focusedBookTab?.sections?.filter((s) => s.images.length) as
     | ISection[]
     | undefined

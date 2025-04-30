@@ -104,7 +104,7 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
         <div
           className="absolute inset-0 z-10"
           onDragOver={handleDragover}
-          onDragLeave={(e) => {
+          onDragLeave={() => {
             setDragEvent()
           }}
           onDrop={(e) => {

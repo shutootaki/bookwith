@@ -1,12 +1,12 @@
 import Dexie from 'dexie'
 import { useRouter } from 'next/router'
+import { PropsWithChildren } from 'react'
 
 import { ColorScheme, useColorScheme, useTranslation } from '@flow/reader/hooks'
 
 import { Button } from '../Button'
 import { Select } from '../Form'
 import { Page } from '../Page'
-import { PropsWithChildren } from 'react'
 
 export const Settings: React.FC = () => {
   const { scheme, setScheme } = useColorScheme()

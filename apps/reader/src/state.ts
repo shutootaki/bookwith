@@ -3,8 +3,6 @@ import { atomWithStorage } from 'jotai/utils'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
 
-import { IS_SERVER } from './utils'
-
 export const navbarState = atom<boolean>(false)
 
 export interface Settings extends TypographyConfiguration {

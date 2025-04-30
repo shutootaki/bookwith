@@ -1,5 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import { Loader, MessageSquare } from 'lucide-react'
+import React, { useEffect, useState, useCallback } from 'react'
+
 import { useTranslation } from '@flow/reader/hooks'
+
+import { getUserChats } from '../../../lib/apiHandler/chatApiHandler'
+import { components } from '../../../lib/openapi-schema/schema'
+import { TEST_USER_ID } from '../../../pages/_app'
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,11 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from '../../ui/command'
-import { chatService } from '../../../services/api/chatService'
-import { ChatResponse } from '../../../services/api/types'
-import { TEST_USER_ID } from '../../../pages/_app'
-import { Loader, MessageSquare } from 'lucide-react'
-import { DialogTitle, DialogDescription } from '../../ui/dialog'
+import { DialogTitle } from '../../ui/dialog'
 
 interface ChatHistoryCommandDialogProps {
   open: boolean
@@ -24,28 +26,30 @@ export const ChatHistoryCommandDialog: React.FC<
   ChatHistoryCommandDialogProps
 > = ({ open, onOpenChange, onSelectChat }) => {
   const t = useTranslation()
-  const [chatHistory, setChatHistory] = useState<ChatResponse[]>([])
+  const [chatHistory, setChatHistory] = useState<
+    components['schemas']['ChatsResponse']['chats']
+  >([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const fetchChatHistory = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const chats = await getUserChats(TEST_USER_ID)
+      setChatHistory(chats.chats)
+    } catch {
+      setError(t('chat.history_fetch_error'))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [t])
 
   useEffect(() => {
     if (open) {
       fetchChatHistory()
     }
-  }, [open])
-
-  const fetchChatHistory = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const chats = await chatService.getUserChats(TEST_USER_ID)
-      setChatHistory(chats)
-    } catch (err) {
-      setError(t('chat.history_fetch_error'))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [open, fetchChatHistory])
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
@@ -77,7 +81,7 @@ export const ChatHistoryCommandDialog: React.FC<
                 <div className="text-muted-foreground w-full text-xs">
                   <span>
                     {t('chat.created_at')}:{' '}
-                    {new Date(chat.updated_at).toLocaleString()}
+                    {new Date(chat.updatedAt).toLocaleString()}
                   </span>
                 </div>
               </CommandItem>

@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from src.db import get_db
+from src.config.db import get_db
 from src.domain.annotation.repositories.annotation_repository import AnnotationRepository
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
@@ -81,6 +81,10 @@ from src.usecase.message.find_messages_usecase import (
     FindMessagesUseCaseImpl,
 )
 
+# ==============================================================================
+# Book
+# ==============================================================================
+
 
 def get_book_repository(db: Session = Depends(get_db)) -> BookRepository:
     return BookRepositoryImpl(session=db, memory_service=MemoryService())
@@ -128,6 +132,20 @@ def get_bulk_delete_books_usecase(
     return BulkDeleteBooksUseCaseImpl(book_repository, memory_service=MemoryService())
 
 
+# ==============================================================================
+# Vector Index (Related to Book)
+# ==============================================================================
+
+
+def get_create_book_vector_index_usecase() -> CreateBookVectorIndexUseCase:
+    return CreateBookVectorIndexUseCaseImpl()
+
+
+# ==============================================================================
+# Chat
+# ==============================================================================
+
+
 def get_chat_repository(db: Session = Depends(get_db)) -> ChatRepository:
     return ChatRepositoryImpl(db)
 
@@ -168,8 +186,9 @@ def get_delete_chat_usecase(
     return DeleteChatUseCaseImpl(chat_repository)
 
 
-def get_create_book_vector_index_usecase() -> CreateBookVectorIndexUseCase:
-    return CreateBookVectorIndexUseCaseImpl()
+# ==============================================================================
+# Message
+# ==============================================================================
 
 
 def get_message_repository(db: Session = Depends(get_db)) -> MessageRepository:
@@ -203,6 +222,11 @@ def get_delete_message_usecase(
     message_repository: MessageRepository = Depends(get_message_repository),
 ) -> DeleteMessageUseCase:
     return DeleteMessageUseCaseImpl(message_repository)
+
+
+# ==============================================================================
+# Annotation
+# ==============================================================================
 
 
 def get_annotation_repository(db: Session = Depends(get_db)) -> AnnotationRepository:

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from src.db import get_db, init_db
+from src.config.db import get_db, init_db
 from src.presentation.api import setup_routes
 from src.presentation.api.error_messages.error_handlers import setup_exception_handlers
 

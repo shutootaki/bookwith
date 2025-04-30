@@ -4,7 +4,7 @@ import { useEventListener } from './useEventListener'
 
 export function usePress(target: React.RefObject<HTMLElement | null> | null) {
   const [pressed, setPressed] = useState(false)
-  useEventListener(target, 'mousedown', () => {
+  useEventListener(target?.current, 'mousedown', () => {
     setPressed(true)
   })
   useEventListener('mouseup', () => {
