@@ -77,11 +77,11 @@ async def get_messages_by_sender_id(
 async def get_message(
     message_id: str = Path(..., description="取得するメッセージID"),
     find_message_usecase: FindMessageByIdUseCase = Depends(get_find_message_by_id_usecase),
-) -> dict[str, Any]:
+) -> MessageResponse:
     """IDでメッセージを取得する."""
     try:
         message = find_message_usecase.execute(message_id)
-        return message.model_dump()
+        return MessageResponse(**message.model_dump())
     except MessageNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
