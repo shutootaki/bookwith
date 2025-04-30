@@ -2,10 +2,10 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { createBook, fetchAllBooks } from './bookApi'
 import { fileToEpub, indexEpub } from './epub'
-import { toDataUrl } from './fileUtils'
+import { fileToBase64, toDataUrl } from './fileUtils'
 import { mapExtToMimes } from './mime'
 import { TEST_USER_ID } from './pages/_app'
-import { unpack } from './sync'
+import { components } from './lib/openapi-schema/schema'
 
 export async function addBook(
   file: File,
@@ -24,19 +24,17 @@ export async function addBook(
       coverDataUrl = await toDataUrl(coverUrl)
     }
 
-    const bookData = await createBook(
-      file,
-      {
-        id: tempBookId,
-        name: file.name || `${metadata.title}.epub`,
-        size: file.size,
-        metadata,
-        createdAt: Date.now(),
-        definitions: [],
-        annotations: [],
-      },
-      coverDataUrl,
-    )
+    const bookRequest: components['schemas']['BookCreateRequest'] = {
+      fileData: await fileToBase64(file),
+      fileName: file.name,
+      userId: TEST_USER_ID,
+      bookId: tempBookId,
+      bookName: file.name || `${metadata.title}.epub`,
+      bookMetadata: JSON.stringify(metadata),
+      coverImage: coverDataUrl || null,
+    }
+
+    const bookData = await createBook(bookRequest)
 
     if (!bookData) {
       console.error('APIへの書籍登録に失敗しました')
@@ -132,8 +130,6 @@ export async function handleFiles(
               index: i,
             },
           })
-
-          unpack(file)
 
           setImportProgress?.({
             total: fileArray.length,

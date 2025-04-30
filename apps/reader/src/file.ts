@@ -2,7 +2,6 @@ export { fileToEpub } from './epub'
 
 export {
   fetchAllBooks,
-  fetchBookById,
   getBookFile,
   createBook,
   deleteBooksFromAPI,

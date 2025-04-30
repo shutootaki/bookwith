@@ -1,8 +1,10 @@
 import { fileToBase64 } from './fileUtils'
-import { BookDetail } from './hooks/useLibrary'
 import { TEST_USER_ID } from './pages/_app'
+import { components } from './lib/openapi-schema/schema'
 
-export async function fetchAllBooks(): Promise<BookDetail[]> {
+export async function fetchAllBooks(): Promise<
+  components['schemas']['BookDetail'][]
+> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
@@ -35,46 +37,6 @@ export async function fetchAllBooks(): Promise<BookDetail[]> {
   } catch (error) {
     console.error('書籍一覧取得中のエラー:', error)
     return []
-  }
-}
-
-export async function fetchBookById(
-  bookId: string,
-): Promise<BookDetail | null> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${bookId}`,
-    )
-    if (!response.ok) {
-      console.error('書籍取得エラー:', await response.json())
-      return null
-    }
-
-    const responseData = await response.json()
-    if (responseData?.success && responseData?.data) {
-      const book = responseData.data
-      return {
-        id: book.id,
-        name: book.name,
-        author: book.author,
-        size: book.size,
-        metadata: book.book_metadata,
-        createdAt: new Date(book.created_at).getTime(),
-        updatedAt: book.updated_at
-          ? new Date(book.updated_at).getTime()
-          : undefined,
-        cfi: book.cfi,
-        percentage: book.percentage || 0,
-        definitions: book.definitions || [],
-        annotations: [],
-        configuration: book.configuration,
-        hasCover: book.has_cover || false,
-      }
-    }
-    return null
-  } catch (error) {
-    console.error('書籍取得中のエラー:', error)
-    return null
   }
 }
 
@@ -123,23 +85,8 @@ export const getBookFile = async (
 }
 
 export async function createBook(
-  file: File,
-  book: BookDetail,
-  coverDataUrl: string | null = null,
-): Promise<BookDetail | null> {
-  const fileBase64 = await fileToBase64(file)
-
-  const requestData = {
-    file_data: fileBase64,
-    file_name: file.name,
-    file_type: file.type,
-    user_id: TEST_USER_ID,
-    book_id: book.id,
-    book_name: book.name,
-    book_metadata: book.metadata ? JSON.stringify(book.metadata) : null,
-    cover_image: coverDataUrl || null,
-  }
-
+  bookRequest: components['schemas']['BookCreateRequest'],
+): Promise<components['schemas']['BookDetail'] | null> {
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL}/books`,
@@ -148,7 +95,7 @@ export async function createBook(
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(bookRequest),
       },
     )
 
@@ -165,9 +112,9 @@ export async function createBook(
         name: responseData.data.name,
         size: responseData.data.size,
         author: responseData.data.author,
-        metadata: book.metadata,
-        createdAt: new Date(responseData.data.created_at).getTime(),
-        updatedAt: new Date(responseData.data.updated_at).getTime(),
+        bookMetadata: responseData.data.book_metadata,
+        createdAt: responseData.data.created_at,
+        updatedAt: responseData.data.updated_at,
         cfi: responseData.data.cfi,
         percentage: responseData.data.percentage,
         definitions: responseData.data.definitions || [],

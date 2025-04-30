@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 
-import { colorMap, Annotation as IAnnotation } from '../annotation'
+import { colorMap } from '../annotation'
 import { useSetAction } from '../hooks'
 import { BookTab, compareHref } from '../models'
+import { components } from '../lib/openapi-schema/schema'
 
 // avoid click penetration
 let clickedAnnotation = false
@@ -107,7 +108,7 @@ const Definition: React.FC<DefinitionProps> = ({ tab, definition }) => {
 
 interface AnnotationProps {
   tab: BookTab
-  annotation: IAnnotation
+  annotation: components['schemas']['AnnotationSchema']
 }
 const Annotation: React.FC<AnnotationProps> = ({ tab, annotation }) => {
   const { rendition } = useSnapshot(tab)

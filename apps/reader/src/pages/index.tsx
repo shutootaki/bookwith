@@ -37,10 +37,11 @@ import {
   useRemoteCovers,
   useTranslation,
 } from '../hooks'
-import { BookDetail, CoversResponse } from '../hooks/useLibrary'
+import { CoversResponse } from '../hooks/useLibrary'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../styles'
 import { copy } from '../utils'
+import { components } from '../lib/openapi-schema/schema'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
@@ -458,7 +459,7 @@ const Library: React.FC = () => {
 }
 
 interface BookProps {
-  book: BookDetail
+  book: components['schemas']['BookDetail']
   covers?: CoversResponse
   select?: boolean
   selected?: boolean
@@ -533,7 +534,9 @@ const Book: React.FC<BookProps> = ({
         className="line-clamp-2 text-on-surface-variant typescale-body-small lg:typescale-body-medium mt-2 w-full"
         title={book.name}
       >
-        {book.book_metadata.title || book.name}
+        {typeof book.bookMetadata?.title === 'string' && book.bookMetadata.title
+          ? book.bookMetadata.title
+          : book.name}
       </div>
     </div>
   )

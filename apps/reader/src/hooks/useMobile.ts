@@ -1,10 +1,7 @@
 import { atom, useAtom } from 'jotai'
 import { useEffect } from 'react'
 
-export const mobileState = atom<boolean | undefined>({
-  key: 'mobile',
-  default: undefined,
-})
+export const mobileState = atom<boolean | undefined>(undefined)
 
 let listened = false
 

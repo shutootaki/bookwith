@@ -9,11 +9,11 @@ import Section from '@flow/epubjs/types/section'
 
 import { AnnotationColor, AnnotationType } from '../annotation'
 import { fileToEpub, getBookFile } from '../file'
-import { BookDetail } from '../hooks'
 import { defaultStyle } from '../styles'
 import { IS_SERVER } from '../utils'
 
 import { dfs, find, INode } from './tree'
+import { components } from '../lib/openapi-schema/schema'
 
 function updateIndex(array: any[], deletedItemIndex: number) {
   const last = array.length - 1
@@ -120,7 +120,7 @@ export class BookTab extends BaseTab {
     this.rendition?.next()
   }
 
-  updateBook(changes: Partial<BookDetail>) {
+  updateBook(changes: Partial<components['schemas']['BookDetail']>) {
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
@@ -134,7 +134,7 @@ export class BookTab extends BaseTab {
     })
   }
 
-  syncAnnotations(changes: Partial<BookDetail>) {
+  syncAnnotations(changes: Partial<components['schemas']['BookDetail']>) {
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
     fetch(
@@ -198,7 +198,6 @@ export class BookTab extends BaseTab {
     const i = this.book.annotations.findIndex((a) => a.cfi === cfi)
     let annotation = this.book.annotations[i]
 
-    const now = Date.now()
     if (!annotation) {
       annotation = {
         id: uuidv4(),
@@ -208,8 +207,6 @@ export class BookTab extends BaseTab {
           index: spine.index,
           title: spine.navitem.label,
         },
-        createAt: now,
-        updatedAt: now,
         type,
         color,
         notes,
@@ -223,7 +220,6 @@ export class BookTab extends BaseTab {
       annotation = {
         ...this.book.annotations[i]!,
         type,
-        updatedAt: now,
         color,
         notes,
         text,
@@ -471,7 +467,7 @@ export class BookTab extends BaseTab {
     })
   }
 
-  constructor(public book: BookDetail) {
+  constructor(public book: components['schemas']['BookDetail']) {
     super(book.id, book.name)
 
     // don't subscribe `db.books` in `constructor`, it will

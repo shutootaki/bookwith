@@ -28,6 +28,7 @@ export const TypographyView: React.FC<PaneViewProps> = (props) => {
   const [scope, setScope] = useState(TypographyScope.Book)
   const t = useTranslation('typography')
 
+  // @ts-expect-error
   const { fontFamily, fontSize, fontWeight, lineHeight, zoom, spread } =
     scope === TypographyScope.Book
       ? focusedBookTab?.book?.configuration?.typography ?? defaultSettings
@@ -43,6 +44,7 @@ export const TypographyView: React.FC<PaneViewProps> = (props) => {
           configuration: {
             ...reader.focusedBookTab?.book?.configuration,
             typography: {
+              // @ts-expect-error
               ...reader.focusedBookTab?.book?.configuration?.typography,
               [k]: v,
             },
