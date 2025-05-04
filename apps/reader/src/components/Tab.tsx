@@ -4,7 +4,7 @@ import { IconType } from 'react-icons'
 import { MdClose } from 'react-icons/md'
 
 import { useBackground, useTranslation } from '../hooks'
-import { activeClass } from '../styles'
+import { activeClass } from '../utils/styles'
 
 import { IconButton } from './Button'
 

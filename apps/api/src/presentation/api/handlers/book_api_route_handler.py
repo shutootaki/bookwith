@@ -73,31 +73,9 @@ def handle_domain_exception(e: Exception) -> HTTPException:
     return HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("", response_model=BookResponse)
-async def post_book(
-    body: BookCreateRequest,
-    create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
-):
-    try:
-        book = create_book_usecase.execute(
-            user_id=body.user_id,
-            file_name=body.file_name,
-            file_data=body.file_data,
-            book_name=body.book_name,
-            cover_image=body.cover_image,
-            book_metadata=body.book_metadata,
-        )
-
-        return BookResponse(book_detail=BookDetail(**book.model_dump(mode="json")))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=BOOK_CREATE_ERROR.format(error=str(e)),
-        )
-
-
+####################################################
+# Get
+####################################################
 @router.get("/user/{user_id}", response_model=BooksResponse)
 async def get_books_by_user(
     user_id: str,
@@ -203,6 +181,37 @@ async def get_book_file(
         )
 
 
+####################################################
+# Post
+####################################################
+@router.post("", response_model=BookResponse)
+async def post_book(
+    body: BookCreateRequest,
+    create_book_usecase: CreateBookUseCase = Depends(get_create_book_usecase),
+):
+    try:
+        book = create_book_usecase.execute(
+            user_id=body.user_id,
+            file_name=body.file_name,
+            file_data=body.file_data,
+            book_name=body.book_name,
+            cover_image=body.cover_image,
+            book_metadata=body.book_metadata,
+        )
+
+        return BookResponse(book_detail=BookDetail(**book.model_dump(mode="json")))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_CREATE_ERROR.format(error=str(e)),
+        )
+
+
+####################################################
+# Put
+####################################################
 @router.put("/{book_id}")
 async def put_book(
     book_id: str,
@@ -234,6 +243,24 @@ async def put_book(
         )
 
 
+####################################################
+# Delete
+####################################################
+@router.delete("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_books_endpoint(
+    body: BulkDeleteRequestBody,
+    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
+):
+    try:
+        deleted_ids = bulk_delete_books_usecase.execute(body.book_ids)
+        return BulkDeleteResponse(deleted_ids=deleted_ids, count=len(deleted_ids))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=BOOK_BULK_DELETE_ERROR.format(error=str(e)),
+        )
+
+
 @router.delete("/{book_id}")
 async def delete_book(
     book_id: str,
@@ -254,60 +281,3 @@ async def delete_book(
             status_code=500,
             detail=BOOK_DELETE_ERROR.format(error=str(e)),
         )
-
-
-@router.delete("/bulk-delete", response_model=BulkDeleteResponse)
-async def bulk_delete_books_endpoint(
-    body: BulkDeleteRequestBody,
-    bulk_delete_books_usecase: BulkDeleteBooksUseCase = Depends(get_bulk_delete_books_usecase),
-):
-    try:
-        deleted_ids = bulk_delete_books_usecase.execute(body.book_ids)
-        return BulkDeleteResponse(deleted_ids=deleted_ids, count=len(deleted_ids))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=BOOK_BULK_DELETE_ERROR.format(error=str(e)),
-        )
-
-
-# @router.get("/{book_id}/cover")
-# async def get_book_cover(
-#     book_id: str,
-#     user_id: str,
-#     find_book_by_id_usecase: FindBookByIdUseCase = Depends(get_find_book_by_id_usecase),
-# ):
-#     try:
-#         book = find_book_by_id_usecase.execute(book_id)
-
-#         if not book.cover_path:
-#             raise HTTPException(status_code=404, detail=BOOK_COVER_NOT_FOUND)
-
-#         # Ownership verification
-#         if book.user_id != user_id:
-#             raise BookPermissionDeniedException
-
-#         gcs_client = GCSClient()
-
-#         if gcs_client.use_emulator:
-#             # Return direct URL in emulator environment
-#             return JSONResponse(content={"cover_path": book.cover_path})
-#         # Generate signed URL in production environment
-#         path = book.cover_path.replace(f"{gcs_client.get_gcs_url()}/{gcs_client.bucket_name}/", "")
-
-#         # Generate signed URL
-#         bucket = gcs_client.get_client().bucket(gcs_client.bucket_name)
-#         blob = bucket.blob(path)
-#         signed_url = blob.generate_signed_url(version="v4", expiration=3600, method="GET")
-
-#         return JSONResponse(content={"cover_path": signed_url})
-
-#     except BookPermissionDeniedException:
-#         raise HTTPException(status_code=403, detail=BOOK_ACCESS_DENIED)
-#     except BookNotFoundException:
-#         raise HTTPException(status_code=404, detail=BOOK_NOT_FOUND)
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=500,
-#             detail=SIGNED_URL_GENERATION_ERROR.format(error=str(e)),
-#         )

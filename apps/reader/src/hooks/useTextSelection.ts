@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { useEventListener } from '../hooks'
-import { isTouchScreen } from '../platform'
+import { isTouchScreen } from '../utils/platform'
 
 import { useForceRender } from './useForceRender'
 

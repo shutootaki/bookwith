@@ -8,8 +8,8 @@ import { useEffect, useMemo } from 'react'
 
 import { range } from '@flow/internal'
 
-import { rgbFromArgb } from '../color'
 import { useSetTheme, useSourceColor } from '../hooks'
+import { rgbFromArgb } from '../utils/color'
 
 // let `tailwindcss` generate classes
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

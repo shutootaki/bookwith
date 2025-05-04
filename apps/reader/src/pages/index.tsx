@@ -40,8 +40,8 @@ import { deleteBooksFromAPI } from '../lib/apiHandler/bookApiHandler'
 import { fetchBook, handleFiles } from '../lib/apiHandler/importHandlers'
 import { components } from '../lib/openapi-schema/schema'
 import { reader, useReaderSnapshot } from '../models'
-import { lock } from '../styles'
-import { copy } from '../utils'
+import { lock } from '../utils/styles'
+import { copy } from '../utils/utils'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
@@ -258,6 +258,9 @@ const Library: React.FC = () => {
     }
   }
 
+  console.log({ 'loading-now': loading })
+  console.log({ books })
+
   return (
     <DropZone
       className="scroll-parent h-full p-4"
@@ -317,7 +320,6 @@ const Library: React.FC = () => {
                     'Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub'
                   await handleImportOperation(
                     async () => {
-                      // 進捗状態を追跡する関数を作成
                       let progressUpdater:
                         | ((progress: number) => void)
                         | undefined
@@ -340,7 +342,6 @@ const Library: React.FC = () => {
                         'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
                         (id) => {
                           setLoading(id)
-                          // ローディング状態に応じて進捗を更新
                           if (progressUpdater) {
                             if (id) {
                               progressUpdater(60)
@@ -458,22 +459,14 @@ const Library: React.FC = () => {
   )
 }
 
-interface BookProps {
+const Book: React.FC<{
   book: components['schemas']['BookDetail']
   covers: components['schemas']['CoversResponse']['covers']
   select?: boolean
   selected?: boolean
   loading?: boolean
   toggle: (id: string) => void
-}
-const Book: React.FC<BookProps> = ({
-  book,
-  covers,
-  select,
-  selected,
-  loading,
-  toggle,
-}) => {
+}> = ({ book, covers, select, selected, loading, toggle }) => {
   const router = useRouter()
   const mobile = useMobile()
 
@@ -481,6 +474,8 @@ const Book: React.FC<BookProps> = ({
   const cover = coverData?.coverUrl
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
+
+  console.log({ loading })
 
   return (
     <div className="relative flex flex-col">

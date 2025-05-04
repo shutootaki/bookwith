@@ -11,7 +11,6 @@ import {
 } from 'react-icons/md'
 import { useSnapshot } from 'valtio'
 
-import { typeMap, colorMap } from '../annotation'
 import {
   isForwardSelection,
   useMobile,
@@ -21,8 +20,9 @@ import {
   useTypography,
 } from '../hooks'
 import { BookTab } from '../models'
-import { isTouchScreen, scale } from '../platform'
-import { copy, keys, last } from '../utils'
+import { typeMap, colorMap } from '../utils/annotation'
+import { isTouchScreen, scale } from '../utils/platform'
+import { copy, keys, last } from '../utils/utils'
 
 import { TextField } from './Form'
 import { layout, LayoutAnchorMode, LayoutAnchorPosition } from './base'

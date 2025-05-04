@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { fileToEpub, indexEpub } from '../../epub'
-import { fileToBase64, toDataUrl } from '../../fileUtils'
-import { mapExtToMimes } from '../../mime'
 import { TEST_USER_ID } from '../../pages/_app'
+import { fileToEpub, indexEpub } from '../../utils/epub'
+import { fileToBase64, toDataUrl } from '../../utils/fileUtils'
+import { mapExtToMimes } from '../../utils/mime'
 import { components } from '../openapi-schema/schema'
 
 import { createBook, fetchAllBooks } from './bookApiHandler'

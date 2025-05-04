@@ -4,7 +4,7 @@ import { MdClose } from 'react-icons/md'
 import { VscChevronDown, VscChevronRight } from 'react-icons/vsc'
 
 import { LIST_ITEM_SIZE, useTranslation } from '../hooks'
-import { scale } from '../platform'
+import { scale } from '../utils/platform'
 
 import { IconButton } from './Button'
 import { StateLayer } from './StateLayer'
