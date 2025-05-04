@@ -1,4 +1,7 @@
 export default {
+  /**
+   * Home
+   */
   'home.title': '主页',
   'home.share': '分享',
   'home.download': '下载',
@@ -21,7 +24,11 @@ export default {
   'home.import_error': '导入过程中发生错误',
   'home.import_error_log': '导入操作中发生错误:',
   'home.file_import_error_log': '文件导入中发生错误:',
+  'home.no_books_message': '未找到图书。请导入一些图书。',
 
+  /**
+   * Import
+   */
   'import.processing': '处理中',
   'import.processing_aria': '处理',
   'import.analyzing_file': '正在分析文件...',
@@ -33,21 +40,39 @@ export default {
   'import.import_status': '{success} 本书导入成功，{failed} 本失败',
   'import.please_wait': '请等待导入完成...',
 
+  /**
+   * Table of Contents
+   */
   'toc.title': '目录',
   'toc.library': '图书馆',
 
+  /**
+   * Search
+   */
   'search.title': '搜索',
   'search.files.result': '{n} 个结果在 {m} 个文件中',
 
+  /**
+   * Annotation
+   */
   'annotation.title': '标注',
   'annotation.definitions': '定义',
   'annotation.annotations': '标注',
   'annotation.copy_as_markdown': '复制为 Markdown',
 
+  /**
+   * Image
+   */
   'image.title': '图片',
 
+  /**
+   * Timeline
+   */
   'timeline.title': '时间线',
 
+  /**
+   * Typography
+   */
   'typography.title': '排版',
   'typography.scope.book': '书籍',
   'typography.scope.global': '全局',
@@ -60,10 +85,16 @@ export default {
   'typography.line_height': '行高',
   'typography.zoom': '缩放',
 
+  /**
+   * Theme
+   */
   'theme.title': '颜色主题',
   'theme.source_color': '源色',
   'theme.background_color': '背景色',
 
+  /**
+   * Settings
+   */
   'settings.title': '设置',
   'settings.language': '语言',
   'settings.color_scheme': '颜色模式',
@@ -76,6 +107,9 @@ export default {
   'settings.cache': '缓存',
   'settings.cache.clear': '清除',
 
+  /**
+   * Menu
+   */
   'menu.copy': '复制',
   'menu.search_in_book': '书内搜索',
   'menu.annotate': '标注',
@@ -85,6 +119,9 @@ export default {
   'menu.delete': '删除',
   'menu.update': '更新',
 
+  /**
+   * Action
+   */
   'action.expand_all': '展开全部',
   'action.collapse_all': '折叠全部',
   'action.close': '关闭',
@@ -92,6 +129,9 @@ export default {
   'action.step_down': '减少',
   'action.step_up': '增加',
 
+  /**
+   * Chat
+   */
   'chat.title': '聊天',
   'chat.placeholder': '输入消息...',
   'chat.new_chat': '新建聊天',
@@ -106,5 +146,8 @@ export default {
   'chat.error': '发生错误',
   'chat.created_at': '创建时间',
 
+  /**
+   * Others
+   */
   untitled: '未标题',
 } as const

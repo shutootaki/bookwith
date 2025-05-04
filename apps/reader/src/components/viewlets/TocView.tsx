@@ -33,23 +33,31 @@ export const TocView: React.FC<PaneViewProps> = (props) => {
 const LibraryPane: React.FC = () => {
   const { books } = useLibrary()
   const t = useTranslation('toc')
+
   return (
     <Pane headline={t('library')} preferredSize={240}>
-      {books?.map((book) => (
-        <button
-          key={book.id}
-          className="relative w-full truncate py-1 pl-5 pr-3 text-left"
-          title={book.name}
-          draggable
-          onClick={() => reader.addTab(book)}
-          onDragStart={(e) => {
-            e.dataTransfer.setData('text/plain', book.id)
-          }}
-        >
-          <StateLayer />
-          {book.name}
-        </button>
-      ))}
+      {books?.map((book) => {
+        const title =
+          book.bookMetadata?.title &&
+          typeof book.bookMetadata?.title === 'string'
+            ? book.bookMetadata?.title
+            : book.name
+        return (
+          <button
+            key={book.id}
+            className="relative w-full truncate py-1 pl-5 pr-3 text-left"
+            title={title}
+            draggable
+            onClick={() => reader.addTab(book)}
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', book.id)
+            }}
+          >
+            <StateLayer />
+            {title}
+          </button>
+        )
+      })}
     </Pane>
   )
 }

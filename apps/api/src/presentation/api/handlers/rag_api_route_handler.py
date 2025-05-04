@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
 from src.infrastructure.di.injection import get_create_book_vector_index_usecase
@@ -18,7 +20,16 @@ async def upload_and_process_rag(
     usecase: CreateBookVectorIndexUseCase = Depends(get_create_book_vector_index_usecase),
 ):
     try:
-        return await usecase.execute(file, user_id)
+        # 5秒間sleep
+        await asyncio.sleep(5)
+        return RagProcessResponse(
+            file_name=file.filename,
+            chunk_count=10,
+            user_id=user_id,
+            index_name="test",
+            chunks=[],
+        )
+        # return await usecase.execute(file, user_id)
     except ValueError as e:
         raise BadRequestException(str(e))
     except Exception as e:

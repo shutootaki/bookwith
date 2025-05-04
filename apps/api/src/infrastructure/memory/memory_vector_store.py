@@ -16,7 +16,7 @@ from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
 
-from src.config.app_config import AppConfig
+from src.config.app_config import DEFAULT_EMBEDDING_MODEL, AppConfig
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class MemoryVectorStore:
         self.config = AppConfig.get_config()
         self.client = self._create_client()
         self._ensure_collections()
-        self.embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
+        self.embedding_model = OpenAIEmbeddings(model=DEFAULT_EMBEDDING_MODEL, max_retries=2)
 
     @retry_on_error(max_retries=5, initial_delay=2)
     def _create_client(self) -> weaviate.WeaviateClient:

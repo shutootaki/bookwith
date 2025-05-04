@@ -2,6 +2,7 @@ import weaviate
 from langchain_openai import OpenAIEmbeddings
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 
+from src.config.app_config import DEFAULT_EMBEDDING_MODEL
 from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
 
 
@@ -24,7 +25,7 @@ def get_book_content_vector_store() -> WeaviateVectorStore:
             text_key="content",
             index_name=MemoryVectorStore.BOOK_CONTENT_COLLECTION_NAME,
             embedding=OpenAIEmbeddings(
-                model="text-embedding-3-large",
+                model=DEFAULT_EMBEDDING_MODEL,
                 max_retries=2,
             ),
         )
