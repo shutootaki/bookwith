@@ -2,11 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(yamllint:*)"
     ]
   },
+  "deny": [],
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "playwright"
-  ]
+  "enabledMcpjsonServers": ["playwright"]
 }
