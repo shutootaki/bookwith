@@ -173,6 +173,19 @@ _Example_: Content from an economics book you read a week ago is automatically l
   - ePub 2.0
   - ePub 3.0
 
+## 🛠 For Developers
+
+Want to contribute to BookWith or set up a local development environment? 
+
+📋 **[Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Complete setup instructions for contributors
+
+The development guide includes:
+- Environment setup and prerequisites
+- Step-by-step installation instructions
+- Development workflow and best practices
+- Troubleshooting common issues
+- Architecture overview and project structure
+
 ---
 
 ## Acknowledgements
