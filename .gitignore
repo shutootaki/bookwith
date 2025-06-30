@@ -56,3 +56,6 @@ launch.json
 
 # github
 .github/prompts
+
+# local
+*.local
