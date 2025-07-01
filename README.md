@@ -173,6 +173,19 @@ _Example_: Content from an economics book you read a week ago is automatically l
   - ePub 2.0
   - ePub 3.0
 
+## �️ Local Setup
+
+Want to run BookWith on your own computer? 
+
+📋 **[Local Setup Guide](docs/DEVELOPMENT_GUIDE.md)** - Complete installation instructions
+
+The setup guide includes:
+- System requirements and prerequisites
+- Step-by-step installation process
+- How to configure your environment
+- Troubleshooting common setup issues
+- Getting started with your first book
+
 ---
 
 ## Acknowledgements
