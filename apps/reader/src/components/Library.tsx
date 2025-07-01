@@ -16,19 +16,16 @@ import {
 } from '@flow/reader/components/ui/alert-dialog'
 
 import { Button, TextField, DropZone } from '../components'
-import ImportProgress, {
-  ImportProgressState,
-} from '../components/ImportProgress'
 import { Toaster } from '../components/ui/sonner'
 import { useBoolean } from '../hooks'
 import { useLibrary, useBookCovers, useTranslation } from '../hooks'
+import { useLoading } from '../hooks/useLoading'
 import { deleteBooksFromAPI } from '../lib/apiHandler/bookApiHandler'
 import { fetchBook, handleFiles } from '../lib/apiHandler/importHandlers'
 import { reader, useReaderSnapshot } from '../models'
 import { lock } from '../utils/styles'
 import { copy } from '../utils/utils'
 
-import { LoadingBookPlaceholder } from './Book'
 import { Book } from './Book'
 
 const SOURCE = 'src'
@@ -37,56 +34,23 @@ export const Library: React.FC = () => {
   const { books, error, mutate: booksMutate } = useLibrary()
   const { covers, mutate: coversMutate, isCoverLoading } = useBookCovers()
   const t = useTranslation('home')
+  const { startLoading, stopLoading, updateProgress } = useLoading({
+    message: '📚 本をインポートしています...',
+    type: 'global',
+    showProgress: true,
+    icon: '📚',
+  })
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
 
   const [loading, setLoading] = useState<string | undefined>()
-  const [importProgress, setImportProgress] = useState<ImportProgressState>({
-    total: 0,
-    completed: 0,
-    importing: false,
-  })
 
   const { groups } = useReaderSnapshot()
 
   useEffect(() => {
     if (!select) reset()
   }, [reset, select])
-
-  useEffect(() => {
-    if (
-      importProgress.success !== undefined &&
-      importProgress.failed !== undefined &&
-      !importProgress.importing &&
-      importProgress.total > 0
-    ) {
-      const successCount = importProgress.success
-      const failedCount = importProgress.failed
-
-      if (successCount > 0 || failedCount > 0) {
-        let message = ''
-        if (successCount > 0 && failedCount === 0) {
-          message = t('import_success', { count: successCount })
-        } else if (successCount === 0 && failedCount > 0) {
-          message = t('import_failed', { count: failedCount })
-        } else {
-          message = t('import_partial_success', {
-            success: successCount,
-            failed: failedCount,
-          })
-        }
-
-        if (successCount > 0) {
-          toast.success(message)
-          booksMutate()
-          coversMutate()
-        } else {
-          toast.error(message)
-        }
-      }
-    }
-  }, [importProgress, booksMutate, coversMutate, t])
 
   if (groups.length) return null
   if (!books) return null
@@ -98,52 +62,24 @@ export const Library: React.FC = () => {
 
   const handleImportOperation = async (
     operation: () => Promise<any>,
-    setImportProgress: React.Dispatch<
-      React.SetStateAction<ImportProgressState>
-    >,
     mutate?: () => void,
     fileName?: string,
   ) => {
+    const taskId = startLoading()
+
     try {
-      setImportProgress({
-        total: 1,
-        completed: 0,
-        importing: true,
-        ...(fileName && {
-          currentFile: {
-            name: fileName,
-            progress: 0,
-            index: 0,
-          },
-        }),
-      })
-
-      // ファイル名が指定されている場合は進捗状況を更新する
+      // 初期進捗を設定
       if (fileName) {
-        // 進捗状況を更新する関数
-        const updateProgress = (progress: number) => {
-          setImportProgress((prev) => ({
-            ...prev,
-            currentFile: {
-              ...prev.currentFile!,
-              progress,
-            },
-          }))
-        }
-
-        // 初期進捗を設定
-        updateProgress(10)
+        updateProgress(10, 100)
       }
 
       const result = await operation()
 
-      setImportProgress({
-        total: 1,
-        completed: 1,
-        importing: false,
-        success: result ? 1 : 0,
-        failed: result ? 0 : 1,
-      })
+      if (result) {
+        toast.success(t('import_success', { count: 1 }))
+      } else {
+        toast.error(t('import_failed', { count: 1 }))
+      }
 
       if (mutate) mutate()
 
@@ -151,32 +87,49 @@ export const Library: React.FC = () => {
     } catch (error) {
       console.error(t('import_error_log'), error)
       toast.error(t('import_error'))
-
-      setImportProgress({
-        total: 1,
-        completed: 1,
-        importing: false,
-        success: 0,
-        failed: 1,
-      })
-
       return null
+    } finally {
+      stopLoading(taskId)
     }
   }
 
   const handleFileImport = async (
     files: FileList | File[],
     setLoading: React.Dispatch<React.SetStateAction<string | undefined>>,
-    setImportProgress: React.Dispatch<
-      React.SetStateAction<ImportProgressState>
-    >,
   ) => {
+    const taskId = startLoading()
     try {
-      await handleFiles(files, setLoading, setImportProgress)
+      const result = await handleFiles(files, setLoading, updateProgress)
+
+      if (result) {
+        const { success, failed } = result
+        if (success > 0 || failed > 0) {
+          let message = ''
+          if (success > 0 && failed === 0) {
+            message = t('import_success', { count: success })
+          } else if (success === 0 && failed > 0) {
+            message = t('import_failed', { count: failed })
+          } else {
+            message = t('import_partial_success', {
+              success: success,
+              failed: failed,
+            })
+          }
+
+          if (success > 0) {
+            toast.success(message)
+            booksMutate()
+            coversMutate()
+          } else {
+            toast.error(message)
+          }
+        }
+      }
     } catch (error) {
       console.error(t('file_import_error_log'), error)
       toast.error(t('import_error'))
-      setImportProgress({ total: 0, completed: 0, importing: false })
+    } finally {
+      stopLoading(taskId)
     }
   }
 
@@ -191,7 +144,7 @@ export const Library: React.FC = () => {
         const book = books.find((b) => b.id === bookId)
         if (book) reader.addTab(book as any)
 
-        handleFileImport(e.dataTransfer.files, setLoading, setImportProgress)
+        handleFileImport(e.dataTransfer.files, setLoading)
       }}
     >
       <div className="mb-4 space-y-2.5">
@@ -218,7 +171,6 @@ export const Library: React.FC = () => {
                   if (el?.reportValidity()) {
                     await handleImportOperation(
                       async () => await fetchBook(el.value, setLoading),
-                      setImportProgress,
                       coversMutate,
                     )
                   }
@@ -242,39 +194,18 @@ export const Library: React.FC = () => {
                     'Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub'
                   await handleImportOperation(
                     async () => {
-                      let progressUpdater:
-                        | ((progress: number) => void)
-                        | undefined
-                      setImportProgress((prev) => {
-                        if (prev.currentFile) {
-                          progressUpdater = (progress) => {
-                            setImportProgress((p) => ({
-                              ...p,
-                              currentFile: {
-                                ...p.currentFile!,
-                                progress,
-                              },
-                            }))
-                          }
-                        }
-                        return prev
-                      })
-
                       return await fetchBook(
                         'https://epubtest.org/books/Fundamental-Accessibility-Tests-Basic-Functionality-v1.0.0.epub',
                         (id) => {
                           setLoading(id)
-                          if (progressUpdater) {
-                            if (id) {
-                              progressUpdater(60)
-                            } else {
-                              progressUpdater(90)
-                            }
+                          if (id) {
+                            updateProgress(60, 100)
+                          } else {
+                            updateProgress(90, 100)
                           }
                         },
                       )
                     },
-                    setImportProgress,
                     booksMutate,
                     fileName,
                   )
@@ -340,7 +271,7 @@ export const Library: React.FC = () => {
                     onChange={async (e) => {
                       const files = e.target.files
                       if (files) {
-                        handleFileImport(files, setLoading, setImportProgress)
+                        handleFileImport(files, setLoading)
                       }
                     }}
                     multiple
@@ -353,7 +284,6 @@ export const Library: React.FC = () => {
           </div>
         </div>
       </div>
-      <ImportProgress progress={importProgress} />
       {books.length > 0 ? (
         <div className="scroll h-full">
           <ul
@@ -364,25 +294,18 @@ export const Library: React.FC = () => {
               rowGap: lock(24, 40),
             }}
           >
-            {books.map((book) =>
-              isCoverLoading ? (
-                <LoadingBookPlaceholder
-                  key={book.id}
-                  identifier={book.id}
-                  progress={0}
-                />
-              ) : (
-                <Book
-                  key={book.id}
-                  book={book as any}
-                  covers={covers}
-                  select={select}
-                  selected={has(book.id)}
-                  loading={loading === book.id}
-                  toggle={toggle}
-                />
-              ),
-            )}
+            {books.map((book) => (
+              <Book
+                key={book.id}
+                book={book as any}
+                covers={covers}
+                select={select}
+                selected={has(book.id)}
+                loading={loading === book.id}
+                toggle={toggle}
+                isLoading={isCoverLoading}
+              />
+            ))}
           </ul>
         </div>
       ) : (

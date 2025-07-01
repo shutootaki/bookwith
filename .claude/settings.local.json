@@ -6,10 +6,17 @@
       "Bash(mkdir:*)",
       "Bash(pip install:*)",
       "Bash(python:*)",
-      "Bash(yamllint:*)"
+      "Bash(yamllint:*)",
+      "Bash(pnpm build)",
+      "Bash(pnpm ts:check:*)",
+      "Bash(cat:*)",
+      "Bash(mv:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm add:*)"
     ]
   },
-  "deny": [],
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright"]
+  "enabledMcpjsonServers": ["playwright"],
+  "deny": []
 }

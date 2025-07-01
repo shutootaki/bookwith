@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 html,
 body,
 #__next,
@@ -179,8 +186,6 @@ p {
     @apply bg-background text-foreground;
   }
 }
-
-
 
 @layer base {
   * {
