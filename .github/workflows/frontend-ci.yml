@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Check for changes
         uses: dorny/paths-filter@v3
-        id: changes
+        id: filter
         with:
           filters: |
             frontend:
@@ -53,7 +53,7 @@ jobs:
 
   frontend-ci:
     needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs['frontend'] == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -64,16 +64,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.4
 
       - name: Setup Turbo cache
         uses: actions/cache@v4
