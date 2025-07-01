@@ -6,10 +6,18 @@
       "Bash(mkdir:*)",
       "Bash(pip install:*)",
       "Bash(python:*)",
-      "Bash(yamllint:*)"
+      "Bash(yamllint:*)",
+      "WebFetch(domain:python.langchain.com)",
+      "Bash(make lint)",
+      "WebFetch(domain:github.com)",
+      "Bash(poetry run:*)",
+      "Bash(poetry show:*)",
+      "Bash(poetry:*)"
     ]
   },
-  "deny": [],
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright"]
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
+  "deny": []
 }

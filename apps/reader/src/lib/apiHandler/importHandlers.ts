@@ -45,7 +45,7 @@ export async function addBook(
       return null
     }
 
-    await indexEpub(file, TEST_USER_ID)
+    await indexEpub(file, TEST_USER_ID, bookData.id)
 
     setLoading?.(undefined)
     return bookData

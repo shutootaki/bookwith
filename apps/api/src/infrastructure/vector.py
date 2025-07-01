@@ -1,32 +1,20 @@
-import weaviate
-from langchain_openai import OpenAIEmbeddings
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
 
 
 def get_book_content_vector_store() -> WeaviateVectorStore:
-    """特定のインデックス名に基づいてベクトルストアを取得します.
-    インデックスが存在しない場合はNoneを返します.
+    """BookContent 用の VectorStore を取得する.
 
-    Args:
-        index_name: Weaviateのインデックス名
-
-    Returns:
-        WeaviateVectorStoreインスタンス、または存在しない場合はNone
-
+    MemoryVectorStore で生成済みの共有クライアント／Embedding を再利用し、
+    不要なコネクションやモデルの重複ロードを防ぐ。
     """
-    # インデックス（コレクション）が存在するか確認
     try:
-        # 既存のインデックスに接続するWeaviateVectorStoreを作成
         return WeaviateVectorStore(
-            client=weaviate.connect_to_local(),
+            client=MemoryVectorStore.get_client(),
             text_key="content",
             index_name=MemoryVectorStore.BOOK_CONTENT_COLLECTION_NAME,
-            embedding=OpenAIEmbeddings(
-                model="text-embedding-3-large",
-                max_retries=2,
-            ),
+            embedding=MemoryVectorStore.get_embedding_model(),
         )
     except Exception:
         raise

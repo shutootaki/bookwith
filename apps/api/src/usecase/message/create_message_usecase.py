@@ -6,6 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI
+from weaviate.classes.query import Filter
 
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
@@ -159,6 +160,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             search_kwargs={
                 "k": 4,
                 "tenant": user_id,
+                "filters": Filter.by_property("book_id").equal(book_id)
             }
         )
 

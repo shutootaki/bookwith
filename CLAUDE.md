@@ -325,3 +325,12 @@ const messages = await apiClient<Message[]>('/messages', {
 - **Frontend**: Prettier + ESLint + TypeScript strict
 - **Commits**: Conventional Commits recommended
 - **Docs**: auto-generated + manual additions
+
+## Docs
+
+### LangChain Weaviate
+This notebook covers how to get started with the Weaviate vector store in LangChain, using the langchain-weaviate package.
+https://python.langchain.com/docs/integrations/vectorstores/weaviate/
+
+### Weaviate
+https://weaviate.io/developers/weaviate
