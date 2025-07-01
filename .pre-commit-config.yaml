@@ -17,5 +17,5 @@ repos:
       - id: poetry-lock
         files: ^(pyproject\.toml|poetry\.lock)$
 default_language_version:
-  python: 3.13.2
+  python: python3
 minimum_pre_commit_version: 4.0.1
