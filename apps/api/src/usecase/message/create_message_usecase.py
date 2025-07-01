@@ -157,11 +157,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
         vector_store = get_book_content_vector_store()
         vector_store_retriever = vector_store.as_retriever(
-            search_kwargs={
-                "k": 4,
-                "tenant": user_id,
-                "filters": Filter.by_property("book_id").equal(book_id)
-            }
+            search_kwargs={"k": 4, "tenant": user_id, "filters": Filter.by_property("book_id").equal(book_id)}
         )
 
         highlight_texts = []

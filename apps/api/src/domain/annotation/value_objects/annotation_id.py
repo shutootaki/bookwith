@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class AnnotationId:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.value:
             object.__setattr__(self, "value", str(uuid.uuid4()))
         elif not isinstance(self.value, str):

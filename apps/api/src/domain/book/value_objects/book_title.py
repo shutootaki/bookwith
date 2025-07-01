@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class BookTitle:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.value:
             raise ValueError("タイトルは必須です")
         if len(self.value) > 100:

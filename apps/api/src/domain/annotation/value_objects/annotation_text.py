@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class AnnotationText:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.value:
             raise ValueError("Annotation text is required")
         if not isinstance(self.value, str):
