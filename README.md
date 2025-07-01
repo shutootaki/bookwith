@@ -173,18 +173,18 @@ _Example_: Content from an economics book you read a week ago is automatically l
   - ePub 2.0
   - ePub 3.0
 
-## 🛠 For Developers
+## �️ Local Setup
 
-Want to contribute to BookWith or set up a local development environment? 
+Want to run BookWith on your own computer? 
 
-📋 **[Development Guide](docs/DEVELOPMENT_GUIDE.md)** - Complete setup instructions for contributors
+📋 **[Local Setup Guide](docs/DEVELOPMENT_GUIDE.md)** - Complete installation instructions
 
-The development guide includes:
-- Environment setup and prerequisites
-- Step-by-step installation instructions
-- Development workflow and best practices
-- Troubleshooting common issues
-- Architecture overview and project structure
+The setup guide includes:
+- System requirements and prerequisites
+- Step-by-step installation process
+- How to configure your environment
+- Troubleshooting common setup issues
+- Getting started with your first book
 
 ---
 
