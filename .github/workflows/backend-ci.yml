@@ -27,7 +27,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.changes.outputs.backend }}
+      backend: ${{ steps.filter.outputs['backend'] }}
     steps:
       - name: Check for changes
         uses: dorny/paths-filter@v3
