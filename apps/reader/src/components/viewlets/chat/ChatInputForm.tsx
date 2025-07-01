@@ -13,7 +13,6 @@ import {
   TooltipTrigger,
 } from '../../ui/tooltip'
 
-
 interface ChatInputFormProps {
   text: string
   setText: React.Dispatch<React.SetStateAction<string>>

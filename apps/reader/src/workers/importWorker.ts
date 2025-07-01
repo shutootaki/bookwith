@@ -1,10 +1,9 @@
-// src/workers/importWorker.ts
-import { TEST_USER_ID } from '../pages/_app' // Adjust the path if necessary
+import { createBook, fetchAllBooks } from '../lib/apiHandler/bookApiHandler'
+import { components } from '../lib/openapi-schema/schema'
+import { TEST_USER_ID } from '../pages/_app'
 import { fileToEpub, indexEpub } from '../utils/epub'
 import { fileToBase64, toDataUrl } from '../utils/fileUtils'
 import { mapExtToMimes } from '../utils/mime'
-import { components } from '../lib/openapi-schema/schema'
-import { createBook, fetchAllBooks } from '../lib/apiHandler/bookApiHandler'
 
 type BookDetail = components['schemas']['BookDetail']
 
@@ -38,7 +37,7 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
     const bookRequest: components['schemas']['BookCreateRequest'] = {
       fileData: await fileToBase64(file),
       fileName: file.name,
-      userId: TEST_USER_ID, // Replace with actual user ID if available
+      userId: TEST_USER_ID,
       bookName: file.name || `${metadata.title}.epub`,
       bookMetadata: JSON.stringify(metadata),
       coverImage: coverDataUrl || null,
@@ -70,7 +69,7 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
     return bookData
   } catch (error) {
     console.error(`書籍の登録中にエラーが発生しました (${file.name}):`, error)
-    throw error // Propagate error to the handler
+    throw error
   }
 }
 

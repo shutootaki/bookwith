@@ -387,7 +387,7 @@ export const Library: React.FC = () => {
         </div>
       ) : (
         <div className="flex h-full items-center justify-center">
-          <p className="text-on-surface-variant">{t('no_books')}</p>
+          <p className="text-on-surface-variant">{t('no_books_message')}</p>
         </div>
       )}
       <Toaster />

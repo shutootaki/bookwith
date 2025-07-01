@@ -101,8 +101,6 @@ export const Book: React.FC<{
 
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
 
-  console.log({ loading })
-
   return (
     <div className="relative flex flex-col">
       <div
