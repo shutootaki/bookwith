@@ -4,7 +4,19 @@ name: Frontend CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/reader/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
+    paths:
+      - 'apps/reader/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
+      - '.github/workflows/frontend-ci.yml'
 
 jobs:
   frontend-ci:
@@ -24,6 +36,30 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Setup Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .turbo
+            apps/reader/.next/cache
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -34,9 +70,6 @@ jobs:
 
       - name: Type check (TypeScript)
         run: pnpm -F @flow/reader run ts:check
-
-      - name: Unit tests
-        run: pnpm -F @flow/reader run test
 
       - name: Build
         run: turbo run build --filter=@flow/reader

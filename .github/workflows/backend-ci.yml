@@ -4,7 +4,13 @@ name: Backend CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'apps/api/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
+    paths:
+      - 'apps/api/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   backend-ci:
@@ -30,14 +36,34 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
+      - name: Setup Poetry cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/api/.venv
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('apps/api/pyproject.toml', 'apps/api/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Setup pre-commit cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('apps/api/.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
+
+      - name: Setup environment file
+        run: |
+          cp src/config/.env.example src/config/.env || true
+          echo "ENV=test" >> src/config/.env
+
       - name: Install dependencies
-        run: poetry install --no-root
+        run: make configure
 
-      - name: Lint & Format with Ruff
-        run: poetry run ruff check .
-
-      - name: Type check with MyPy
-        run: poetry run mypy src --explicit-package-bases
+      - name: Lint & Type check
+        run: make lint
 
       - name: Run tests (if any)
         if: ${{ hashFiles('tests/**') != '' }}
