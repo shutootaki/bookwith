@@ -1,6 +1,7 @@
 {
   "name": "@flow/reader",
   "private": true,
+  "type": "module",
   "scripts": {
     "analyze": "cross-env ANALYZE=true next build",
     "build": "next build",
@@ -95,9 +96,5 @@
     "type-fest": "2.12.2",
     "typescript-eslint": "^8.31.1"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.1.0"
-    }
-  }
+  "pnpm": {}
 }

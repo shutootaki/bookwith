@@ -13,7 +13,13 @@
       "Bash(mv:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm dev:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "WebFetch(domain:python.langchain.com)",
+      "Bash(make lint)",
+      "WebFetch(domain:github.com)",
+      "Bash(poetry run:*)",
+      "Bash(poetry show:*)",
+      "Bash(poetry:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

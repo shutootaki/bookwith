@@ -31,8 +31,7 @@ This project is an AI-powered next-generation browser-based ePub reader called "
 
 **Turbo + pnpm Workspaces**
 
-```yaml
-# pnpm-workspace.yaml
+```
 packages:
   - 'apps/*' # applications
   - 'packages/*' # shared libraries
@@ -207,8 +206,7 @@ For each entity:
 
 **Docker Compose**
 
-```yaml
-# apps/api/docker-compose.yml
+```
 services:
   weaviate: # vector DB
     - Ports: 8080 (HTTP), 50051 (gRPC)
@@ -325,3 +323,14 @@ const messages = await apiClient<Message[]>('/messages', {
 - **Frontend**: Prettier + ESLint + TypeScript strict
 - **Commits**: Conventional Commits recommended
 - **Docs**: auto-generated + manual additions
+
+## Docs
+
+### LangChain Weaviate
+
+This notebook covers how to get started with the Weaviate vector store in LangChain, using the langchain-weaviate package.
+https://python.langchain.com/docs/integrations/vectorstores/weaviate/
+
+### Weaviate
+
+https://weaviate.io/developers/weaviate

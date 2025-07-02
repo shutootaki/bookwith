@@ -40,3 +40,6 @@ warn_redundant_casts = true
 init_forbid_extra = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = true
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = ">=4.0.1,<5.0.0"

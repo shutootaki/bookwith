@@ -10,7 +10,7 @@ class AnnotationTypeEnum(Enum):
 class AnnotationType:
     value: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not any(self.value == type_.value for type_ in AnnotationTypeEnum):
             raise ValueError(f"Invalid annotation type: {self.value}")
 

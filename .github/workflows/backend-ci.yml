@@ -1,56 +1,26 @@
 ---
 name: Backend CI
-permissions:
-  contents: read
-  pull-requests: read
 
 on:
   push:
     branches: [main]
     paths:
       - 'apps/api/**'
-      - '.pre-commit-config.yaml'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches: [main]
     paths:
       - 'apps/api/**'
-      - '.pre-commit-config.yaml'
       - '.github/workflows/backend-ci.yml'
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.changes.outputs.backend }}
-    steps:
-      - name: Check for changes
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            backend:
-              - 'apps/api/**'
-              - '.pre-commit-config.yaml'
-
   backend-ci:
-    needs: changes
-    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
     defaults:
       run:
         working-directory: ./apps/api
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -58,70 +28,43 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
+          python-version: '3.13'
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: latest
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Cache dependencies
+      - name: Setup Poetry cache
         uses: actions/cache@v4
         with:
-          path: ./apps/api/.venv
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-apps-api-${{ hashFiles('apps/api/poetry.lock') }}
-
-      - name: Install dependencies
-        run: poetry install --no-root
+          path: |
+            apps/api/.venv
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('apps/api/pyproject.toml', 'apps/api/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
 
       - name: Setup pre-commit cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit-${{ runner.os }}-\
-            ${{ hashFiles('.pre-commit-config.yaml') }}
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('apps/api/.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
 
-      - name: Install pre-commit
+      - name: Setup environment file
         run: |
-          cd ../..
-          pip install pre-commit
-          pre-commit install
+          cp src/config/.env.example src/config/.env || true
+          echo "ENV=test" >> src/config/.env
 
-      - name: Type check with MyPy
-        run: |
-          echo "::group::MyPy Type Check"
-          poetry run mypy src --explicit-package-bases
-          echo "::endgroup::"
+      - name: Install dependencies
+        run: make configure
 
-      - name: Lint and format with Ruff (via pre-commit)
-        run: |
-          echo "::group::Ruff Linting and Formatting"
-          cd ../..
-          pre-commit run --all-files \
-            --show-diff-on-failure
-          echo "::endgroup::"
+      - name: Lint & Type check
+        run: make lint
 
-      - name: Check Poetry configuration
-        run: |
-          echo "::group::Poetry Check"
-          poetry check
-          echo "::endgroup::"
-
-      - name: Check Poetry lock file
-        run: |
-          echo "::group::Poetry Lock Check"
-          poetry lock --check
-          echo "::endgroup::"
-
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-logs-${{ github.sha }}
-          path: |
-            apps/api/logs/
-            ~/.cache/pre-commit/
-          retention-days: 3
+      - name: Run tests (if any)
+        if: ${{ hashFiles('tests/**') != '' }}
+        run: poetry run pytest

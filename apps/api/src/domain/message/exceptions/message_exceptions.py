@@ -1,5 +1,5 @@
-class MessageDomainException(Exception):
-    pass
+class MessageDomainException(Exception):  # noqa: N818
+    """Messageドメインに関連する例外の基底クラス"""
 
 
 class MessageNotFoundException(MessageDomainException):
