@@ -27,6 +27,7 @@ export default {
   'home.file_import_error_log': 'ファイルのインポート中にエラーが発生しました:',
   'home.no_books_message': '本が見つかりません。本をインポートしてください。',
   'home.selected_books': '{count}冊選択中',
+  'home.importing_books': '本をインポート中',
 
   /**
    * Import
@@ -37,7 +38,6 @@ export default {
   'import.processing_metadata': 'メタデータを処理中...',
   'import.processing_content': 'コンテンツを処理中...',
   'import.saving': '保存中...',
-  'import.importing_books': '本をインポート中',
   'import.files_processed': 'ファイル処理済み',
   'import.import_status': '{success}冊の本を正常にインポート、{failed}冊失敗',
   'import.please_wait': 'インポートが完了するまでお待ちください...',

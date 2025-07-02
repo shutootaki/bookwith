@@ -91,7 +91,6 @@ export async function handleFiles(
   const fileArray = Array.from(files)
   const newBooks: BookDetail[] = []
 
-  // 初期進捗を設定
   updateProgress?.(0, fileArray.length * 100)
 
   let completedCount = 0
@@ -105,20 +104,16 @@ export async function handleFiles(
       const file = fileArray[i]
       if (!file) continue
       try {
-        // ファイル名を更新
         updateSubTasks?.({
           currentFileName: file.name,
         })
 
-        // ファイルごとの進捗を計算
-        const fileProgress = i * 100 + 0 // 各ファイルは0-100%の進捗
+        const fileProgress = i * 100 + 0
         updateProgress?.(fileProgress, fileArray.length * 100)
 
         if (mapExtToMimes['.zip'].includes(file.type)) {
-          // ZIPファイルの進捗: 30%
           updateProgress?.(i * 100 + 30, fileArray.length * 100)
 
-          // ZIPファイルの完了: 100%
           updateProgress?.(i * 100 + 100, fileArray.length * 100)
 
           completedCount++
@@ -128,7 +123,6 @@ export async function handleFiles(
         if (!mapExtToMimes['.epub'].includes(file.type)) {
           console.error(`Unsupported file type: ${file.type}`)
 
-          // サポートされていないファイル形式: 100%
           updateProgress?.(i * 100 + 100, fileArray.length * 100)
 
           completedCount++
@@ -136,22 +130,18 @@ export async function handleFiles(
           continue
         }
 
-        // ePubファイルの読み込み: 20%
         updateProgress?.(i * 100 + 20, fileArray.length * 100)
 
         let book = existingBooks?.find((b) => b.name === file.name)
 
-        // 既存ファイルのチェック: 40%
         updateProgress?.(i * 100 + 40, fileArray.length * 100)
 
         const trackingSetLoading = (id: string | undefined) => {
           setLoading?.(id)
 
           if (id) {
-            // サーバーにアップロード中: 60%
             updateProgress?.(i * 100 + 60, fileArray.length * 100)
           } else {
-            // メタデータ処理: 90%
             updateProgress?.(i * 100 + 90, fileArray.length * 100)
           }
         }
@@ -171,7 +161,6 @@ export async function handleFiles(
           failedCount++
         }
 
-        // ファイルの完了: 100%
         completedCount++
         updateProgress?.(completedCount * 100, fileArray.length * 100)
         updateSubTasks?.({
@@ -180,7 +169,6 @@ export async function handleFiles(
       } catch (error) {
         console.error(`ファイルのインポート中にエラーが発生しました: ${error}`)
 
-        // エラー時も完了として扱う
         completedCount++
         failedCount++
         updateProgress?.(completedCount * 100, fileArray.length * 100)
@@ -190,7 +178,6 @@ export async function handleFiles(
       }
     }
   } finally {
-    // 最終的に100%に設定
     updateProgress?.(fileArray.length * 100, fileArray.length * 100)
     updateSubTasks?.({
       currentFileName: undefined,

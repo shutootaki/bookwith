@@ -68,7 +68,10 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
 
     return bookData
   } catch (error) {
-    console.error(`Error occurred while registering book (${file.name}):`, error)
+    console.error(
+      `Error occurred while registering book (${file.name}):`,
+      error,
+    )
     throw error
   }
 }

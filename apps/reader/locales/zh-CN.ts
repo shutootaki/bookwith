@@ -26,6 +26,7 @@ export default {
   'home.file_import_error_log': '文件导入中发生错误:',
   'home.no_books_message': '未找到图书。请导入一些图书。',
   'home.selected_books': '已选择 {count} 本书',
+  'home.importing_books': '正在导入图书',
 
   /**
    * Import
@@ -36,7 +37,6 @@ export default {
   'import.processing_metadata': '正在处理元数据...',
   'import.processing_content': '正在处理内容...',
   'import.saving': '正在保存...',
-  'import.importing_books': '正在导入图书',
   'import.files_processed': '个文件已处理',
   'import.import_status': '{success} 本书导入成功，{failed} 本失败',
   'import.please_wait': '请等待导入完成...',

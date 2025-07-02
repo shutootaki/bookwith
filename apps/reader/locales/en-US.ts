@@ -27,6 +27,7 @@ export default {
   'home.file_import_error_log': 'An error occurred during file import:',
   'home.no_books_message': 'No books found. Please import some books.',
   'home.selected_books': '{count} books selected',
+  'home.importing_books': 'Importing books',
 
   /**
    * Import
@@ -37,7 +38,6 @@ export default {
   'import.processing_metadata': 'Processing metadata...',
   'import.processing_content': 'Processing content...',
   'import.saving': 'Saving...',
-  'import.importing_books': 'Importing books',
   'import.files_processed': 'files processed',
   'import.import_status':
     '{success} books imported successfully, {failed} books failed',

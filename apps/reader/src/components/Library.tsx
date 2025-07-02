@@ -196,7 +196,7 @@ export const Library: React.FC = () => {
           <div className="flex items-center gap-2">
             {books.length > 0 && (
               <Button variant="outline" size="sm" onClick={toggleSelect}>
-                {t('select')}
+                {t(select ? 'cancel' : 'select')}
               </Button>
             )}
             {books.length === 0 && (
@@ -231,7 +231,7 @@ export const Library: React.FC = () => {
             )}
             {select && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={
                   allSelected ? reset : () => books.forEach((b) => add(b.id))
