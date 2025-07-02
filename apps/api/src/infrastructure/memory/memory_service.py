@@ -69,6 +69,38 @@ class MemoryService:
         self.vectorize_text_background(message=message, memory_store=self.memory_store, config=self.config)
         logger.debug(f"メッセージID {message.id.value} のベクトル化を実行")
 
+    def vectorize_text_background(self, message: Message, memory_store: MemoryVectorStore, config: AppConfig | None = None) -> None:
+        """メッセージをベクトル化して保存する非同期タスク."""
+        if config is None:
+            config = AppConfig.get_config()
+
+        try:
+            # メッセージの内容をベクトル化
+            text = message.content.value
+            vector = memory_store.encode_text(text)
+
+            # 基本メタデータを準備
+            metadata = {
+                "chat_id": message.chat_id,
+                "content": text,
+                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "memory_type": memory_store.TYPE_MESSAGE,
+                "message_id": str(message.id.value),
+                "sender": message.sender_type.value,
+                "user_id": message.sender_id,
+            }
+
+            # ベクトルストアに保存
+            memory_id = memory_store.add_memory(
+                vector=vector, metadata=metadata, user_id=message.sender_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME
+            )
+            logger.info(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
+
+        except ValueError as ve:
+            logger.warning(f"メッセージベクトル化中に値エラー: {str(ve)}")  # 空テキストなどの場合
+        except Exception as e:
+            logger.error(f"メッセージベクトル化中にエラーが発生: {str(e)}", exc_info=True)
+
     def summarize_chat(self, chat_id: str, user_id: str, message_count: int) -> None:
         """チャットの要約を同期的に生成（条件を満たす場合）."""
         # メッセージ数が閾値の倍数に達した場合に要約を実行
@@ -194,38 +226,6 @@ class MemoryService:
                 full_prompt = prompt_parts[0] + "\n" + "\n".join(truncated) + prompt_parts[-1]
 
         return full_prompt
-
-    def vectorize_text_background(self, message: Message, memory_store: MemoryVectorStore, config: AppConfig | None = None) -> None:
-        """メッセージをベクトル化して保存する非同期タスク."""
-        if config is None:
-            config = AppConfig.get_config()
-
-        try:
-            # メッセージの内容をベクトル化
-            text = message.content.value
-            vector = memory_store.encode_text(text)
-
-            # 基本メタデータを準備
-            metadata = {
-                "chat_id": message.chat_id,
-                "content": text,
-                "created_at": message.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "memory_type": memory_store.TYPE_MESSAGE,
-                "message_id": str(message.id.value),
-                "sender": message.sender_type.value,
-                "user_id": message.sender_id,
-            }
-
-            # ベクトルストアに保存
-            memory_id = memory_store.add_memory(
-                vector=vector, metadata=metadata, user_id=message.sender_id, collection_name=self.memory_store.CHAT_MEMORY_COLLECTION_NAME
-            )
-            logger.info(f"メッセージID {message.id.value} をベクトル化して保存 (memory_id: {memory_id})")
-
-        except ValueError as ve:
-            logger.warning(f"メッセージベクトル化中に値エラー: {str(ve)}")  # 空テキストなどの場合
-        except Exception as e:
-            logger.error(f"メッセージベクトル化中にエラーが発生: {str(e)}", exc_info=True)
 
     def summarize_and_vectorize_background(
         self, chat_id: str, user_id: str, memory_store: MemoryVectorStore, config: AppConfig | None = None

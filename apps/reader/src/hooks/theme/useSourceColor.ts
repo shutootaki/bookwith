@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { useSettings } from '@flow/reader/state'
+import { useSettings } from '@flow/reader/utils/state'
 
 export function useSourceColor() {
   const [{ theme }, setSettings] = useSettings()

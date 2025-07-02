@@ -15,7 +15,7 @@ import { PhotoSlider } from 'react-photo-view'
 import { useSnapshot } from 'valtio'
 
 import { RenditionSpread } from '@flow/epubjs/types/rendition'
-import { navbarState } from '@flow/reader/state'
+import { navbarState } from '@flow/reader/utils/state'
 
 import { useEventListener } from '../hooks'
 import {
@@ -29,8 +29,8 @@ import {
 } from '../hooks'
 import { handleFiles } from '../lib/apiHandler/importHandlers'
 import { BookTab, reader, useReaderSnapshot } from '../models'
-import { isTouchScreen } from '../platform'
-import { updateCustomStyle } from '../styles'
+import { isTouchScreen } from '../utils/platform'
+import { updateCustomStyle } from '../utils/styles'
 
 import {
   getClickedAnnotation,

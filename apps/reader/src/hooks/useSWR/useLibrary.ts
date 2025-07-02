@@ -20,14 +20,14 @@ export function useLibrary() {
   }
 }
 
-export function useRemoteCovers() {
-  const { data, mutate } = useSWR<components['schemas']['CoversResponse']>(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/covers`,
-    fetcher,
-  )
+export function useBookCovers() {
+  const { data, mutate, isValidating } = useSWR<
+    components['schemas']['CoversResponse']
+  >(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/covers`, fetcher)
 
   return {
     covers: data?.covers || [],
     mutate,
+    isCoverLoading: isValidating,
   }
 }

@@ -25,8 +25,8 @@ import {
 } from '../hooks'
 import type { Action } from '../hooks'
 import { reader, useReaderSnapshot } from '../models'
-import { navbarState } from '../state'
-import { activeClass } from '../styles'
+import { navbarState } from '../utils/state'
+import { activeClass } from '../utils/styles'
 
 import { SplitView, useSplitViewItem } from './base'
 import { Settings } from './pages'

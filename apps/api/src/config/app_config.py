@@ -4,6 +4,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 TEST_USER_ID = "91527c9d-48aa-41d0-bb85-dc96f26556a0"
+DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 
 
 class AppConfig(BaseSettings):

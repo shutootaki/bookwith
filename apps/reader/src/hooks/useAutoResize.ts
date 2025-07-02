@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
 
-import { TextAreaRefType } from './types'
-
-export const useAutoResize = (text: string, textareaRef: TextAreaRefType) => {
+export const useAutoResize = (
+  text: string,
+  textareaRef: {
+    current: HTMLTextAreaElement | null
+  },
+) => {
   useEffect(() => {
     const textarea = textareaRef.current
     if (!textarea) return

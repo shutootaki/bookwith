@@ -1,10 +1,10 @@
-import { TEST_USER_ID } from '../../pages/_app' // Temporary user ID
+import { TEST_USER_ID } from '../../pages/_app'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 interface ApiClientOptions extends Omit<RequestInit, 'body'> {
-  params?: Record<string, string | number | boolean> // Allow various types for params
-  body?: any // Allow any body type, will be stringified if object
+  params?: Record<string, string | number | boolean>
+  body?: any
 }
 
 /**

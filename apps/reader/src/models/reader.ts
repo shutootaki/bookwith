@@ -7,12 +7,12 @@ import type { Rendition, Location, Book } from '@flow/epubjs'
 import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
-import { AnnotationColor, AnnotationType } from '../annotation'
-import { fileToEpub } from '../epub'
 import { getBookFile } from '../lib/apiHandler/bookApiHandler'
 import { components } from '../lib/openapi-schema/schema'
-import { defaultStyle } from '../styles'
-import { IS_SERVER } from '../utils'
+import { AnnotationColor, AnnotationType } from '../utils/annotation'
+import { fileToEpub } from '../utils/epub'
+import { defaultStyle } from '../utils/styles'
+import { IS_SERVER } from '../utils/utils'
 
 import { dfs, find, INode } from './tree'
 

@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { fileToEpub, indexEpub } from '../../epub'
-import { fileToBase64, toDataUrl } from '../../fileUtils'
-import { mapExtToMimes } from '../../mime'
 import { TEST_USER_ID } from '../../pages/_app'
+import { fileToEpub, indexEpub } from '../../utils/epub'
+import { fileToBase64, toDataUrl } from '../../utils/fileUtils'
+import { mapExtToMimes } from '../../utils/mime'
 import { components } from '../openapi-schema/schema'
 
 import { createBook, fetchAllBooks } from './bookApiHandler'
@@ -85,29 +85,13 @@ export async function fetchBook(
 export async function handleFiles(
   files: Iterable<File>,
   setLoading?: (id: string | undefined) => void,
-  setImportProgress?: (status: {
-    total: number
-    completed: number
-    importing: boolean
-    success?: number
-    failed?: number
-    currentFile?: {
-      name: string
-      progress: number
-      index: number
-    }
-  }) => void,
+  updateProgress?: (current: number, total: number) => void,
+  updateSubTasks?: (subTasksUpdate: any) => void,
 ) {
   const fileArray = Array.from(files)
   const newBooks: BookDetail[] = []
 
-  setImportProgress?.({
-    total: fileArray.length,
-    completed: 0,
-    importing: true,
-    success: 0,
-    failed: 0,
-  })
+  updateProgress?.(0, fileArray.length * 100)
 
   let completedCount = 0
   let successCount = 0
@@ -120,142 +104,45 @@ export async function handleFiles(
       const file = fileArray[i]
       if (!file) continue
       try {
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
-          currentFile: {
-            name: file.name,
-            progress: 0,
-            index: i,
-          },
+        updateSubTasks?.({
+          currentFileName: file.name,
         })
 
-        if (mapExtToMimes['.zip'].includes(file.type)) {
-          setImportProgress?.({
-            total: fileArray.length,
-            completed: completedCount,
-            importing: true,
-            success: successCount,
-            failed: failedCount,
-            currentFile: {
-              name: file.name,
-              progress: 30,
-              index: i,
-            },
-          })
+        const fileProgress = i * 100 + 0
+        updateProgress?.(fileProgress, fileArray.length * 100)
 
-          setImportProgress?.({
-            total: fileArray.length,
-            completed: completedCount,
-            importing: true,
-            success: successCount,
-            failed: failedCount,
-            currentFile: {
-              name: file.name,
-              progress: 100,
-              index: i,
-            },
-          })
+        if (mapExtToMimes['.zip'].includes(file.type)) {
+          updateProgress?.(i * 100 + 30, fileArray.length * 100)
+
+          updateProgress?.(i * 100 + 100, fileArray.length * 100)
 
           completedCount++
-          setImportProgress?.({
-            total: fileArray.length,
-            completed: completedCount,
-            importing: true,
-            success: successCount,
-            failed: failedCount,
-          })
           continue
         }
 
         if (!mapExtToMimes['.epub'].includes(file.type)) {
           console.error(`Unsupported file type: ${file.type}`)
 
-          setImportProgress?.({
-            total: fileArray.length,
-            completed: completedCount,
-            importing: true,
-            success: successCount,
-            failed: failedCount,
-            currentFile: {
-              name: file.name,
-              progress: 100,
-              index: i,
-            },
-          })
+          updateProgress?.(i * 100 + 100, fileArray.length * 100)
 
           completedCount++
           failedCount++
-          setImportProgress?.({
-            total: fileArray.length,
-            completed: completedCount,
-            importing: true,
-            success: successCount,
-            failed: failedCount,
-          })
           continue
         }
 
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
-          currentFile: {
-            name: file.name,
-            progress: 20,
-            index: i,
-          },
-        })
+        updateProgress?.(i * 100 + 20, fileArray.length * 100)
 
         let book = existingBooks?.find((b) => b.name === file.name)
 
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
-          currentFile: {
-            name: file.name,
-            progress: 40,
-            index: i,
-          },
-        })
+        updateProgress?.(i * 100 + 40, fileArray.length * 100)
 
         const trackingSetLoading = (id: string | undefined) => {
           setLoading?.(id)
 
           if (id) {
-            setImportProgress?.({
-              total: fileArray.length,
-              completed: completedCount,
-              importing: true,
-              success: successCount,
-              failed: failedCount,
-              currentFile: {
-                name: file.name,
-                progress: 60,
-                index: i,
-              },
-            })
+            updateProgress?.(i * 100 + 60, fileArray.length * 100)
           } else {
-            setImportProgress?.({
-              total: fileArray.length,
-              completed: completedCount,
-              importing: true,
-              success: successCount,
-              failed: failedCount,
-              currentFile: {
-                name: file.name,
-                progress: 90,
-                index: i,
-              },
-            })
+            updateProgress?.(i * 100 + 90, fileArray.length * 100)
           }
         }
 
@@ -274,61 +161,27 @@ export async function handleFiles(
           failedCount++
         }
 
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
-          currentFile: {
-            name: file.name,
-            progress: 100,
-            index: i,
-          },
-        })
-
         completedCount++
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
+        updateProgress?.(completedCount * 100, fileArray.length * 100)
+        updateSubTasks?.({
+          filesCompleted: completedCount,
         })
       } catch (error) {
         console.error(`ファイルのインポート中にエラーが発生しました: ${error}`)
 
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
-          currentFile: {
-            name: file.name,
-            progress: 100,
-            index: i,
-          },
-        })
-
         completedCount++
         failedCount++
-        setImportProgress?.({
-          total: fileArray.length,
-          completed: completedCount,
-          importing: true,
-          success: successCount,
-          failed: failedCount,
+        updateProgress?.(completedCount * 100, fileArray.length * 100)
+        updateSubTasks?.({
+          filesCompleted: completedCount,
         })
       }
     }
   } finally {
-    setImportProgress?.({
-      total: fileArray.length,
-      completed: fileArray.length,
-      importing: false,
-      success: successCount,
-      failed: failedCount,
+    updateProgress?.(fileArray.length * 100, fileArray.length * 100)
+    updateSubTasks?.({
+      currentFileName: undefined,
+      filesCompleted: completedCount,
     })
   }
 

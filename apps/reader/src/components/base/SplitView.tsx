@@ -11,7 +11,7 @@ import {
 } from 'react'
 
 import { useMobile } from '@flow/reader/hooks'
-import { clamp } from '@flow/reader/utils'
+import { clamp } from '@flow/reader/utils/utils'
 
 type Maybe<T> = T | null | undefined
 

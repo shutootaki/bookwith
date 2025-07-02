@@ -9,8 +9,8 @@ import {
   defaultSettings,
   TypographyConfiguration,
   useSettings,
-} from '@flow/reader/state'
-import { keys } from '@flow/reader/utils'
+} from '@flow/reader/utils/state'
+import { keys } from '@flow/reader/utils/utils'
 
 import { Select, TextField, TextFieldProps } from '../Form'
 import { PaneViewProps, PaneView, Pane } from '../base'

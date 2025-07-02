@@ -2,10 +2,10 @@ import React, { Fragment } from 'react'
 import { useMemo } from 'react'
 import { VscCopy } from 'react-icons/vsc'
 
-import { Annotation } from '@flow/reader/annotation'
 import { useBoolean, useTranslation } from '@flow/reader/hooks'
 import { reader, useReaderSnapshot } from '@flow/reader/models'
-import { copy, group, keys } from '@flow/reader/utils'
+import { Annotation } from '@flow/reader/utils/annotation'
+import { copy, group, keys } from '@flow/reader/utils/utils'
 
 import { Row } from '../Row'
 import { PaneViewProps, PaneView, Pane } from '../base'

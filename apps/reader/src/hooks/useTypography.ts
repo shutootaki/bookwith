@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useSnapshot } from 'valtio'
 
 import { BookTab } from '../models'
-import { useSettings } from '../state'
+import { useSettings } from '../utils/state'
 
 function removeUndefinedProperty<T extends Record<string, any>>(obj: T) {
   const newObj: Partial<T> = {}

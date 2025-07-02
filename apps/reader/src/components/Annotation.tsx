@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 
-import { colorMap } from '../annotation'
 import { useSetAction } from '../hooks'
 import { components } from '../lib/openapi-schema/schema'
 import { BookTab, compareHref } from '../models'
+import { colorMap } from '../utils/annotation'
 
 // avoid click penetration
 let clickedAnnotation = false

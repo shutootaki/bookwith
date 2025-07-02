@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react'
 
 import { useAction, useTranslation } from '@flow/reader/hooks'
 
+import { useAutoResize } from '../../../hooks/useAutoResize'
 import { Button } from '../../ui/button'
 import { Textarea } from '../../ui/textarea'
 import {
@@ -11,8 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../../ui/tooltip'
-
-import { useAutoResize } from './utils'
 
 interface ChatInputFormProps {
   text: string
