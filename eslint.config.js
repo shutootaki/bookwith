@@ -1,12 +1,13 @@
 // eslint.config.js
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
 import nextPlugin from '@next/eslint-plugin-next';
-import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
+import importPlugin from 'eslint-plugin-import';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 // __dirname の代替
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +19,11 @@ export default tseslint.config(
     ignores: [
       'node_modules/',
       '.next/',
+      '**/.next/**',
       'dist/',
+      '**/dist/**',
+      'build/',
+      '**/build/**',
     ],
   },
 
