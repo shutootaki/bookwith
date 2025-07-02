@@ -109,7 +109,7 @@ export async function handleFiles(
         updateSubTasks?.({
           currentFileName: file.name,
         })
-        
+
         // ファイルごとの進捗を計算
         const fileProgress = i * 100 + 0 // 各ファイルは0-100%の進捗
         updateProgress?.(fileProgress, fileArray.length * 100)

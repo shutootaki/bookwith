@@ -38,8 +38,7 @@ export default {
   'import.saving': '保存中...',
   'import.importing_books': '本をインポート中 ({completed}/{total})',
   'import.files_processed': 'ファイル処理済み',
-  'import.import_status':
-    '{success}冊の本を正常にインポート、{failed}冊失敗',
+  'import.import_status': '{success}冊の本を正常にインポート、{failed}冊失敗',
   'import.please_wait': 'インポートが完了するまでお待ちください...',
 
   /**
@@ -140,8 +139,7 @@ export default {
   'chat.history': 'チャット履歴',
   'chat.new': '新規チャット',
   'chat.empty_title': 'チャットを開始',
-  'chat.empty_description':
-    'AIは読んでいる本の知識に基づいて回答します。',
+  'chat.empty_description': 'AIは読んでいる本の知識に基づいて回答します。',
   'chat.search_history': 'チャット履歴を検索',
   'chat.no_history': '履歴が見つかりません',
   'chat.keyboard_shortcut': '`Cmd + Enter` または `Ctrl + Enter` で送信',
