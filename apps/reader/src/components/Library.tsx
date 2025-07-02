@@ -1,5 +1,5 @@
+import { Download, Share2, Upload, Trash2, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { MdOutlineFileDownload, MdOutlineShare } from 'react-icons/md'
 import { useSet } from 'react-use'
 import { toast } from 'sonner'
 
@@ -34,12 +34,12 @@ export const Library: React.FC = () => {
   const { books, error, mutate: booksMutate } = useLibrary()
   const { covers, mutate: coversMutate, isCoverLoading } = useBookCovers()
   const t = useTranslation('home')
-  const { startLoading, stopLoading, updateProgress } = useLoading({
-    message: '📚 本をインポートしています...',
-    type: 'global',
-    showProgress: true,
-    icon: '📚',
-  })
+  const { startLoading, stopLoading, updateProgress, updateSubTasks } =
+    useLoading({
+      message: '本をインポートしています...',
+      type: 'global',
+      showProgress: true,
+    })
 
   const [select, toggleSelect] = useBoolean(false)
   const [selectedBookIds, { add, has, toggle, reset }] = useSet<string>()
@@ -97,9 +97,16 @@ export const Library: React.FC = () => {
     files: FileList | File[],
     setLoading: React.Dispatch<React.SetStateAction<string | undefined>>,
   ) => {
-    const taskId = startLoading()
+    const filesArray = Array.from(files)
+    const taskId = startLoading(undefined, { filesTotal: filesArray.length })
+
     try {
-      const result = await handleFiles(files, setLoading, updateProgress)
+      const result = await handleFiles(
+        files,
+        setLoading,
+        updateProgress,
+        updateSubTasks,
+      )
 
       if (result) {
         const { success, failed } = result
@@ -133,9 +140,6 @@ export const Library: React.FC = () => {
     }
   }
 
-  console.log({ 'loading-now': loading })
-  console.log({ books })
-
   return (
     <DropZone
       className="scroll-parent h-full p-4"
@@ -148,6 +152,16 @@ export const Library: React.FC = () => {
       }}
     >
       <div className="mb-4 space-y-2.5">
+        {select && (
+          <div className="bg-secondary flex items-center justify-between rounded-lg p-3">
+            <span className="text-secondary-foreground text-sm">
+              {selectedBookIds.size}冊選択中
+            </span>
+            <Button variant="ghost" size="sm" onClick={toggleSelect}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         <div>
           <TextField
             name={SOURCE}
@@ -157,7 +171,7 @@ export const Library: React.FC = () => {
             actions={[
               {
                 title: t('share'),
-                Icon: MdOutlineShare,
+                Icon: Share2,
                 onClick(el) {
                   if (el?.reportValidity()) {
                     copy(`${window.location.origin}/?${SOURCE}=${el.value}`)
@@ -166,7 +180,7 @@ export const Library: React.FC = () => {
               },
               {
                 title: t('download'),
-                Icon: MdOutlineFileDownload,
+                Icon: Download,
                 onClick: async (el) => {
                   if (el?.reportValidity()) {
                     await handleImportOperation(
@@ -180,14 +194,16 @@ export const Library: React.FC = () => {
           />
         </div>
         <div className="flex items-center justify-between gap-4">
-          <div className="space-x-2">
-            {books.length ? (
-              <Button variant="secondary" onClick={toggleSelect}>
-                {t(select ? 'cancel' : 'select')}
+          <div className="flex items-center gap-2">
+            {books.length > 0 && (
+              <Button variant="outline" size="sm" onClick={toggleSelect}>
+                {t('select')}
               </Button>
-            ) : (
+            )}
+            {books.length === 0 && (
               <Button
                 variant="secondary"
+                size="sm"
                 disabled={!books}
                 onClick={async () => {
                   const fileName =
@@ -214,73 +230,80 @@ export const Library: React.FC = () => {
                 {t('download_sample_book')}
               </Button>
             )}
-            {select &&
-              (allSelected ? (
-                <Button variant="secondary" onClick={reset}>
-                  {t('deselect_all')}
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  onClick={() => books.forEach((b) => add(b.id))}
-                >
-                  {t('select_all')}
-                </Button>
-              ))}
+            {select && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={
+                  allSelected ? reset : () => books.forEach((b) => add(b.id))
+                }
+              >
+                {t(allSelected ? 'deselect_all' : 'select_all')}
+              </Button>
+            )}
           </div>
 
-          <div className="space-x-2">
+          <div className="flex items-center gap-2">
             {select ? (
-              <>
-                <AlertDialog>
-                  <Button asChild>
-                    <AlertDialogTrigger>{t('delete')}</AlertDialogTrigger>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={selectedBookIds.size === 0}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {t('delete')} ({selectedBookIds.size})
                   </Button>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t('delete_confirmation')}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t('delete_confirmation_message')}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={async () => {
-                          toggleSelect()
-                          await deleteBooksFromAPI([...selectedBookIds])
-                          booksMutate()
-                          toast.success(t('delete_success'))
-                        }}
-                      >
-                        {t('delete')}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {t('delete_confirmation')}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('delete_confirmation_message')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        toggleSelect()
+                        await deleteBooksFromAPI([...selectedBookIds])
+                        booksMutate()
+                        toast.success(t('delete_success'))
+                      }}
+                    >
+                      {t('delete')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             ) : (
-              <>
-                <Button className="relative">
-                  <input
-                    type="file"
-                    accept="application/epub+zip,application/epub,application/zip"
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                    onChange={async (e) => {
-                      const files = e.target.files
-                      if (files) {
-                        handleFileImport(files, setLoading)
-                      }
-                    }}
-                    multiple
-                    aria-label="import-books"
-                  />
-                  {t('import')}
-                </Button>
-              </>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => document.getElementById('file-import')?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {t('import')}
+              </Button>
             )}
+            <input
+              id="file-import"
+              type="file"
+              accept="application/epub+zip,application/epub,application/zip"
+              className="sr-only"
+              onChange={async (e) => {
+                const files = e.target.files
+                if (files) {
+                  handleFileImport(files, setLoading)
+                }
+              }}
+              multiple
+              aria-label="import-books"
+            />
           </div>
         </div>
       </div>
@@ -310,7 +333,7 @@ export const Library: React.FC = () => {
         </div>
       ) : (
         <div className="flex h-full items-center justify-center">
-          <p className="text-on-surface-variant">{t('no_books_message')}</p>
+          <p className="text-muted-foreground">{t('no_books_message')}</p>
         </div>
       )}
       <Toaster />

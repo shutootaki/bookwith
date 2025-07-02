@@ -15,6 +15,8 @@ export interface UseLoadingOptions {
   type?: 'global' | 'local'
   showProgress?: boolean
   icon?: string
+  /** ユーザーがキャンセルできるタスクか */
+  canCancel?: boolean
 }
 
 export function useLoading(options?: UseLoadingOptions) {
@@ -28,7 +30,7 @@ export function useLoading(options?: UseLoadingOptions) {
   const currentTaskIdRef = useRef<string | null>(null)
 
   const startLoading = useCallback(
-    (taskId?: string) => {
+    (taskId?: string, customOptions?: { filesTotal?: number }) => {
       const id =
         taskId ||
         `task-${Date.now()}-${Math.random().toString(36).substring(7)}`
@@ -38,12 +40,21 @@ export function useLoading(options?: UseLoadingOptions) {
         message: options?.message,
         type: options?.type || 'global',
         icon: options?.icon,
+        startTime: Date.now(),
+        canCancel: options?.canCancel,
       }
 
       if (options?.showProgress) {
         task.progress = {
           current: 0,
           total: 100,
+        }
+      }
+
+      if (customOptions?.filesTotal) {
+        task.subTasks = {
+          filesCompleted: 0,
+          filesTotal: customOptions.filesTotal,
         }
       }
 
@@ -63,6 +74,20 @@ export function useLoading(options?: UseLoadingOptions) {
         id: currentTaskIdRef.current,
         updates: {
           progress: { current, total },
+        },
+      })
+    },
+    [updateTask],
+  )
+
+  const updateSubTasks = useCallback(
+    (subTasksUpdate: Partial<LoadingTask['subTasks']>) => {
+      if (!currentTaskIdRef.current) return
+
+      updateTask({
+        id: currentTaskIdRef.current,
+        updates: {
+          subTasks: subTasksUpdate as LoadingTask['subTasks'],
         },
       })
     },
@@ -92,6 +117,7 @@ export function useLoading(options?: UseLoadingOptions) {
   return {
     startLoading,
     updateProgress,
+    updateSubTasks,
     stopLoading,
     isLoading,
     isGlobalLoading,

@@ -150,6 +150,24 @@ export default {
   'chat.created_at': 'Created at',
 
   /**
+   * Loading
+   */
+  'loading.title': 'Loading',
+  'loading.importingBooks': 'Importing {count} books',
+  'loading.importingBooksMessage': 'Importing books...',
+  'loading.cancel': 'Cancel',
+
+  /**
+   * Library
+   */
+  'library.selectedBooks': '{count} books selected',
+
+  /**
+   * Dropzone
+   */
+  'dropzone.dropToImport': 'Drop to import',
+
+  /**
    * Others
    */
   untitled: 'Untitled',

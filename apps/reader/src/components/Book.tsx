@@ -68,12 +68,17 @@ export const Book: React.FC<{
   const Icon = selected ? MdCheckBox : MdCheckBoxOutlineBlank
 
   return (
-    <div className="relative flex flex-col">
+    <div className={clsx(
+      "relative flex flex-col transition-all duration-200",
+      select && "hover:scale-105"
+    )}>
       <div
         role="button"
         className={clsx(
-          'border-inverse-on-surface relative border',
+          'border-inverse-on-surface relative border overflow-hidden',
           loading && 'cursor-progress',
+          select && 'cursor-pointer hover:border-blue-500',
+          select && selected && 'ring-2 ring-blue-500 border-blue-500',
         )}
         onClick={async () => {
           if (loading) return
@@ -108,12 +113,12 @@ export const Book: React.FC<{
           transition={{ duration: 0.3 }}
         />
         {select && (
-          <div className="absolute bottom-1 right-1">
+          <div className="absolute bottom-2 right-2 bg-white dark:bg-gray-900 rounded-full p-1 shadow-lg">
             <Icon
-              size={24}
+              size={20}
               className={clsx(
-                '-m-1',
-                selected ? 'text-tertiary' : 'text-outline',
+                selected ? 'text-blue-500' : 'text-gray-400',
+                'transition-colors duration-200',
               )}
             />
           </div>

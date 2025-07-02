@@ -147,6 +147,24 @@ export default {
   'chat.created_at': '创建时间',
 
   /**
+   * Loading
+   */
+  'loading.title': '加载中',
+  'loading.importingBooks': '正在导入 {count} 本书',
+  'loading.importingBooksMessage': '正在导入图书...',
+  'loading.cancel': '取消',
+
+  /**
+   * Library
+   */
+  'library.selectedBooks': '已选择 {count} 本书',
+
+  /**
+   * Dropzone
+   */
+  'dropzone.dropToImport': '拖放以导入',
+
+  /**
    * Others
    */
   untitled: '未标题',

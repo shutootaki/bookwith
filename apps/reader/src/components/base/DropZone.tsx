@@ -91,14 +91,24 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
       {dragover && (
         <div
           className={clsx(
-            'bg-outline/20 absolute z-10 transition',
+            'absolute z-10 transition-all duration-200',
             position === 'left' && 'inset-y-0 right-1/2 left-0',
             position === 'right' && 'inset-y-0 right-0 left-1/2',
             position === 'top' && 'inset-x-0 top-0 bottom-1/2',
             position === 'bottom' && 'inset-x-0 top-1/2 bottom-0',
             position === 'universe' && 'inset-0',
           )}
-        ></div>
+        >
+          <div className="absolute inset-0 bg-blue-500/10 backdrop-blur-sm border-2 border-dashed border-blue-500 rounded-lg animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="bg-white dark:bg-gray-900 rounded-lg px-4 py-2 shadow-lg">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  ドロップしてインポート
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       {dragover && (
         <div

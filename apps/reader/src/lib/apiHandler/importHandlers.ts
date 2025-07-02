@@ -86,6 +86,7 @@ export async function handleFiles(
   files: Iterable<File>,
   setLoading?: (id: string | undefined) => void,
   updateProgress?: (current: number, total: number) => void,
+  updateSubTasks?: (subTasksUpdate: any) => void,
 ) {
   const fileArray = Array.from(files)
   const newBooks: BookDetail[] = []
@@ -104,6 +105,11 @@ export async function handleFiles(
       const file = fileArray[i]
       if (!file) continue
       try {
+        // ファイル名を更新
+        updateSubTasks?.({
+          currentFileName: file.name,
+        })
+        
         // ファイルごとの進捗を計算
         const fileProgress = i * 100 + 0 // 各ファイルは0-100%の進捗
         updateProgress?.(fileProgress, fileArray.length * 100)
@@ -168,6 +174,9 @@ export async function handleFiles(
         // ファイルの完了: 100%
         completedCount++
         updateProgress?.(completedCount * 100, fileArray.length * 100)
+        updateSubTasks?.({
+          filesCompleted: completedCount,
+        })
       } catch (error) {
         console.error(`ファイルのインポート中にエラーが発生しました: ${error}`)
 
@@ -175,11 +184,18 @@ export async function handleFiles(
         completedCount++
         failedCount++
         updateProgress?.(completedCount * 100, fileArray.length * 100)
+        updateSubTasks?.({
+          filesCompleted: completedCount,
+        })
       }
     }
   } finally {
     // 最終的に100%に設定
     updateProgress?.(fileArray.length * 100, fileArray.length * 100)
+    updateSubTasks?.({
+      currentFileName: undefined,
+      filesCompleted: completedCount,
+    })
   }
 
   return { newBooks, success: successCount, failed: failedCount }
