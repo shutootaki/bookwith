@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class AnnotationNotes:
     value: str | None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.value is not None and not isinstance(self.value, str):
             raise ValueError("Annotation notes must be a string")
 

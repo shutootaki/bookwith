@@ -44,49 +44,49 @@ class Annotation(BaseModel):
 
     @field_validator("id", mode="before")
     @classmethod
-    def _validate_id(cls, v):
+    def _validate_id(cls, v: Any) -> AnnotationId:  # noqa: ANN401
         if isinstance(v, AnnotationId):
             return v
         return AnnotationId(v)
 
     @field_validator("cfi", mode="before")
     @classmethod
-    def _validate_cfi(cls, v):
+    def _validate_cfi(cls, v: Any) -> AnnotationCfi:  # noqa: ANN401
         if isinstance(v, AnnotationCfi):
             return v
         return AnnotationCfi(v)
 
     @field_validator("text", mode="before")
     @classmethod
-    def _validate_text(cls, v):
+    def _validate_text(cls, v: Any) -> AnnotationText:  # noqa: ANN401
         if isinstance(v, AnnotationText):
             return v
         return AnnotationText(v)
 
     @field_validator("notes", mode="before")
     @classmethod
-    def _validate_notes(cls, v):
+    def _validate_notes(cls, v: Any) -> AnnotationNotes | None:  # noqa: ANN401
         if v is None or isinstance(v, AnnotationNotes):
             return v
         return AnnotationNotes(v)
 
     @field_validator("color", mode="before")
     @classmethod
-    def _validate_color(cls, v):
+    def _validate_color(cls, v: Any) -> AnnotationColor:  # noqa: ANN401
         if isinstance(v, AnnotationColor):
             return v
         return AnnotationColor(v)
 
     @field_validator("type", mode="before")
     @classmethod
-    def _validate_type(cls, v):
+    def _validate_type(cls, v: Any) -> AnnotationType:  # noqa: ANN401
         if isinstance(v, AnnotationType):
             return v
         return AnnotationType(v)
 
     @field_validator("spine", mode="before")
     @classmethod
-    def _validate_spine(cls, v):
+    def _validate_spine(cls, v: Any) -> dict[str, Any]:  # noqa: ANN401
         # dict 型ならそのまま。必要なら更に検証を追加
         if isinstance(v, dict):
             return v

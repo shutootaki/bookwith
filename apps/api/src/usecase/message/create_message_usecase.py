@@ -6,6 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI
+from weaviate.classes.query import Filter
 
 from src.domain.chat.entities.chat import Chat
 from src.domain.chat.value_objects.book_id import BookId
@@ -156,10 +157,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         # tenant_idがある場合は記憶ベースとRAGベースを組み合わせる
         vector_store = get_book_content_vector_store()
         vector_store_retriever = vector_store.as_retriever(
-            search_kwargs={
-                "k": 4,
-                "tenant": user_id,
-            }
+            search_kwargs={"k": 4, "tenant": user_id, "filters": Filter.by_property("book_id").equal(book_id)}
         )
 
         highlight_texts = []

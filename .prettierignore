@@ -1,0 +1,9 @@
+pnpm-lock.yaml
+**/pnpm-lock.yaml
+# ビルド生成物を無視
+.next
+**/.next
+build
+**/build
+dist
+**/dist

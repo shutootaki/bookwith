@@ -1,1 +1,1 @@
-from src.domain.book.entities.book import Book
+from src.domain.book.entities.book import Book as Book

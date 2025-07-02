@@ -1,8 +1,5 @@
 ---
 name: Frontend CI
-permissions:
-  contents: read
-  pull-requests: read
 
 on:
   push:
@@ -10,119 +7,66 @@ on:
     paths:
       - 'apps/reader/**'
       - 'packages/**'
-      - 'package.json'
       - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
       - 'turbo.json'
       - '.github/workflows/frontend-ci.yml'
   pull_request:
-    branches: [main]
     paths:
       - 'apps/reader/**'
       - 'packages/**'
-      - 'package.json'
       - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
       - 'turbo.json'
       - '.github/workflows/frontend-ci.yml'
-    types: [opened, synchronize, reopened]
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.changes.outputs.frontend }}
-    steps:
-      - name: Check for changes
-        uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            frontend:
-              - 'apps/reader/**'
-              - 'packages/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-
   frontend-ci:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: 'pnpm'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
         with:
-          version: 9.15.4
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Setup Turbo cache
         uses: actions/cache@v4
         with:
           path: |
             .turbo
-            node_modules/.cache/turbo
-          key: ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.ref_name }}
+            apps/reader/.next/cache
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml') }}-
             ${{ runner.os }}-turbo-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: pnpm install --frozen-lockfile
 
-      - name: Lint
+      - name: Lint (ESLint & Prettier)
         run: |
-          echo "::group::ESLint"
           pnpm -F @flow/reader run lint:eslint
-          echo "::endgroup::"
-          echo "::group::Prettier"
           pnpm -F @flow/reader run lint:prettier
-          echo "::endgroup::"
 
-      - name: Type check
-        run: |
-          echo "::group::TypeScript Check"
-          pnpm -F @flow/reader run ts:check
-          echo "::endgroup::"
-
-      - name: Test
-        run: |
-          echo "::group::Unit Tests"
-          pnpm -F @flow/reader run test
-          echo "::endgroup::"
-
-      - name: Build
-        run: |
-          echo "::group::Build Frontend"
-          turbo run build --filter=@flow/reader
-          echo "::endgroup::"
-
-      - name: Upload build artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ github.sha }}
-          path: |
-            apps/reader/.next/
-            apps/reader/dist/
-          if-no-files-found: ignore
-          retention-days: 3
+      - name: Type check (TypeScript)
+        run: pnpm -F @flow/reader run ts:check

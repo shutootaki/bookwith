@@ -15,6 +15,7 @@ from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.init import AdditionalConfig, Timeout
 from weaviate.classes.query import Filter
+from weaviate.collections.classes.grpc import Sorting
 
 from src.config.app_config import AppConfig
 
@@ -60,12 +61,28 @@ class MemoryVectorStore:
     TYPE_SUMMARY = "summary"
     # TYPE_HIGHLIGHT = "highlight"
 
+    # --- Shared singletons -------------------------------------------------
+    _shared_client: weaviate.WeaviateClient | None = None
+    _shared_embedding_model: OpenAIEmbeddings | None = None
+
     def __init__(self) -> None:
         """Weaviateクライアントを初期化."""
         self.config = AppConfig.get_config()
-        self.client = self._create_client()
-        self._ensure_collections()
-        self.embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
+
+        # Weaviate クライアントを共有インスタンスとして保持
+        if MemoryVectorStore._shared_client is None:
+            MemoryVectorStore._shared_client = self._create_client()
+            # スキーマは最初の初期化時にのみ検証/作成する
+            self.client = MemoryVectorStore._shared_client
+            self._ensure_collections()
+        else:
+            self.client = MemoryVectorStore._shared_client
+
+        # Embedding モデルも同様に共有する
+        if MemoryVectorStore._shared_embedding_model is None:
+            MemoryVectorStore._shared_embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
+
+        self.embedding_model = MemoryVectorStore._shared_embedding_model
 
     @retry_on_error(max_retries=5, initial_delay=2)
     def _create_client(self) -> weaviate.WeaviateClient:
@@ -151,7 +168,7 @@ class MemoryVectorStore:
                     vectorizer_config=None,
                     properties=[
                         Property(name="content", data_type=DataType.TEXT),
-                        Property(name="book_id", data_type=DataType.TEXT),
+                        Property(name="book_id", data_type=DataType.TEXT, index_searchable=True, description="書籍ID"),
                     ],
                     multi_tenancy_config=Configure.multi_tenancy(
                         enabled=True,
@@ -227,7 +244,9 @@ class MemoryVectorStore:
         """記憶を適切なベクトルストアコレクションに追加."""
         try:
             collection = self.client.collections.get(collection_name)
-            return collection.with_tenant(user_id).data.insert(properties=metadata, vector=vector)
+            # Weaviate からは UUID が返るため、文字列へ変換して返す
+            inserted_id = collection.with_tenant(user_id).data.insert(properties=metadata, vector=vector)
+            return str(inserted_id)
         except Exception as e:
             logger.error(f"{collection_name} へのメモリ追加エラー: {str(e)}")
             raise
@@ -291,10 +310,10 @@ class MemoryVectorStore:
             limit=limit,
         )
 
-        results = []
+        results: list[dict[str, Any]] = []
         for obj in response.objects:
-            item = obj.properties
-            item["id"] = obj.uuid
+            item: dict[str, Any] = dict(obj.properties)
+            item["id"] = str(obj.uuid)
             item["_additional"] = {
                 "distance": obj.metadata.distance,
                 "certainty": 1.0 - (obj.metadata.distance or 0.0),
@@ -320,19 +339,21 @@ class MemoryVectorStore:
             filters=where_filter,
             return_properties=["content", "message_id", "sender", "created_at"],
             limit=max_count,
-            sort=[{"path": ["created_at"], "order": "asc"}],
+            sort=Sorting().by_property("created_at", ascending=True),
         )
 
-        results = []
+        results: list[dict[str, Any]] = []
         for obj in response.objects:
-            item = obj.properties
-            item["id"] = obj.uuid
+            item: dict[str, Any] = dict(obj.properties)
+            item["id"] = str(obj.uuid)
             results.append(item)
+
+        # results.sort(key=lambda x: x.get("created_at", ""))
 
         return results
 
     @retry_on_error(max_retries=3)
-    async def create_book_vector_index(self, file: UploadFile, user_id: str) -> dict:
+    async def create_book_vector_index(self, file: UploadFile, user_id: str, book_id: str) -> dict:
         """EPUBファイルを処理してBookContentコレクションにベクトルインデックス化する."""
         try:
             with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
@@ -346,6 +367,17 @@ class MemoryVectorStore:
                 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
                 split_docs = splitter.split_documents(docs)
 
+                # 各ドキュメントにbook_idをメタデータとして追加
+                for doc in split_docs:
+                    doc.metadata["book_id"] = book_id
+
+                # デバッグ用ログ
+                logger.info(f"Creating book vector index with book_id: {book_id} for user: {user_id}")
+                logger.info(f"Number of document chunks: {len(split_docs)}")
+                if split_docs:
+                    logger.info(f"Sample document metadata: {split_docs[0].metadata}")
+
+                # バッチサイズを適切に設定してインデックス作成を高速化
                 WeaviateVectorStore.from_documents(
                     documents=split_docs,
                     embedding=self.embedding_model,
@@ -353,7 +385,22 @@ class MemoryVectorStore:
                     index_name=self.BOOK_CONTENT_COLLECTION_NAME,
                     text_key="content",
                     tenant=user_id,
+                    batch_size=64,  # デフォルト 100 → 64 へ変更（メモリ / ネットワークバランス）
                 )
+
+                # 保存後の確認（デバッグ用）
+                try:
+                    collection = self.client.collections.get(self.BOOK_CONTENT_COLLECTION_NAME)
+                    test_results = collection.with_tenant(user_id).query.fetch_objects(
+                        filters=Filter.by_property("book_id").equal(book_id), limit=1, return_properties=["content", "book_id"]
+                    )
+                    if test_results.objects:
+                        logger.info(f"✓ Book content saved successfully with book_id: {book_id}")
+                        logger.info(f"  Sample properties: {test_results.objects[0].properties}")
+                    else:
+                        logger.warning(f"⚠ No content found with book_id: {book_id} after saving")
+                except Exception as e:
+                    logger.error(f"Error verifying saved content: {str(e)}")
 
                 return {
                     "message": "Upload and processing completed successfully",
@@ -361,6 +408,7 @@ class MemoryVectorStore:
                     "chunk_count": len(split_docs),
                     "index_name": self.BOOK_CONTENT_COLLECTION_NAME,
                     "user_id": user_id,
+                    "book_id": book_id,
                     "success": True,
                 }
             finally:
@@ -385,10 +433,10 @@ class MemoryVectorStore:
             filters=where_filter,
             limit=limit,
         )
-        results = []
+        results: list[dict[str, Any]] = []
         for obj in response.objects:
-            item = obj.properties
-            item["id"] = obj.uuid
+            item: dict[str, Any] = dict(obj.properties)
+            item["id"] = str(obj.uuid)
             item["_additional"] = {
                 "distance": obj.metadata.distance,
                 "certainty": 1.0 - (obj.metadata.distance or 0.0),
@@ -412,3 +460,18 @@ class MemoryVectorStore:
 
         uuid = collection_with_tenant.query.fetch_objects(filters=Filter.by_property(target).equal(key)).objects[0].uuid
         collection_with_tenant.data.update(uuid=uuid, properties=properties, vector=vector)
+
+    @classmethod
+    def get_client(cls) -> weaviate.WeaviateClient:
+        """共有の Weaviate クライアントを返す."""
+        if cls._shared_client is None:
+            # インスタンス化時に _shared_client が作成されるため
+            cls()
+        return cls._shared_client  # type: ignore[return-value]
+
+    @classmethod
+    def get_embedding_model(cls) -> OpenAIEmbeddings:
+        """共有の Embedding モデルを返す."""
+        if cls._shared_embedding_model is None:
+            cls()
+        return cls._shared_embedding_model  # type: ignore[return-value]

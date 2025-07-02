@@ -72,6 +72,13 @@ class BulkDeleteResponse(BaseSchemaModel):
     count: int
 
 
+class RagProcessRequest(BaseSchemaModel):
+    user_id: str
+    book_id: str
+    file_data: str
+    file_name: str
+
+
 class RagProcessResponse(BaseSchemaModel):
     class RagChunk(BaseSchemaModel):
         text: str
