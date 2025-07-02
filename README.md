@@ -10,9 +10,12 @@
 
 ## 📖 What is BookWith?
 
-BookWith is an innovative e-book reader where AI (GPT-4o) becomes your reading partner. By conversing with an AI that fully understands the book's content in real time, BookWith transforms the reading experience from merely _consuming information_ to _creating knowledge_.
+BookWith is an innovative e-book reader where AI becomes your reading partner. By conversing with an AI that fully understands the book's content in real time, BookWith transforms the reading experience from merely _consuming information_ to _creating knowledge_.
 
 It is more than an e-book reader: BookWith answers your questions, deepens comprehension, and offers new perspectives—your true companion for reading.
+
+https://github.com/user-attachments/assets/71ea703a-1213-4942-a355-5dc52f6b505d
+
 
 ## 🎯 Why BookWith?
 
