@@ -26,6 +26,7 @@ export default {
   'home.import_error_log': 'An error occurred during import:',
   'home.file_import_error_log': 'An error occurred during file import:',
   'home.no_books_message': 'No books found. Please import some books.',
+  'home.selected_books': '{count} books selected',
 
   /**
    * Import
@@ -36,11 +37,15 @@ export default {
   'import.processing_metadata': 'Processing metadata...',
   'import.processing_content': 'Processing content...',
   'import.saving': 'Saving...',
-  'import.importing_books': 'Importing books ({completed}/{total})',
+  'import.importing_books': 'Importing books',
   'import.files_processed': 'files processed',
   'import.import_status':
     '{success} books imported successfully, {failed} books failed',
   'import.please_wait': 'Please wait for import to complete...',
+  'import.api_registration_failed':
+    'Failed to register book to API: {filename}',
+  'import.book_registration_error':
+    'Error occurred while registering book ({filename}):',
 
   /**
    * Table of Contents
@@ -99,10 +104,13 @@ export default {
    */
   'settings.title': 'Settings',
   'settings.language': 'Language',
+  'settings.language.english': 'English',
+  'settings.language.japanese': '日本語',
+  'settings.language.chinese': '简体中文',
   'settings.color_scheme': 'Color Scheme',
   'settings.color_scheme.system': 'System',
   'settings.color_scheme.light': 'Light',
-  'settings.color_scheme.dark': 'dark',
+  'settings.color_scheme.dark': 'Dark',
   'settings.synchronization.title': 'Synchronization',
   'settings.synchronization.authorize': 'Authorize',
   'settings.synchronization.unauthorize': 'Unauthorize',
@@ -148,24 +156,12 @@ export default {
   'chat.send': 'Send',
   'chat.error': 'An error occurred',
   'chat.created_at': 'Created at',
-
-  /**
-   * Loading
-   */
-  'loading.title': 'Loading',
-  'loading.importingBooks': 'Importing {count} books',
-  'loading.importingBooksMessage': 'Importing books...',
-  'loading.cancel': 'Cancel',
-
-  /**
-   * Library
-   */
-  'library.selectedBooks': '{count} books selected',
+  'chat.sending': '💬 Sending message...',
 
   /**
    * Dropzone
    */
-  'dropzone.dropToImport': 'Drop to import',
+  'dropzone.drop_to_import': 'Drop to import',
 
   /**
    * Others

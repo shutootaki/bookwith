@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useTranslation } from '@flow/reader/hooks'
-import { useLoading } from '@flow/reader/hooks/useLoading'
 
 import { useReaderSnapshot } from '../../../models'
 import { TEST_USER_ID } from '../../../pages/_app'
@@ -35,11 +34,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
-  const { startLoading, stopLoading } = useLoading({
-    message: '💬 メッセージを送信中...',
-    type: 'global',
-    icon: '💬',
-  })
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -101,7 +95,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
       ])
       setText('')
       setIsLoading(true)
-      const taskId = startLoading()
 
       setMessages((prev) => [...prev, { senderType: 'assistant', text: '' }])
 
@@ -128,7 +121,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         updateAssistantMessage(t('chat.error'))
       } finally {
         setIsLoading(false)
-        stopLoading(taskId)
       }
     },
     [
@@ -142,8 +134,6 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
       setText,
       setIsLoading,
       processStream,
-      startLoading,
-      stopLoading,
     ],
   )
 

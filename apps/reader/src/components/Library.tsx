@@ -36,7 +36,7 @@ export const Library: React.FC = () => {
   const t = useTranslation('home')
   const { startLoading, stopLoading, updateProgress, updateSubTasks } =
     useLoading({
-      message: '本をインポートしています...',
+      message: t('importing_books'),
       type: 'global',
       showProgress: true,
     })
@@ -68,7 +68,6 @@ export const Library: React.FC = () => {
     const taskId = startLoading()
 
     try {
-      // 初期進捗を設定
       if (fileName) {
         updateProgress(10, 100)
       }
@@ -155,7 +154,7 @@ export const Library: React.FC = () => {
         {select && (
           <div className="bg-secondary flex items-center justify-between rounded-lg p-3">
             <span className="text-secondary-foreground text-sm">
-              {selectedBookIds.size}冊選択中
+              {t('selected_books', { count: selectedBookIds.size })}
             </span>
             <Button variant="ghost" size="sm" onClick={toggleSelect}>
               <X className="h-4 w-4" />
@@ -165,7 +164,7 @@ export const Library: React.FC = () => {
         <div>
           <TextField
             name={SOURCE}
-            placeholder="https://link.to/remote.epub"
+            placeholder={t('remote_epub_placeholder')}
             type="url"
             hideLabel
             actions={[

@@ -23,9 +23,9 @@ export const Settings: React.FC = () => {
               push(asPath, undefined, { locale: e.target.value })
             }}
           >
-            <option value="en-US">English</option>
-            <option value="zh-CN">简体中文</option>
-            <option value="ja-JP">日本語</option>
+            <option value="en-US">{t('language.english')}</option>
+            <option value="ja-JP">{t('language.japanese')}</option>
+            <option value="zh-CN">{t('language.chinese')}</option>
           </Select>
         </Item>
         <Item title={t('color_scheme')}>

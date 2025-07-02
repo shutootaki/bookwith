@@ -25,6 +25,7 @@ export default {
   'home.import_error_log': '导入操作中发生错误:',
   'home.file_import_error_log': '文件导入中发生错误:',
   'home.no_books_message': '未找到图书。请导入一些图书。',
+  'home.selected_books': '已选择 {count} 本书',
 
   /**
    * Import
@@ -35,10 +36,12 @@ export default {
   'import.processing_metadata': '正在处理元数据...',
   'import.processing_content': '正在处理内容...',
   'import.saving': '正在保存...',
-  'import.importing_books': '正在导入图书 ({completed}/{total})',
+  'import.importing_books': '正在导入图书',
   'import.files_processed': '个文件已处理',
   'import.import_status': '{success} 本书导入成功，{failed} 本失败',
   'import.please_wait': '请等待导入完成...',
+  'import.api_registration_failed': 'API 书籍注册失败: {filename}',
+  'import.book_registration_error': '书籍注册时发生错误 ({filename}):',
 
   /**
    * Table of Contents
@@ -97,6 +100,9 @@ export default {
    */
   'settings.title': '设置',
   'settings.language': '语言',
+  'settings.language.english': 'English',
+  'settings.language.japanese': '日本語',
+  'settings.language.chinese': '简体中文',
   'settings.color_scheme': '颜色模式',
   'settings.color_scheme.system': '系统',
   'settings.color_scheme.light': '浅色',
@@ -145,24 +151,12 @@ export default {
   'chat.send': '发送',
   'chat.error': '发生错误',
   'chat.created_at': '创建时间',
-
-  /**
-   * Loading
-   */
-  'loading.title': '加载中',
-  'loading.importingBooks': '正在导入 {count} 本书',
-  'loading.importingBooksMessage': '正在导入图书...',
-  'loading.cancel': '取消',
-
-  /**
-   * Library
-   */
-  'library.selectedBooks': '已选择 {count} 本书',
+  'chat.sending': '💬 正在发送消息...',
 
   /**
    * Dropzone
    */
-  'dropzone.dropToImport': '拖放以导入',
+  'dropzone.drop_to_import': '拖放以导入',
 
   /**
    * Others

@@ -9,6 +9,8 @@ import {
   PropsWithChildren,
 } from 'react'
 
+import { useTranslation } from '../../hooks/useTranslation'
+
 interface DropZoneProps {
   className?: string
   onDrop?: (e: DragEvent<HTMLDivElement>, position?: Position) => void
@@ -39,6 +41,7 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
 }) => {
   const { dragover, setDragEvent } = useDndContext()
   const [position, setPosition] = useState<Position>()
+  const t = useTranslation('dropzone')
 
   useEffect(() => {
     if (!dragover) setPosition(undefined)
@@ -103,7 +106,7 @@ const DropZoneInner: React.FC<PropsWithChildren<DropZoneProps>> = ({
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="rounded-lg bg-white px-4 py-2 shadow-lg dark:bg-gray-900">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  ドロップしてインポート
+                  {t('drop_to_import')}
                 </p>
               </div>
             </div>

@@ -26,6 +26,7 @@ export default {
   'home.import_error_log': 'インポート中にエラーが発生しました:',
   'home.file_import_error_log': 'ファイルのインポート中にエラーが発生しました:',
   'home.no_books_message': '本が見つかりません。本をインポートしてください。',
+  'home.selected_books': '{count}冊選択中',
 
   /**
    * Import
@@ -36,10 +37,13 @@ export default {
   'import.processing_metadata': 'メタデータを処理中...',
   'import.processing_content': 'コンテンツを処理中...',
   'import.saving': '保存中...',
-  'import.importing_books': '本をインポート中 ({completed}/{total})',
+  'import.importing_books': '本をインポート中',
   'import.files_processed': 'ファイル処理済み',
   'import.import_status': '{success}冊の本を正常にインポート、{failed}冊失敗',
   'import.please_wait': 'インポートが完了するまでお待ちください...',
+  'import.api_registration_failed': 'APIへの書籍登録に失敗しました: {filename}',
+  'import.book_registration_error':
+    '書籍の登録中にエラーが発生しました ({filename}):',
 
   /**
    * Table of Contents
@@ -98,6 +102,9 @@ export default {
    */
   'settings.title': '設定',
   'settings.language': '言語',
+  'settings.language.english': 'English',
+  'settings.language.japanese': '日本語',
+  'settings.language.chinese': '简体中文',
   'settings.color_scheme': 'カラースキーム',
   'settings.color_scheme.system': 'システム',
   'settings.color_scheme.light': 'ライト',
@@ -146,24 +153,12 @@ export default {
   'chat.send': '送信',
   'chat.error': 'エラーが発生しました',
   'chat.created_at': '作成日時',
-
-  /**
-   * Loading
-   */
-  'loading.title': '読み込み中',
-  'loading.importingBooks': '{count}冊をインポート中',
-  'loading.importingBooksMessage': '本をインポートしています...',
-  'loading.cancel': 'キャンセル',
-
-  /**
-   * Library
-   */
-  'library.selectedBooks': '{count}冊選択中',
+  'chat.sending': '💬 メッセージを送信中...',
 
   /**
    * Dropzone
    */
-  'dropzone.dropToImport': 'ドロップしてインポート',
+  'dropzone.drop_to_import': 'ドロップしてインポート',
 
   /**
    * Others

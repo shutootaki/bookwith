@@ -54,13 +54,13 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
     })
 
     if (!bookData) {
-      console.error(`APIへの書籍登録に失敗しました: ${file.name}`)
+      console.error(`Failed to register book to API: ${file.name}`)
       return null
     }
 
     // Indexing might be heavy, ensure indexEpub is worker-compatible
     // or consider moving indexing to the server-side triggered by createBook.
-    await indexEpub(file, TEST_USER_ID)
+    await indexEpub(file, TEST_USER_ID, bookData.id)
     postMessage({
       type: 'progress',
       payload: { name: file.name, progress: 90 },
@@ -68,7 +68,7 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
 
     return bookData
   } catch (error) {
-    console.error(`書籍の登録中にエラーが発生しました (${file.name}):`, error)
+    console.error(`Error occurred while registering book (${file.name}):`, error)
     throw error
   }
 }

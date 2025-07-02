@@ -10,7 +10,6 @@ import { reader } from '../models'
 
 const placeholder = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="gray" fill-opacity="0" width="1" height="1"/></svg>`
 
-// シンプルなスケルトンローディング
 export const BookSkeleton: React.FC = () => {
   return (
     <motion.li
@@ -19,15 +18,12 @@ export const BookSkeleton: React.FC = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Book cover skeleton */}
       <div className="relative overflow-hidden rounded-sm shadow-sm">
         <div className="relative aspect-[9/12] animate-pulse bg-gray-200 dark:bg-gray-800">
-          {/* シンプルなシマー効果 */}
           <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-gray-300/50 to-transparent dark:via-gray-700/50" />
         </div>
       </div>
 
-      {/* Title skeleton */}
       <div className="mt-3 space-y-2">
         <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
         <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
@@ -48,7 +44,6 @@ export const Book: React.FC<{
   const router = useRouter()
   const mobile = useMobile()
 
-  // スケルトン表示の場合
   if (isLoading || !book || !covers) {
     return <BookSkeleton />
   }
