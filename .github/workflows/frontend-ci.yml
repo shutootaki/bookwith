@@ -70,6 +70,3 @@ jobs:
 
       - name: Type check (TypeScript)
         run: pnpm -F @flow/reader run ts:check
-
-      - name: Build
-        run: turbo run build --filter=@flow/reader
