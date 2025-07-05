@@ -152,7 +152,12 @@ export default {
   'chat.error': '发生错误',
   'chat.created_at': '创建时间',
   'chat.sending': '💬 正在发送消息...',
-
+  'chat.author': '作者:',
+  'chat.progress': '进度:',
+  'chat.generating': '正在生成响应...',
+  'chat.pubdate': '出版日期:',
+  'chat.not_found': '未找到',
+  'chat.book_info': '参考 [{title}] 的信息',
   /**
    * Dropzone
    */

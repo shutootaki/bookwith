@@ -157,6 +157,12 @@ export default {
   'chat.error': 'An error occurred',
   'chat.created_at': 'Created at',
   'chat.sending': '💬 Sending message...',
+  'chat.author': 'Author:',
+  'chat.progress': 'Progress:',
+  'chat.generating': 'Generating response...',
+  'chat.pubdate': 'Publication date:',
+  'chat.not_found': 'Not found',
+  'chat.book_info': 'Reference information about [{title}]',
 
   /**
    * Dropzone

@@ -334,3 +334,7 @@ https://python.langchain.com/docs/integrations/vectorstores/weaviate/
 ### Weaviate
 
 https://weaviate.io/developers/weaviate
+
+## Important Notes
+
+- Components under @apps/reader/src/components/ui should never be edited as they use components from shadcn/ui.
