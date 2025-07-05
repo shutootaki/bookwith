@@ -1,4 +1,5 @@
 import contextlib
+import logging
 from abc import ABC, abstractmethod
 
 from src.domain.book.exceptions.book_exceptions import BookNotFoundException
@@ -6,6 +7,8 @@ from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.infrastructure.external.gcs import GCSClient
 from src.infrastructure.memory.memory_service import MemoryService
+
+logger = logging.getLogger(__name__)
 
 
 class DeleteBookUseCase(ABC):
@@ -52,6 +55,12 @@ class DeleteBookUseCaseImpl(DeleteBookUseCase):
             blob = bucket.blob(cover_path)
             with contextlib.suppress(Exception):
                 blob.delete()
+
+        # ベクターDBから本のデータを削除
+        try:
+            self.memory_service.delete_book_memories(user_id=book.user_id, book_id=book_id)
+        except Exception as e:
+            logger.error(f"Failed to delete book memories: {str(e)}")
 
 
 class BulkDeleteBooksUseCase(ABC):
@@ -114,6 +123,12 @@ class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
                 blob = bucket.blob(cover_path)
                 with contextlib.suppress(Exception):
                     blob.delete()
+
+            # ベクターDBから本のデータを削除
+            try:
+                self.memory_service.delete_book_memories(user_id=book.user_id, book_id=book.id.value)
+            except Exception as e:
+                logger.error(f"Failed to delete book memories for {book.id.value}: {str(e)}")
 
         # Return a list of deleted ID strings
         return [book_id.value for book_id in deleted_book_ids]
