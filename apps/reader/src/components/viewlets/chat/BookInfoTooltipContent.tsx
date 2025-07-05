@@ -47,7 +47,7 @@ export const BookInfoTooltipContent = ({
             <>
               <Progress
                 value={progressPercent}
-                className="[&>*]:bg-green-600 flex-1 bg-white/20 dark:bg-white/30"
+                className="flex-1 bg-white/20 dark:bg-white/30 [&>*]:bg-green-600"
               />
               <span className="w-8 text-right text-[10px]">
                 {progressPercent}%
