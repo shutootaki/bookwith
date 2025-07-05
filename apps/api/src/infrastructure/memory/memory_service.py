@@ -392,3 +392,18 @@ class MemoryService:
                 properties=metadata,
                 vector=vector,
             )
+
+    def delete_book_memories(self, user_id: str, book_id: str) -> None:
+        """本に関連するすべての記憶を削除.
+
+        Args:
+            user_id: ユーザーID
+            book_id: 削除する本のID
+
+        """
+        try:
+            self.memory_store.delete_book_data(user_id, book_id)
+            logger.info(f"Book {book_id} memories deleted for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error deleting book memories: {str(e)}")
+            # エラーを再スローしない（本の削除処理を継続）

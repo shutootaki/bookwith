@@ -461,6 +461,31 @@ class MemoryVectorStore:
         uuid = collection_with_tenant.query.fetch_objects(filters=Filter.by_property(target).equal(key)).objects[0].uuid
         collection_with_tenant.data.update(uuid=uuid, properties=properties, vector=vector)
 
+    @retry_on_error(max_retries=2)
+    def delete_book_data(self, user_id: str, book_id: str) -> None:
+        """本に関連するすべてのベクターデータを削除.
+
+        Args:
+            user_id: ユーザーID
+            book_id: 削除する本のID
+
+        """
+        try:
+            # BookContentコレクションから削除
+            self.delete_memory(user_id=user_id, collection_name=self.BOOK_CONTENT_COLLECTION_NAME, target="book_id", key=book_id)
+            logger.info(f"Deleted book content from vector DB for book_id: {book_id}")
+        except Exception as e:
+            logger.error(f"Error deleting book content from vector DB: {str(e)}")
+            # エラーが発生しても続行
+
+        try:
+            # BookAnnotationコレクションから削除
+            self.delete_memory(user_id=user_id, collection_name=self.BOOK_ANNOTATION_COLLECTION_NAME, target="book_id", key=book_id)
+            logger.info(f"Deleted book annotations from vector DB for book_id: {book_id}")
+        except Exception as e:
+            logger.error(f"Error deleting book annotations from vector DB: {str(e)}")
+            # エラーが発生しても続行
+
     @classmethod
     def get_client(cls) -> weaviate.WeaviateClient:
         """共有の Weaviate クライアントを返す."""
