@@ -162,6 +162,13 @@ export default {
   'chat.book_info': '[{title}] の情報を参照します',
 
   /**
+   * Global Loading Overlay
+   */
+  'loading_overlay.loading': '読み込み中',
+  'loading_overlay.importing_books': '{completed}/{total}冊をインポート中',
+  'loading_overlay.cancel': 'キャンセル',
+
+  /**
    * Dropzone
    */
   'dropzone.drop_to_import': 'ドロップしてインポート',

@@ -44,10 +44,10 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
         """新しいBookを作成して保存し、作成したBookエンティティを返す."""
         decoded_file_data = base64.b64decode(file_data)
 
-        metadata: dict[str, Any] = {}
+        metadata_dict: dict[str, Any] = {}
         if book_metadata:
             with contextlib.suppress(json.JSONDecodeError):
-                metadata = json.loads(book_metadata)
+                metadata_dict = json.loads(book_metadata)
 
         bucket = self.gcs_client.get_client().bucket(self.gcs_client.bucket_name)
         gcs_base_url = f"{self.gcs_client.get_gcs_url()}/{self.gcs_client.bucket_name}"
@@ -85,10 +85,24 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
                 name=BookTitle(book_name if book_name else file_name),
                 user_id=user_id,
                 file_path=file_path,
-                author=metadata.get("creator", None),
+                author=metadata_dict.get("creator") or None,
                 size=len(decoded_file_data),
-                book_metadata=metadata,
                 cover_path=cover_path,
+                # EPub metadata fields
+                metadata_title=metadata_dict.get("title"),
+                metadata_creator=metadata_dict.get("creator"),
+                metadata_description=metadata_dict.get("description"),
+                metadata_pubdate=metadata_dict.get("pubdate"),
+                metadata_publisher=metadata_dict.get("publisher"),
+                metadata_identifier=metadata_dict.get("identifier"),
+                metadata_language=metadata_dict.get("language"),
+                metadata_rights=metadata_dict.get("rights"),
+                metadata_modified_date=metadata_dict.get("modified_date"),
+                metadata_layout=metadata_dict.get("layout"),
+                metadata_orientation=metadata_dict.get("orientation"),
+                metadata_flow=metadata_dict.get("flow"),
+                metadata_viewport=metadata_dict.get("viewport"),
+                metadata_spread=metadata_dict.get("spread"),
             )
 
             self.book_repository.save(book)

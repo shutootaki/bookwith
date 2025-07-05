@@ -251,7 +251,7 @@ export const Library: React.FC = () => {
                     size="sm"
                     disabled={selectedBookIds.size === 0}
                   >
-                    <Trash2 className="mr-1 h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                     {t('delete')} ({selectedBookIds.size})
                   </Button>
                 </AlertDialogTrigger>
@@ -285,7 +285,7 @@ export const Library: React.FC = () => {
                 size="sm"
                 onClick={() => document.getElementById('file-import')?.click()}
               >
-                <Upload className="mr-1 h-4 w-4" />
+                <Upload className="h-4 w-4" />
                 {t('import')}
               </Button>
             )}

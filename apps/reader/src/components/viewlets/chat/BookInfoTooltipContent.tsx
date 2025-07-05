@@ -5,7 +5,6 @@ import { useTranslation } from '@flow/reader/hooks'
 
 import { Progress } from '../../ui/progress'
 
-// 共通クラスをまとめて CSS を簡素化
 const iconClass = 'mt-px h-3.5 w-3.5 shrink-0'
 
 export const BookInfoTooltipContent = ({
@@ -44,13 +43,19 @@ export const BookInfoTooltipContent = ({
         <div className="flex items-center gap-2">
           <BarChart2 className={iconClass} />
           <span>{t('progress')}</span>
-          <Progress
-            value={progressPercent}
-            className="flex-1 bg-white/20 dark:bg-white/30 [&>*]:bg-green-600"
-          />
-          <span className="w-8 text-right text-[10px]">
-            {progressPercent || t('not_found')}%
-          </span>
+          {progressPercent ? (
+            <>
+              <Progress
+                value={progressPercent}
+                className="flex-1 bg-white/20 dark:bg-white/30 [&>*]:bg-green-600"
+              />
+              <span className="w-8 text-right text-[10px]">
+                {progressPercent}%
+              </span>
+            </>
+          ) : (
+            <span className="text-right">{t('not_found')}</span>
+          )}
         </div>
       </div>
     </div>

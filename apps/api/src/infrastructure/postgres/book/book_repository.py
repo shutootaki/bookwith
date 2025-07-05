@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Any
 
-from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, joinedload
 
 from src.domain.book.entities.book import Book
@@ -23,22 +22,12 @@ class BookRepositoryImpl(BookRepositoryInterface):
     def save(self, book: Book) -> None:
         session = self._session
 
-        def flatten(d: dict[str, Any]) -> dict[str, Any]:
-            return {k: (v["value"] if isinstance(v, dict) and "value" in v else v) for k, v in d.items()}
-
-        book_data = flatten(book.model_dump(mode="json"))
-        book_data.pop("annotations", None)
-        dto = session.get(BookDTO, book.id.value)
-        col_keys = {c.key for c in inspect(BookDTO).mapper.column_attrs}
-
-        if dto:
-            for k, v in book_data.items():
-                if k in col_keys:
-                    setattr(dto, k, v)
-        else:
-            session.add(BookDTO(**book_data))
+        new_dto = BookDTO.from_entity(book)
+        values = {column.name: getattr(new_dto, column.name) for column in BookDTO.__table__.columns}
+        stmt = insert(BookDTO).values(**values).on_conflict_do_update(index_elements=[BookDTO.id], set_=values)
 
         try:
+            session.execute(stmt)
             session.commit()
         except Exception as e:
             session.rollback()

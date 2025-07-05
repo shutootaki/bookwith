@@ -158,6 +158,13 @@ export default {
   'chat.pubdate': '出版日期:',
   'chat.not_found': '未找到',
   'chat.book_info': '参考 [{title}] 的信息',
+
+  /**
+   * Global Loading Overlay
+   */
+  'loading_overlay.loading': '加载中',
+  'loading_overlay.importing_books': '正在导入 {completed}/{total} 本书',
+  'loading_overlay.cancel': '取消',
   /**
    * Dropzone
    */

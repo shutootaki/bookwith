@@ -19,7 +19,20 @@ class Book(BaseModel):
     size: int = 0
     cfi: str | None = None
     percentage: float = 0.0
-    book_metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata_title: str | None = None
+    metadata_creator: str | None = None
+    metadata_description: str | None = None
+    metadata_pubdate: str | None = None
+    metadata_publisher: str | None = None
+    metadata_identifier: str | None = None
+    metadata_language: str | None = None
+    metadata_rights: str | None = None
+    metadata_modified_date: str | None = None
+    metadata_layout: str | None = None
+    metadata_orientation: str | None = None
+    metadata_flow: str | None = None
+    metadata_viewport: str | None = None
+    metadata_spread: str | None = None
     definitions: list[str] = Field(default_factory=list)
     configuration: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.now)
@@ -46,7 +59,20 @@ class Book(BaseModel):
         author: str | None = None,
         cover_path: str | None = None,
         size: int = 0,
-        book_metadata: dict[str, Any] | None = None,
+        metadata_title: str | None = None,
+        metadata_creator: str | None = None,
+        metadata_description: str | None = None,
+        metadata_pubdate: str | None = None,
+        metadata_publisher: str | None = None,
+        metadata_identifier: str | None = None,
+        metadata_language: str | None = None,
+        metadata_rights: str | None = None,
+        metadata_modified_date: str | None = None,
+        metadata_layout: str | None = None,
+        metadata_orientation: str | None = None,
+        metadata_flow: str | None = None,
+        metadata_viewport: str | None = None,
+        metadata_spread: str | None = None,
     ) -> "Book":
         # Pydanticがデフォルト値を処理するため、ここでは単純にインスタンス化する
         return cls(
@@ -57,7 +83,20 @@ class Book(BaseModel):
             author=author,
             cover_path=cover_path,
             size=size,
-            book_metadata=book_metadata or {},
+            metadata_title=metadata_title,
+            metadata_creator=metadata_creator,
+            metadata_description=metadata_description,
+            metadata_pubdate=metadata_pubdate,
+            metadata_publisher=metadata_publisher,
+            metadata_identifier=metadata_identifier,
+            metadata_language=metadata_language,
+            metadata_rights=metadata_rights,
+            metadata_modified_date=metadata_modified_date,
+            metadata_layout=metadata_layout,
+            metadata_orientation=metadata_orientation,
+            metadata_flow=metadata_flow,
+            metadata_viewport=metadata_viewport,
+            metadata_spread=metadata_spread,
         )
 
     def update_title(self, name: BookTitle) -> None:

@@ -42,8 +42,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const { focusedBookTab } = useReaderSnapshot()
   const [chatTitle, setChatTitle] = useState<string | null>(null)
   const bookTitle =
-    (focusedBookTab?.book.bookMetadata?.title as string) ??
-    focusedBookTab?.book.name
+    focusedBookTab?.book.metadataTitle ?? focusedBookTab?.book.name
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -181,14 +180,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
               <ResponsiveToolTip
                 content={
                   <BookInfoTooltipContent
-                    title={bookTitle}
+                    title={bookTitle ?? ''}
                     author={focusedBookTab.book.author}
-                    pubdate={
-                      typeof focusedBookTab.book.bookMetadata?.pubdate ===
-                      'string'
-                        ? focusedBookTab.book.bookMetadata?.pubdate
-                        : null
-                    }
+                    pubdate={focusedBookTab.book.metadataPubdate}
                     percentage={focusedBookTab.book.percentage}
                   />
                 }

@@ -165,6 +165,13 @@ export default {
   'chat.book_info': 'Reference information about [{title}]',
 
   /**
+   * Global Loading Overlay
+   */
+  'loading_overlay.loading': 'Loading',
+  'loading_overlay.importing_books': 'Importing {completed}/{total} books',
+  'loading_overlay.cancel': 'Cancel',
+
+  /**
    * Dropzone
    */
   'dropzone.drop_to_import': 'Drop to import',

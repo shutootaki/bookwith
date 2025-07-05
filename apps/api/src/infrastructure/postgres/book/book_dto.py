@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,10 +44,25 @@ class BookDTO(TimestampMixin, Base):
     size: Mapped[int] = mapped_column(Integer)
     cfi: Mapped[str | None] = mapped_column(String, nullable=True)
     percentage: Mapped[float] = mapped_column(Float, default=0)
-    book_metadata: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     definitions: Mapped[list[str] | None] = mapped_column(JSON, default=list)
     configuration: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # EPub metadata fields
+    metadata_title: Mapped[str | None] = mapped_column(String, nullable=True)
+    metadata_creator: Mapped[str | None] = mapped_column(String, nullable=True)
+    metadata_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    metadata_pubdate: Mapped[str | None] = mapped_column(String, nullable=True)
+    metadata_publisher: Mapped[str | None] = mapped_column(String, nullable=True)
+    metadata_identifier: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    metadata_language: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    metadata_rights: Mapped[str | None] = mapped_column(Text, nullable=True)
+    metadata_modified_date: Mapped[str | None] = mapped_column(String, nullable=True)
+    metadata_layout: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    metadata_orientation: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    metadata_flow: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    metadata_viewport: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    metadata_spread: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     user: Mapped["UserDTO"] = relationship("UserDTO", back_populates="books")
     annotations: Mapped[list["AnnotationDTO"]] = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
@@ -85,7 +101,21 @@ class BookDTO(TimestampMixin, Base):
             size=self.size,
             cfi=self.cfi,
             percentage=self.percentage,
-            book_metadata=self.book_metadata,
+            # EPub metadata fields
+            metadata_title=self.metadata_title,
+            metadata_creator=self.metadata_creator,
+            metadata_description=self.metadata_description,
+            metadata_pubdate=self.metadata_pubdate,
+            metadata_publisher=self.metadata_publisher,
+            metadata_identifier=self.metadata_identifier,
+            metadata_language=self.metadata_language,
+            metadata_rights=self.metadata_rights,
+            metadata_modified_date=self.metadata_modified_date,
+            metadata_layout=self.metadata_layout,
+            metadata_orientation=self.metadata_orientation,
+            metadata_flow=self.metadata_flow,
+            metadata_viewport=self.metadata_viewport,
+            metadata_spread=self.metadata_spread,
             definitions=self.definitions,
             configuration=self.configuration,
             created_at=self.created_at,
@@ -106,10 +136,23 @@ class BookDTO(TimestampMixin, Base):
             size=book.size,
             cfi=book.cfi,
             percentage=book.percentage,
-            book_metadata=book.book_metadata,
             definitions=book.definitions,
             configuration=book.configuration,
             created_at=book.created_at,
             updated_at=book.updated_at,
             deleted_at=book.deleted_at,
+            metadata_title=book.metadata_title,
+            metadata_creator=book.metadata_creator,
+            metadata_description=book.metadata_description,
+            metadata_pubdate=book.metadata_pubdate,
+            metadata_publisher=book.metadata_publisher,
+            metadata_identifier=book.metadata_identifier,
+            metadata_language=book.metadata_language,
+            metadata_rights=book.metadata_rights,
+            metadata_modified_date=book.metadata_modified_date,
+            metadata_layout=book.metadata_layout,
+            metadata_orientation=book.metadata_orientation,
+            metadata_flow=book.metadata_flow,
+            metadata_viewport=book.metadata_viewport,
+            metadata_spread=book.metadata_spread,
         )

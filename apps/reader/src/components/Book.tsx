@@ -50,11 +50,8 @@ export const Book: React.FC<{
 
   const coverData = covers.find((c) => c.bookId === book.id)
   const cover = coverData?.coverUrl
-
-  const displayTitle =
-    typeof book.bookMetadata?.title === 'string' && book.bookMetadata.title
-      ? book.bookMetadata.title
-      : book.name
+  const displayTitle = book.metadataTitle ?? book.name
+  console.log('book', book)
 
   const altText = cover
     ? `Cover of ${displayTitle}`

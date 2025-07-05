@@ -28,13 +28,26 @@ class BookUpdateRequest(BaseSchemaModel):
     book_metadata: dict[str, Any] | None = Field(None, description="Book metadata")
     definitions: list[str] | None = Field(None, description="User defined information")
     configuration: dict[str, Any] | None = Field(None, description="Book configuration information")
+    metadata_title: str | None = Field(None, description="Book title from metadata")
+    metadata_creator: str | None = Field(None, description="Book creator/author from metadata")
+    metadata_description: str | None = Field(None, description="Book description from metadata")
+    metadata_pubdate: str | None = Field(None, description="Publication date from metadata")
+    metadata_publisher: str | None = Field(None, description="Publisher from metadata")
+    metadata_identifier: str | None = Field(None, description="Book identifier from metadata")
+    metadata_language: str | None = Field(None, description="Language from metadata")
+    metadata_rights: str | None = Field(None, description="Rights information from metadata")
+    metadata_modified_date: str | None = Field(None, description="Modified date from metadata")
+    metadata_layout: str | None = Field(None, description="Layout setting from metadata")
+    metadata_orientation: str | None = Field(None, description="Orientation setting from metadata")
+    metadata_flow: str | None = Field(None, description="Flow setting from metadata")
+    metadata_viewport: str | None = Field(None, description="Viewport setting from metadata")
+    metadata_spread: str | None = Field(None, description="Spread setting from metadata")
 
 
 class BookDetail(BaseSchemaModel):
     id: str
     annotations: list[AnnotationSchema] | None = None
     author: str | None = None
-    book_metadata: dict[str, Any] | None = None
     cfi: str | None = None
     configuration: dict[str, Any] | None = None
     cover_path: str | None = None
@@ -46,6 +59,20 @@ class BookDetail(BaseSchemaModel):
     user_id: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+    metadata_title: str | None = None
+    metadata_creator: str | None = None
+    metadata_description: str | None = None
+    metadata_pubdate: str | None = None
+    metadata_publisher: str | None = None
+    metadata_identifier: str | None = None
+    metadata_language: str | None = None
+    metadata_rights: str | None = None
+    metadata_modified_date: str | None = None
+    metadata_layout: str | None = None
+    metadata_orientation: str | None = None
+    metadata_flow: str | None = None
+    metadata_viewport: str | None = None
+    metadata_spread: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
