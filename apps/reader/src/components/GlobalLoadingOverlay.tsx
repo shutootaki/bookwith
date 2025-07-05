@@ -9,8 +9,9 @@ import {
   isGlobalLoadingAtom,
   primaryTaskAtom,
   removeTaskAtom,
-} from '../../../store/loading'
-import { CircularProgress } from '../spinner'
+} from '@flow/reader/store/loading'
+
+import { CircularProgress } from './ui/spinner'
 
 export function GlobalLoadingOverlay() {
   const isGlobalLoading = useAtomValue(isGlobalLoadingAtom)

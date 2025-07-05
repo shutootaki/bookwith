@@ -19,10 +19,13 @@
       "WebFetch(domain:github.com)",
       "Bash(poetry run:*)",
       "Bash(poetry show:*)",
-      "Bash(poetry:*)"
+      "Bash(poetry:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["playwright"],
+  "enabledMcpjsonServers": [
+    "playwright"
+  ],
   "deny": []
 }

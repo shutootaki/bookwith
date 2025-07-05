@@ -154,6 +154,12 @@ export default {
   'chat.error': 'エラーが発生しました',
   'chat.created_at': '作成日時',
   'chat.sending': '💬 メッセージを送信中...',
+  'chat.author': '著者:',
+  'chat.progress': '進捗:',
+  'chat.generating': '応答を生成中...',
+  'chat.pubdate': '出版日:',
+  'chat.not_found': '取得できませんでした',
+  'chat.book_info': '[{title}] の情報を参照します',
 
   /**
    * Dropzone
