@@ -37,11 +37,7 @@ const LibraryPane: React.FC = () => {
   return (
     <Pane headline={t('library')} preferredSize={240}>
       {books?.map((book) => {
-        const title =
-          book.bookMetadata?.title &&
-          typeof book.bookMetadata?.title === 'string'
-            ? book.bookMetadata?.title
-            : book.name
+        const title = book.metadataTitle ?? book.name
         return (
           <button
             key={book.id}

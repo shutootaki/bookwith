@@ -16,6 +16,7 @@ export async function addBook(
 ): Promise<BookDetail | null> {
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
+  console.log('metadataだよ', metadata)
 
   const tempBookId = uuidv4()
   setLoading?.(tempBookId)
@@ -167,7 +168,7 @@ export async function handleFiles(
           filesCompleted: completedCount,
         })
       } catch (error) {
-        console.error(`ファイルのインポート中にエラーが発生しました: ${error}`)
+        console.error(`An error occurred while importing the file: ${error}`)
 
         completedCount++
         failedCount++

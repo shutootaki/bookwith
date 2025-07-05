@@ -87,7 +87,7 @@ export const ChatHistoryCommandDialog: React.FC<
               </CommandItem>
             ))
           ) : (
-            <CommandItem disabled>{t('chat.no_chat_history')}</CommandItem>
+            <CommandItem disabled>{t('chat.no_history')}</CommandItem>
           )}
         </CommandGroup>
       </CommandList>

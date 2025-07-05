@@ -64,7 +64,21 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
                 book.update_reading_progress(current_cfi, current_percentage)
 
         if book_metadata is not None:
-            book.book_metadata = book_metadata
+            # Update individual metadata fields
+            book.metadata_title = book_metadata.get('title', book.metadata_title)
+            book.metadata_creator = book_metadata.get('creator', book.metadata_creator)
+            book.metadata_description = book_metadata.get('description', book.metadata_description)
+            book.metadata_pubdate = book_metadata.get('pubdate', book.metadata_pubdate)
+            book.metadata_publisher = book_metadata.get('publisher', book.metadata_publisher)
+            book.metadata_identifier = book_metadata.get('identifier', book.metadata_identifier)
+            book.metadata_language = book_metadata.get('language', book.metadata_language)
+            book.metadata_rights = book_metadata.get('rights', book.metadata_rights)
+            book.metadata_modified_date = book_metadata.get('modified_date', book.metadata_modified_date)
+            book.metadata_layout = book_metadata.get('layout', book.metadata_layout)
+            book.metadata_orientation = book_metadata.get('orientation', book.metadata_orientation)
+            book.metadata_flow = book_metadata.get('flow', book.metadata_flow)
+            book.metadata_viewport = book_metadata.get('viewport', book.metadata_viewport)
+            book.metadata_spread = book_metadata.get('spread', book.metadata_spread)
 
         if definitions is not None:
             book.definitions = definitions

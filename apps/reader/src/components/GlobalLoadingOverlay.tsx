@@ -5,6 +5,7 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { useEffect, useMemo, useState, useId } from 'react'
 import { createPortal } from 'react-dom'
 
+import { useTranslation } from '@flow/reader/hooks'
 import {
   isGlobalLoadingAtom,
   primaryTaskAtom,
@@ -17,6 +18,7 @@ export function GlobalLoadingOverlay() {
   const isGlobalLoading = useAtomValue(isGlobalLoadingAtom)
   const primaryTask = useAtomValue(primaryTaskAtom)
   const removeTask = useSetAtom(removeTaskAtom)
+  const t = useTranslation('loading_overlay')
   const [mounted, setMounted] = useState(false)
 
   // アクセシビリティ用の一意 ID
@@ -70,14 +72,14 @@ export function GlobalLoadingOverlay() {
                 >
                   {/* スクリーンリーダー向けタイトル */}
                   <h2 id={titleId} className="sr-only">
-                    読み込み中
+                    {t('loading')}
                   </h2>
 
                   <CircularProgress
                     size="md"
                     thickness="normal"
                     className="text-blue-500"
-                    aria-label="読み込み中"
+                    aria-label={t('loading')}
                   />
 
                   {primaryTask?.message && (
@@ -89,8 +91,10 @@ export function GlobalLoadingOverlay() {
                   {primaryTask?.subTasks && (
                     <div className="space-y-1 text-center">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {primaryTask.subTasks.filesCompleted}/
-                        {primaryTask.subTasks.filesTotal}冊をインポート中
+                        {t('importing_books', {
+                          completed: primaryTask.subTasks.filesCompleted,
+                          total: primaryTask.subTasks.filesTotal,
+                        })}
                       </p>
                       {primaryTask.subTasks.currentFileName && (
                         <p
@@ -143,7 +147,7 @@ export function GlobalLoadingOverlay() {
                         }
                         className="rounded-md bg-red-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
                       >
-                        キャンセル
+                        {t('cancel')}
                       </button>
                     )}
                   </div>

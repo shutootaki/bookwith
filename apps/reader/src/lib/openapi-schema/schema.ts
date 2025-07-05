@@ -11,11 +11,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /**
-     * Get All Messages
-     * @description 全てのメッセージを取得する.
-     */
-    get: operations['get_all_messages_messages_get']
+    get?: never
     put?: never
     /**
      * Stream Create Message
@@ -40,26 +36,6 @@ export interface paths {
      * @description チャットIDでメッセージを検索する.
      */
     get: operations['get_messages_by_chat_id_messages__chat_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/messages/id/{message_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Message
-     * @description IDでメッセージを取得する.
-     */
-    get: operations['get_message_messages_id__message_id__get']
     put?: never
     post?: never
     delete?: never
@@ -117,26 +93,11 @@ export interface paths {
     }
     get?: never
     put?: never
-    /** Upload And Process Rag */
+    /**
+     * Upload And Process Rag
+     * @description Base64 で送られてきた EPUB をデコードし、ベクトルストアにインデックス化する.
+     */
     post: operations['upload_and_process_rag_rag_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Books */
-    get: operations['get_books_books_get']
-    put?: never
-    /** Post Book */
-    post: operations['post_book_books_post']
     delete?: never
     options?: never
     head?: never
@@ -177,23 +138,6 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/books/bulk-delete': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    /** Bulk Delete Books Endpoint */
-    delete: operations['bulk_delete_books_endpoint_books_bulk_delete_delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
   '/books/{book_id}': {
     parameters: {
       query?: never
@@ -213,23 +157,6 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/books/{book_id}/cover': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Book Cover */
-    get: operations['get_book_cover_books__book_id__cover_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
   '/books/{book_id}/file': {
     parameters: {
       query?: never
@@ -242,6 +169,40 @@ export interface paths {
     put?: never
     post?: never
     delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/books': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Post Book */
+    post: operations['post_book_books_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/books/bulk-delete': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Bulk Delete Books Endpoint */
+    delete: operations['bulk_delete_books_endpoint_books_bulk_delete_delete']
     options?: never
     head?: never
     patch?: never
@@ -401,16 +362,6 @@ export interface components {
      * @enum {string}
      */
     AnnotationTypeEnum: 'highlight'
-    /** Body_upload_and_process_rag_rag_post */
-    Body_upload_and_process_rag_rag_post: {
-      /** User Id */
-      user_id: string
-      /**
-       * File
-       * Format: binary
-       */
-      file: string
-    }
     /** BookCreateRequest */
     BookCreateRequest: {
       /**
@@ -457,10 +408,6 @@ export interface components {
       annotations?: components['schemas']['AnnotationSchema'][] | null
       /** Author */
       author?: string | null
-      /** Bookmetadata */
-      bookMetadata?: {
-        [key: string]: unknown
-      } | null
       /** Cfi */
       cfi?: string | null
       /** Configuration */
@@ -494,6 +441,34 @@ export interface components {
       createdAt?: string | null
       /** Updatedat */
       updatedAt?: string | null
+      /** Metadatatitle */
+      metadataTitle?: string | null
+      /** Metadatacreator */
+      metadataCreator?: string | null
+      /** Metadatadescription */
+      metadataDescription?: string | null
+      /** Metadatapubdate */
+      metadataPubdate?: string | null
+      /** Metadatapublisher */
+      metadataPublisher?: string | null
+      /** Metadataidentifier */
+      metadataIdentifier?: string | null
+      /** Metadatalanguage */
+      metadataLanguage?: string | null
+      /** Metadatarights */
+      metadataRights?: string | null
+      /** Metadatamodifieddate */
+      metadataModifiedDate?: string | null
+      /** Metadatalayout */
+      metadataLayout?: string | null
+      /** Metadataorientation */
+      metadataOrientation?: string | null
+      /** Metadataflow */
+      metadataFlow?: string | null
+      /** Metadataviewport */
+      metadataViewport?: string | null
+      /** Metadataspread */
+      metadataSpread?: string | null
     }
     /** BookFileResponse */
     BookFileResponse: {
@@ -556,6 +531,76 @@ export interface components {
       configuration?: {
         [key: string]: unknown
       } | null
+      /**
+       * Metadatatitle
+       * @description Book title from metadata
+       */
+      metadataTitle?: string | null
+      /**
+       * Metadatacreator
+       * @description Book creator/author from metadata
+       */
+      metadataCreator?: string | null
+      /**
+       * Metadatadescription
+       * @description Book description from metadata
+       */
+      metadataDescription?: string | null
+      /**
+       * Metadatapubdate
+       * @description Publication date from metadata
+       */
+      metadataPubdate?: string | null
+      /**
+       * Metadatapublisher
+       * @description Publisher from metadata
+       */
+      metadataPublisher?: string | null
+      /**
+       * Metadataidentifier
+       * @description Book identifier from metadata
+       */
+      metadataIdentifier?: string | null
+      /**
+       * Metadatalanguage
+       * @description Language from metadata
+       */
+      metadataLanguage?: string | null
+      /**
+       * Metadatarights
+       * @description Rights information from metadata
+       */
+      metadataRights?: string | null
+      /**
+       * Metadatamodifieddate
+       * @description Modified date from metadata
+       */
+      metadataModifiedDate?: string | null
+      /**
+       * Metadatalayout
+       * @description Layout setting from metadata
+       */
+      metadataLayout?: string | null
+      /**
+       * Metadataorientation
+       * @description Orientation setting from metadata
+       */
+      metadataOrientation?: string | null
+      /**
+       * Metadataflow
+       * @description Flow setting from metadata
+       */
+      metadataFlow?: string | null
+      /**
+       * Metadataviewport
+       * @description Viewport setting from metadata
+       */
+      metadataViewport?: string | null
+      /**
+       * Metadataspread
+       * @description Spread setting from metadata
+       */
+      metadataSpread?: string | null
     }
     /** BooksResponse */
     BooksResponse: {
@@ -737,11 +782,6 @@ export interface components {
        * Format: date-time
        */
       createdAt: string
-      /**
-       * Updatedat
-       * Format: date-time
-       */
-      updatedAt: string
       /** Metadata */
       metadata?: {
         [key: string]: unknown
@@ -758,6 +798,17 @@ export interface components {
       metadata: {
         [key: string]: unknown
       }
+    }
+    /** RagProcessRequest */
+    RagProcessRequest: {
+      /** Userid */
+      userId: string
+      /** Bookid */
+      bookId: string
+      /** Filedata */
+      fileData: string
+      /** Filename */
+      fileName: string
     }
     /** RagProcessResponse */
     RagProcessResponse: {
@@ -795,40 +846,6 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
-  get_all_messages_messages_get: {
-    parameters: {
-      query?: {
-        /** @description Skip records */
-        skip?: number
-        /** @description Limit records */
-        limit?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['MessageListResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
   stream_create_message_messages_post: {
     parameters: {
       query?: never
@@ -881,38 +898,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['MessageListResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_message_messages_id__message_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        /** @description 取得するメッセージID */
-        message_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['MessageResponse']
         }
       }
       /** @description Validation Error */
@@ -1004,7 +989,7 @@ export interface operations {
     }
     requestBody: {
       content: {
-        'multipart/form-data': components['schemas']['Body_upload_and_process_rag_rag_post']
+        'application/json': components['schemas']['RagProcessRequest']
       }
     }
     responses: {
@@ -1015,59 +1000,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['RagProcessResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_books_books_get: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BooksResponse']
-        }
-      }
-    }
-  }
-  post_book_books_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BookCreateRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BookResponse']
         }
       }
       /** @description Validation Error */
@@ -1130,39 +1062,6 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['CoversResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  bulk_delete_books_endpoint_books_bulk_delete_delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BulkDeleteRequestBody']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BulkDeleteResponse']
         }
       }
       /** @description Validation Error */
@@ -1273,39 +1172,6 @@ export interface operations {
       }
     }
   }
-  get_book_cover_books__book_id__cover_get: {
-    parameters: {
-      query: {
-        user_id: string
-      }
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
   get_book_file_books__book_id__file_get: {
     parameters: {
       query: {
@@ -1326,6 +1192,72 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['BookFileResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  post_book_books_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BookCreateRequest']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['BookResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  bulk_delete_books_endpoint_books_bulk_delete_delete: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['BulkDeleteRequestBody']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['BulkDeleteResponse']
         }
       }
       /** @description Validation Error */

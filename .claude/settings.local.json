@@ -20,12 +20,11 @@
       "Bash(poetry run:*)",
       "Bash(poetry show:*)",
       "Bash(poetry:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm openapi:ts:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "playwright"
-  ],
+  "enabledMcpjsonServers": ["playwright"],
   "deny": []
 }
