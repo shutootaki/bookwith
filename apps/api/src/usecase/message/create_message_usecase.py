@@ -9,6 +9,7 @@ from src.domain.message.repositories.message_repository import MessageRepository
 from src.infrastructure.memory.memory_service import MemoryService
 from src.usecase.message.ai_response_generator import AIResponseGenerator
 from src.usecase.message.chat_manager import ChatManager
+from src.usecase.message.citation_parser import CitationParser
 from src.usecase.message.message_processor import MessageProcessor
 
 
@@ -72,4 +73,14 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             yield chunk
 
         full_ai_response = "".join(ai_response_chunks)
-        self.message_processor.save_ai_message(full_ai_response, sender_id, chat_id, metadata)
+
+        # AIレスポンスから引用情報を抽出
+        citation_info = CitationParser.extract_citations(full_ai_response)
+
+        # AI メッセージ用のメタデータを作成（引用情報を含む）
+        ai_metadata = metadata.copy() if metadata else {}
+        if citation_info["has_citations"]:
+            ai_metadata["citations"] = citation_info["citations"]
+            ai_metadata["has_citations"] = True
+
+        self.message_processor.save_ai_message(full_ai_response, sender_id, chat_id, ai_metadata)

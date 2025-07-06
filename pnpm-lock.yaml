@@ -75,6 +75,8 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
 
+  apps/api: {}
+
   apps/reader:
     dependencies:
       '@flow/epubjs':
