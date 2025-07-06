@@ -6,7 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev:services --parallel & sleep 5 && turbo run dev --parallel",
-    "lint": "turbo run lint:fix --parallel",
+    "lint": "turbo run lint --parallel",
     "prepare": "husky install"
   },
   "lint-staged": {
