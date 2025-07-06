@@ -27,6 +27,7 @@ export default {
   'home.no_books_message': '未找到图书。请导入一些图书。',
   'home.selected_books': '已选择 {count} 本书',
   'home.importing_books': '正在导入图书',
+  'home.remote_epub_placeholder': '输入 EPUB 文件 URL',
 
   /**
    * Import

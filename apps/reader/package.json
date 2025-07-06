@@ -12,6 +12,7 @@
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --check .",
     "lint": "next lint",
+    "lint:fix": "pnpm fix",
     "openapi:ts": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/lib/openapi-schema/schema.ts",
     "start": "next start",
     "ts:check": "tsc --noEmit",

@@ -21,7 +21,8 @@
       "Bash(poetry show:*)",
       "Bash(poetry:*)",
       "Bash(grep:*)",
-      "Bash(pnpm openapi:ts:*)"
+      "Bash(pnpm openapi:ts:*)",
+      "Bash(git:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

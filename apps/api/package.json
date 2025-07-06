@@ -1,0 +1,11 @@
+{
+  "name": "@flow/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docker:up": "docker compose up --build --pull always",
+    "dev": "make run",
+    "dev:services": "make docker.up",
+    "lint": "make lint"
+  }
+}

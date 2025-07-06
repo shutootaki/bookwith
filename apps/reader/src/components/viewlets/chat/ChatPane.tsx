@@ -41,6 +41,9 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
   const [chatTitle, setChatTitle] = useState<string | null>(null)
+  useEffect(() => {
+    setChatTitle(null)
+  }, [chatId])
   const bookTitle =
     focusedBookTab?.book.metadataTitle ?? focusedBookTab?.book.name
 
@@ -66,22 +69,36 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
     scrollToBottom()
   }, [messages, scrollToBottom])
 
+  // チャットがまだ DB に保存される前 (POST /messages 直後) は 404 になる可能性がある。
+  // 404 が返った場合は指数バックオフ付きで最大 5 回リトライする。
   useEffect(() => {
-    const fetchChatTitle = async () => {
-      if (chatId && messages.length > 0) {
+    if (!chatId || isLoading || messages.length === 0) return
+
+    let cancelled = false
+
+    ;(async () => {
+      for (let retry = 0; retry < 5; retry++) {
         try {
-          const response = await apiClient<ChatResponse>(`/chats/${chatId}`)
-          if (response.title) {
-            setChatTitle(response.title)
+          const res = await apiClient<ChatResponse>(`/chats/${chatId}`)
+          if (res.title && !cancelled) setChatTitle(res.title)
+          return
+        } catch (err) {
+          const isNotFound =
+            err instanceof Error &&
+            err.message.includes('チャットが見つかりません')
+          if (!isNotFound) {
+            console.error('Failed to fetch chat title:', err)
+            return
           }
-        } catch (error) {
-          console.error('Failed to fetch chat title:', error)
+          await new Promise((r) => setTimeout(r, 2 ** retry * 300))
         }
       }
-    }
+    })()
 
-    fetchChatTitle()
-  }, [chatId, messages.length])
+    return () => {
+      cancelled = true
+    }
+  }, [chatId, isLoading, messages.length])
 
   const processStream = useCallback(
     async (stream: ReadableStream) => {
@@ -203,7 +220,7 @@ export const ChatPane: React.FC<ChatPaneProps> = ({
         <EmptyState />
       ) : (
         <div className="flex-1 overflow-y-auto">
-          <div className="space-y-4 p-4 text-sm">
+          <div className="space-y-2 p-4 text-sm">
             {messages.map((msg, index) => (
               <ChatMessage key={index} message={msg} />
             ))}
