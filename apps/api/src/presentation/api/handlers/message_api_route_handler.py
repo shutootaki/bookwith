@@ -37,7 +37,7 @@ async def stream_create_message(
             book_id=message_create.book_id,
             metadata=message_create.metadata,
         )
-        return StreamingResponse(response_stream, media_type="text/event-stream")  # type: ignore
+        return StreamingResponse(response_stream, media_type="text/event-stream")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

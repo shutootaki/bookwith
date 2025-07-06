@@ -17,6 +17,7 @@ import { IconButton } from './Button'
 type Action = {
   title: string
   Icon: IconType
+  disabled?: boolean
   onClick: (el: HTMLInputElement | null) => void | Promise<void>
 }
 
@@ -87,10 +88,11 @@ export function TextField<T extends ElementType = 'input'>({
         />
         {!!actions.length && (
           <div className="mx-1 flex gap-0.5">
-            {actions.map(({ onClick, ...a }) => (
+            {actions.map(({ onClick, disabled, ...a }) => (
               <IconButton
                 className="text-outline !p-px"
                 key={a.title}
+                disabled={disabled}
                 onClick={() => {
                   onClick(ref.current)
                 }}

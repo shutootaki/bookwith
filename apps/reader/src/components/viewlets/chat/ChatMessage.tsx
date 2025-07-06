@@ -23,10 +23,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     }
   }
 
+  if (message.text === '') return null
+
   return message.senderType === 'user' ? (
     <div className="flex justify-end">
       <div className="max-w-[80%]">
-        <div className="rounded-lg bg-[#424867] px-2 py-2 text-white">
+        <div className="rounded-lg bg-[#424867] px-2 py-1 text-white">
           <FormattedText text={message.text} className="p-0 leading-relaxed" />
         </div>
       </div>

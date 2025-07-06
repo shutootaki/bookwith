@@ -28,6 +28,7 @@ export default {
   'home.no_books_message': '本が見つかりません。本をインポートしてください。',
   'home.selected_books': '{count}冊選択中',
   'home.importing_books': '本をインポート中',
+  'home.remote_epub_placeholder': 'EPUBファイルのURLを入力',
 
   /**
    * Import

@@ -28,6 +28,7 @@ export default {
   'home.no_books_message': 'No books found. Please import some books.',
   'home.selected_books': '{count} books selected',
   'home.importing_books': 'Importing books',
+  'home.remote_epub_placeholder': 'Enter EPUB file URL',
 
   /**
    * Import
