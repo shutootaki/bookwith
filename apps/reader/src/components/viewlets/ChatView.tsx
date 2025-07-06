@@ -44,6 +44,7 @@ export const ChatView: React.FC<PaneViewProps> = (props) => {
       const uiMessages = chatMessages.messages.map((msg) => ({
         text: msg.content,
         senderType: msg.senderType,
+        metadata: msg.metadata,
       }))
 
       setMessages(uiMessages)

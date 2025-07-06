@@ -6,12 +6,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from src.config.app_config import AppConfig
 from src.config.db import get_db, init_db
 from src.presentation.api import setup_routes
 from src.presentation.api.error_messages.error_handlers import setup_exception_handlers
 
+# 設定を読み込み、ログレベルを決定
+config = AppConfig.get_config()
+log_level = logging.DEBUG if config.debug_llm_logging else logging.INFO
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 

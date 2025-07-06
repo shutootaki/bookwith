@@ -23,6 +23,9 @@ class AppConfig(BaseSettings):
     )
     max_prompt_tokens: int = Field(default=8192, description="プロンプトの最大トークン数")
 
+    # ログ設定
+    debug_llm_logging: bool = Field(default=False, description="LLMデバッグログの有効化")
+
     @classmethod
     def get_config(cls) -> Self:
         return cls()

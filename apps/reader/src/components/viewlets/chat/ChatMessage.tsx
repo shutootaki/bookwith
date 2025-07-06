@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { FormattedText } from '../../FormattedText'
 import { Button } from '../../ui/button'
 
+import { CitationText } from './CitationText'
 import { Message } from './types'
 
 interface ChatMessageProps {
@@ -37,7 +38,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     <div className="flex justify-start">
       <div>
         <div className="leading-relaxed">
-          <FormattedText text={message.text} />
+          {message.metadata?.citations ? (
+            <CitationText text={message.text} citations={message.metadata.citations as any} />
+          ) : (
+            <FormattedText text={message.text} />
+          )}
         </div>
         {message.text && (
           <Button
