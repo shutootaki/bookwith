@@ -154,7 +154,7 @@ LANGSMITH_PROJECT=bookwith
 DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 # ストレージ（Docker Compose使用時はデフォルトのまま）
-CLOUD_STORAGE_EMULATOR_HOST=http://127.0.0.1:4443
+GCS_EMULATOR_HOST=http://127.0.0.1:4443
 
 # Memory設定（デフォルト値で開始可能）
 MEMORY_BUFFER_SIZE=10

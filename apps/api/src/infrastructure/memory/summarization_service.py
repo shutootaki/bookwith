@@ -20,12 +20,12 @@ class SummarizationService:
         """要約サービスの初期化."""
         self.config = AppConfig.get_config()
         self.memory_store = memory_store or MemoryVectorStore()
+        self.memory_summarize_threshold = 20
 
     def summarize_chat(self, chat_id: str, user_id: str, message_count: int) -> None:
         """チャットの要約を同期的に生成（条件を満たす場合）."""
         # メッセージ数が閾値の倍数に達した場合に要約を実行
-        threshold = self.config.memory_summarize_threshold
-        if message_count > 0 and message_count % threshold == 0:
+        if message_count > 0 and message_count % self.memory_summarize_threshold == 0:
             self._summarize_and_vectorize_background(chat_id=chat_id, user_id=user_id)
 
     def _summarize_and_vectorize_background(self, chat_id: str, user_id: str) -> None:
@@ -33,11 +33,11 @@ class SummarizationService:
         try:
             # 要約されていないメッセージを取得
             unsummarized_messages = self.memory_store.get_unsummarized_messages(
-                user_id=user_id, chat_id=chat_id, max_count=self.config.memory_summarize_threshold
+                user_id=user_id, chat_id=chat_id, max_count=self.memory_summarize_threshold
             )
 
             # 要約すべきメッセージがない場合は終了
-            if len(unsummarized_messages) < self.config.memory_summarize_threshold // 2:
+            if len(unsummarized_messages) < self.memory_summarize_threshold // 2:
                 return
 
             # メッセージを時系列順にソート

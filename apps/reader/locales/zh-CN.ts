@@ -161,6 +161,22 @@ export default {
   'chat.book_info': '参考 [{title}] 的信息',
 
   /**
+   * Podcast
+   */
+  'podcast.title': '播客',
+  'podcast.refresh': '刷新',
+  'podcast.generate': '生成',
+  'podcast.play': '播放',
+  'podcast.pause': '暂停',
+  'podcast.download': '下载',
+  'podcast.share': '分享',
+  'podcast.script': '脚本',
+  'podcast.status.pending': '待机中',
+  'podcast.status.processing': '生成中',
+  'podcast.status.completed': '完成',
+  'podcast.status.failed': '失败',
+
+  /**
    * Global Loading Overlay
    */
   'loading_overlay.loading': '加载中',

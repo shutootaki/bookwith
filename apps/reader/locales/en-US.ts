@@ -166,6 +166,24 @@ export default {
   'chat.book_info': 'Reference information about [{title}]',
 
   /**
+   * Podcast
+  /**
+   * Podcast
+   */
+  'podcast.title': 'Podcast',
+  'podcast.refresh': 'Refresh',
+  'podcast.generate': 'Generate',
+  'podcast.play': 'Play',
+  'podcast.pause': 'Pause',
+  'podcast.download': 'Download',
+  'podcast.share': 'Share',
+  'podcast.script': 'Script',
+  'podcast.status.pending': 'Pending',
+  'podcast.status.processing': 'Processing',
+  'podcast.status.completed': 'Completed',
+  'podcast.status.failed': 'Failed',
+
+  /**
    * Global Loading Overlay
    */
   'loading_overlay.loading': 'Loading',

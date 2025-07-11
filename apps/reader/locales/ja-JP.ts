@@ -163,6 +163,22 @@ export default {
   'chat.book_info': '[{title}] の情報を参照します',
 
   /**
+   * Podcast
+   */
+  'podcast.title': 'ポッドキャスト',
+  'podcast.refresh': '更新',
+  'podcast.generate': '生成',
+  'podcast.play': '再生',
+  'podcast.pause': '一時停止',
+  'podcast.download': 'ダウンロード',
+  'podcast.share': '共有',
+  'podcast.script': '台本',
+  'podcast.status.pending': '待機中',
+  'podcast.status.processing': '生成中',
+  'podcast.status.completed': '完了',
+  'podcast.status.failed': '失敗',
+
+  /**
    * Global Loading Overlay
    */
   'loading_overlay.loading': '読み込み中',

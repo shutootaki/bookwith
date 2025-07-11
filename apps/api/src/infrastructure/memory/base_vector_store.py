@@ -43,7 +43,7 @@ class BaseVectorStore:
 
         # Embedding モデルも共有インスタンスとして保持
         if BaseVectorStore._shared_embedding_model is None:
-            BaseVectorStore._shared_embedding_model = OpenAIEmbeddings(model="text-embedding-3-large", max_retries=2)
+            BaseVectorStore._shared_embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", max_retries=2)
 
         self.embedding_model = BaseVectorStore._shared_embedding_model
 

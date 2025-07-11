@@ -49,21 +49,16 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
             with contextlib.suppress(json.JSONDecodeError):
                 metadata_dict = json.loads(book_metadata)
 
-        bucket = self.gcs_client.get_client().bucket(self.gcs_client.bucket_name)
-        gcs_base_url = f"{self.gcs_client.get_gcs_url()}/{self.gcs_client.bucket_name}"
-
         book_id = BookId.generate()
         book_id_value = book_id.value
         book_base_path = f"books/{user_id}/{book_id_value}"
 
-        uploaded_blobs = []
+        uploaded_files: list[str] = []
 
         try:
             epub_blob_name = f"{book_base_path}/book.epub"
-            blob = bucket.blob(epub_blob_name)
-            blob.upload_from_string(decoded_file_data, content_type="application/epub+zip")
-            uploaded_blobs.append(blob)
-            file_path = f"{gcs_base_url}/{epub_blob_name}"
+            file_path = self.gcs_client.upload_file(epub_blob_name, decoded_file_data, "application/epub+zip")
+            uploaded_files.append(epub_blob_name)
 
             cover_path = None
             if cover_image and cover_image.startswith("data:image/"):
@@ -72,11 +67,8 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
                     image_binary = base64.b64decode(image_data)
 
                     cover_blob_name = f"{book_base_path}/cover.jpg"
-                    cover_blob = bucket.blob(cover_blob_name)
-                    cover_blob.upload_from_string(image_binary, content_type="image/jpeg")
-                    uploaded_blobs.append(cover_blob)
-
-                    cover_path = f"{gcs_base_url}/{cover_blob_name}"
+                    cover_path = self.gcs_client.upload_file(cover_blob_name, image_binary, "image/jpeg")
+                    uploaded_files.append(cover_blob_name)
                 except Exception as e:
                     self._logger.error(f"カバー画像の保存中にエラーが発生しました: {str(e)}")
 
@@ -88,7 +80,6 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
                 author=metadata_dict.get("creator") or None,
                 size=len(decoded_file_data),
                 cover_path=cover_path,
-                # EPub metadata fields
                 metadata_title=metadata_dict.get("title"),
                 metadata_creator=metadata_dict.get("creator"),
                 metadata_description=metadata_dict.get("description"),
@@ -111,10 +102,10 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
 
         except Exception as e:
             self._logger.error(f"Book作成中にエラーが発生しました: {str(e)}")
-            self._rollback_storage(uploaded_blobs)
+            self._rollback_storage(uploaded_files)
             raise
 
-    def _rollback_storage(self, blobs: list[Any]) -> None:
-        for blob in blobs:
+    def _rollback_storage(self, file_names: list[str]) -> None:
+        for file_name in file_names:
             with contextlib.suppress(Exception):
-                blob.delete()
+                self.gcs_client.delete_object(file_name)

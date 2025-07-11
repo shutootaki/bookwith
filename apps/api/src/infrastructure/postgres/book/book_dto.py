@@ -28,6 +28,7 @@ from src.infrastructure.postgres.db_util import TimestampMixin
 if TYPE_CHECKING:
     from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
     from src.infrastructure.postgres.chat.chat_dto import ChatDTO
+    from src.infrastructure.postgres.podcast.podcast_dto import PodcastDTO
     from src.infrastructure.postgres.user.user_dto import UserDTO
 
 
@@ -67,6 +68,7 @@ class BookDTO(TimestampMixin, Base):
     user: Mapped["UserDTO"] = relationship("UserDTO", back_populates="books")
     annotations: Mapped[list["AnnotationDTO"]] = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
     chats: Mapped[list["ChatDTO"]] = relationship("ChatDTO", back_populates="book", cascade="all, delete-orphan")
+    podcasts: Mapped[list["PodcastDTO"]] = relationship("PodcastDTO", back_populates="book", cascade="all, delete-orphan")
 
     def to_entity(self) -> Book:
         book_id = BookId(self.id)
