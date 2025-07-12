@@ -177,6 +177,52 @@ export default {
   'podcast.status.processing': '生成中',
   'podcast.status.completed': '完了',
   'podcast.status.failed': '失敗',
+  'podcast.status.unknown': '不明',
+
+  // AudioPlayer関連
+  'podcast.audio_player.playback_failed': '音声の再生に失敗しました',
+  'podcast.audio_player.skip_back': '10秒戻る',
+  'podcast.audio_player.skip_forward': '10秒進む',
+  'podcast.audio_player.loading': '読み込み中',
+  'podcast.audio_player.current_time': '現在の再生時間',
+  'podcast.audio_player.total_time': '総再生時間',
+  'podcast.audio_player.controls': '音声コントロール',
+  'podcast.audio_player.position': '音声再生位置',
+  'podcast.audio_player.speed': '速度',
+  'podcast.audio_player.change_speed': '再生速度を変更',
+
+  // PodcastDetail関連
+  'podcast.detail.back': '戻る',
+  'podcast.detail.download_short': 'DL',
+  'podcast.detail.created_at': '作成日',
+  'podcast.detail.updated_at': '更新日',
+  'podcast.detail.status': '状態',
+  'podcast.detail.error': 'エラー',
+  'podcast.detail.author_unknown': '作者不明',
+
+  // PodcastList関連
+  'podcast.list.empty': 'まだポッドキャストがありません',
+  'podcast.list.generating': 'ポッドキャストを生成中...',
+  'podcast.list.retry': '再試行',
+  'podcast.list.retrying': '再生成中...',
+  'podcast.list.created_date': '作成日',
+  'podcast.list.updated_date': '更新日',
+
+  // PodcastPane関連
+  'podcast.pane.generation_started': 'ポッドキャストの生成を開始しました',
+  'podcast.pane.generation_failed': 'ポッドキャストの生成に失敗しました',
+  'podcast.pane.regeneration_started': 'ポッドキャストの再生成を開始しました',
+  'podcast.pane.regeneration_failed': 'ポッドキャストの再生成に失敗しました',
+  'podcast.pane.generating': '生成中...',
+  'podcast.pane.generate_podcast': 'ポッドキャスト生成',
+  'podcast.pane.podcast_list': 'ポッドキャスト一覧',
+  'podcast.pane.loading_failed': 'ポッドキャストの読み込みに失敗しました',
+  'podcast.pane.loading': '読み込み中...',
+  'podcast.pane.fetching_info': 'ポッドキャスト情報を取得しています',
+  'podcast.pane.library': 'ライブラリ',
+  'podcast.pane.library_description':
+    '本を選択してポッドキャストを生成・再生できます',
+  'podcast.pane.podcast_title': '{name}のポッドキャスト',
 
   /**
    * Global Loading Overlay

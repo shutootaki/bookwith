@@ -76,7 +76,7 @@ export const CitationText: React.FC<CitationTextProps> = ({
     let match
 
     // 事前にMapを作成してO(1)のルックアップを実現
-    const citationMap = new Map(citations.map(c => [c.marker, c]))
+    const citationMap = new Map(citations.map((c) => [c.marker, c]))
 
     // 引用マーカーを検出してテキストを分割
     const regex = new RegExp(citationPattern)

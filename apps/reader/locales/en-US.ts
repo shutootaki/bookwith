@@ -167,8 +167,6 @@ export default {
 
   /**
    * Podcast
-  /**
-   * Podcast
    */
   'podcast.title': 'Podcast',
   'podcast.refresh': 'Refresh',
@@ -182,6 +180,52 @@ export default {
   'podcast.status.processing': 'Processing',
   'podcast.status.completed': 'Completed',
   'podcast.status.failed': 'Failed',
+  'podcast.status.unknown': 'Unknown',
+
+  // AudioPlayer related
+  'podcast.audio_player.playback_failed': 'Audio playback failed',
+  'podcast.audio_player.skip_back': 'Skip back 10 seconds',
+  'podcast.audio_player.skip_forward': 'Skip forward 10 seconds',
+  'podcast.audio_player.loading': 'Loading',
+  'podcast.audio_player.current_time': 'Current playback time',
+  'podcast.audio_player.total_time': 'Total playback time',
+  'podcast.audio_player.controls': 'Audio controls',
+  'podcast.audio_player.position': 'Audio playback position',
+  'podcast.audio_player.speed': 'Speed',
+  'podcast.audio_player.change_speed': 'Change playback speed',
+
+  // PodcastDetail related
+  'podcast.detail.back': 'Back',
+  'podcast.detail.download_short': 'DL',
+  'podcast.detail.created_at': 'Created',
+  'podcast.detail.updated_at': 'Updated',
+  'podcast.detail.status': 'Status',
+  'podcast.detail.error': 'Error',
+  'podcast.detail.author_unknown': 'Unknown author',
+
+  // PodcastList related
+  'podcast.list.empty': 'No podcasts yet',
+  'podcast.list.generating': 'Generating podcast...',
+  'podcast.list.retry': 'Retry',
+  'podcast.list.retrying': 'Retrying...',
+  'podcast.list.created_date': 'Created',
+  'podcast.list.updated_date': 'Updated',
+
+  // PodcastPane related
+  'podcast.pane.generation_started': 'Podcast generation started',
+  'podcast.pane.generation_failed': 'Podcast generation failed',
+  'podcast.pane.regeneration_started': 'Podcast regeneration started',
+  'podcast.pane.regeneration_failed': 'Podcast regeneration failed',
+  'podcast.pane.generating': 'Generating...',
+  'podcast.pane.generate_podcast': 'Generate Podcast',
+  'podcast.pane.podcast_list': 'Podcast List',
+  'podcast.pane.loading_failed': 'Failed to load podcasts',
+  'podcast.pane.loading': 'Loading...',
+  'podcast.pane.fetching_info': 'Fetching podcast information',
+  'podcast.pane.library': 'Library',
+  'podcast.pane.library_description':
+    'Select a book to generate and play podcasts',
+  'podcast.pane.podcast_title': 'Podcast for {name}',
 
   /**
    * Global Loading Overlay

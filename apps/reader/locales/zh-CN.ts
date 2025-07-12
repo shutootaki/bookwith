@@ -175,6 +175,51 @@ export default {
   'podcast.status.processing': '生成中',
   'podcast.status.completed': '完成',
   'podcast.status.failed': '失败',
+  'podcast.status.unknown': '未知',
+
+  // AudioPlayer 相关
+  'podcast.audio_player.playback_failed': '音频播放失败',
+  'podcast.audio_player.skip_back': '后退10秒',
+  'podcast.audio_player.skip_forward': '前进10秒',
+  'podcast.audio_player.loading': '加载中',
+  'podcast.audio_player.current_time': '当前播放时间',
+  'podcast.audio_player.total_time': '总播放时间',
+  'podcast.audio_player.controls': '音频控制',
+  'podcast.audio_player.position': '音频播放位置',
+  'podcast.audio_player.speed': '速度',
+  'podcast.audio_player.change_speed': '更改播放速度',
+
+  // PodcastDetail 相关
+  'podcast.detail.back': '返回',
+  'podcast.detail.download_short': '下载',
+  'podcast.detail.created_at': '创建时间',
+  'podcast.detail.updated_at': '更新时间',
+  'podcast.detail.status': '状态',
+  'podcast.detail.error': '错误',
+  'podcast.detail.author_unknown': '未知作者',
+
+  // PodcastList 相关
+  'podcast.list.empty': '暂无播客',
+  'podcast.list.generating': '正在生成播客...',
+  'podcast.list.retry': '重试',
+  'podcast.list.retrying': '重新生成中...',
+  'podcast.list.created_date': '创建时间',
+  'podcast.list.updated_date': '更新时间',
+
+  // PodcastPane 相关
+  'podcast.pane.generation_started': '播客生成已开始',
+  'podcast.pane.generation_failed': '播客生成失败',
+  'podcast.pane.regeneration_started': '播客重新生成已开始',
+  'podcast.pane.regeneration_failed': '播客重新生成失败',
+  'podcast.pane.generating': '生成中...',
+  'podcast.pane.generate_podcast': '生成播客',
+  'podcast.pane.podcast_list': '播客列表',
+  'podcast.pane.loading_failed': '播客加载失败',
+  'podcast.pane.loading': '加载中...',
+  'podcast.pane.fetching_info': '正在获取播客信息',
+  'podcast.pane.library': '图书馆',
+  'podcast.pane.library_description': '选择一本书来生成和播放播客',
+  'podcast.pane.podcast_title': '{name}的播客',
 
   /**
    * Global Loading Overlay

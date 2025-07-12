@@ -114,6 +114,7 @@ export async function getPodcastStatus(
 export async function retryPodcast(
   podcastId: string,
 ): Promise<CreatePodcastResponse | null> {
+  console.log('retryPodcast', podcastId)
   try {
     const responseData = await apiClient<CreatePodcastResponse>(
       `/podcasts/${podcastId}/retry`,

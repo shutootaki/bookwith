@@ -6,7 +6,9 @@ import { PodcastPane } from '../podcast'
 export const PodcastView: React.FC<PaneViewProps> = (props) => {
   return (
     <PaneView {...props}>
-      <PodcastPane className="p-4" />
+      <div className="scroll">
+        <PodcastPane className="p-4" />
+      </div>
     </PaneView>
   )
 }

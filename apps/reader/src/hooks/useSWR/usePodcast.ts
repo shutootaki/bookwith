@@ -1,7 +1,6 @@
 import useSWR from 'swr'
 
 import { components } from '../../lib/openapi-schema/schema'
-import { getPodcastById, getPodcastsByBook, getPodcastStatus } from '../../lib/apiHandler/podcastApiHandler'
 
 import { fetcher } from './fetcher'
 
@@ -17,12 +16,14 @@ type PodcastListResponse = components['schemas']['PodcastListResponse']
  */
 export function usePodcastsByBook(bookId: string | undefined) {
   const { data, error, mutate } = useSWR<PodcastListResponse>(
-    bookId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/book/${bookId}` : null,
+    bookId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/book/${bookId}`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   return {
@@ -40,12 +41,14 @@ export function usePodcastsByBook(bookId: string | undefined) {
  */
 export function usePodcast(podcastId: string | undefined) {
   const { data, error, mutate } = useSWR<PodcastResponse>(
-    podcastId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/${podcastId}` : null,
+    podcastId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/${podcastId}`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   return {
@@ -69,15 +72,19 @@ export function usePodcastStatus(
   pollingInterval: number = 2000,
 ) {
   const { data, error, mutate } = useSWR<PodcastStatusResponse>(
-    podcastId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/${podcastId}/status` : null,
+    podcastId
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/${podcastId}/status`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: (data: PodcastStatusResponse | undefined) => {
-        return enablePolling && data?.status === 'PROCESSING' ? pollingInterval : 0
+        return enablePolling && data?.status === 'PROCESSING'
+          ? pollingInterval
+          : 0
       },
-    }
+    },
   )
 
   return {
