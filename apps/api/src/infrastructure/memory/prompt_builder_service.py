@@ -91,7 +91,7 @@ class PromptBuilderService:
     def _apply_token_limit(self, full_prompt: str, prompt_parts: list[str]) -> str:
         """トークン数制限を適用してプロンプトを調整."""
         estimated_tokens = self._estimate_tokens(full_prompt)
-        max_tokens = self.config.max_prompt_tokens or 8192
+        max_tokens = 8192
 
         if estimated_tokens > max_tokens:
             # システムプロンプトとクエリ部分は必ず残す

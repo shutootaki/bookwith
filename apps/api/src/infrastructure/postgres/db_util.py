@@ -1,7 +1,16 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class Base(DeclarativeBase):
+    """Base class for declarative SQLAlchemy models"""
+
+    # Include default repr for easier debugging
+    def __repr__(self) -> str:  # pragma: no cover
+        attrs = " ".join(f"{k}={v!r}" for k, v in self.__dict__.items() if not k.startswith("_"))
+        return f"<{self.__class__.__name__} {attrs}>"
 
 
 class TimestampMixin:

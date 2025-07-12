@@ -16,6 +16,19 @@ import { IS_SERVER } from '../utils/utils'
 
 import { dfs, find, INode } from './tree'
 
+// Podcast types
+type PodcastResponse = components['schemas']['PodcastResponse']
+
+interface PodcastState {
+  currentPodcast?: PodcastResponse
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+  volume: number
+  playbackRate: number
+  error?: string
+}
+
 function updateIndex(array: any[], deletedItemIndex: number) {
   const last = array.length - 1
   return deletedItemIndex > last ? last : deletedItemIndex
@@ -547,6 +560,15 @@ export class Reader {
   groups: Group[] = []
   focusedIndex = -1
 
+  // Podcast state
+  podcast: PodcastState = {
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    playbackRate: 1,
+  }
+
   // setChatKeyword(keyword: string) {
   //   if (this.focusedBookTab) {
   //     this.focusedBookTab.setChatKeyword(keyword)
@@ -624,6 +646,60 @@ export class Reader {
         }
       })
     })
+  }
+
+  // Podcast methods
+  setPodcast(podcast: PodcastResponse) {
+    this.podcast.currentPodcast = podcast
+    this.podcast.currentTime = 0
+    this.podcast.duration = 0
+    this.podcast.error = undefined
+  }
+
+  playPodcast() {
+    if (this.podcast.currentPodcast?.audio_url) {
+      this.podcast.isPlaying = true
+      this.podcast.error = undefined
+    }
+  }
+
+  pausePodcast() {
+    this.podcast.isPlaying = false
+  }
+
+  stopPodcast() {
+    this.podcast.isPlaying = false
+    this.podcast.currentTime = 0
+  }
+
+  updatePodcastTime(currentTime: number, duration?: number) {
+    this.podcast.currentTime = currentTime
+    if (duration !== undefined) {
+      this.podcast.duration = duration
+    }
+  }
+
+  setPodcastVolume(volume: number) {
+    this.podcast.volume = Math.max(0, Math.min(1, volume))
+  }
+
+  setPodcastPlaybackRate(rate: number) {
+    this.podcast.playbackRate = Math.max(0.25, Math.min(2, rate))
+  }
+
+  setPodcastError(error: string) {
+    this.podcast.error = error
+    this.podcast.isPlaying = false
+  }
+
+  clearPodcast() {
+    this.podcast = {
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      volume: this.podcast.volume, // Keep volume setting
+      playbackRate: this.podcast.playbackRate, // Keep playback rate setting
+    }
   }
 }
 

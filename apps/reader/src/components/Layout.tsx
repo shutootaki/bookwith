@@ -11,6 +11,7 @@ import {
   MdTimeline,
   MdOutlineLightMode,
   MdChat,
+  MdPodcasts,
 } from 'react-icons/md'
 import { RiFontSize, RiHome6Line, RiSettings5Line } from 'react-icons/ri'
 
@@ -33,6 +34,7 @@ import { Settings } from './pages'
 import { AnnotationView } from './viewlets/AnnotationView'
 import { ChatView } from './viewlets/ChatView'
 import { ImageView } from './viewlets/ImageView'
+import { PodcastView } from './viewlets/PodcastView'
 import { SearchView } from './viewlets/SearchView'
 import { ThemeView } from './viewlets/ThemeView'
 import { TimelineView } from './viewlets/TimelineView'
@@ -88,6 +90,13 @@ const viewActions: IViewAction[] = [
     title: 'chat',
     Icon: MdChat,
     View: ChatView,
+    env: Env.Desktop | Env.Mobile,
+  },
+  {
+    name: 'podcast',
+    title: 'podcast',
+    Icon: MdPodcasts,
+    View: PodcastView,
     env: Env.Desktop | Env.Mobile,
   },
   {

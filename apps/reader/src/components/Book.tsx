@@ -51,7 +51,7 @@ export const Book: React.FC<{
   const coverData = covers.find((c) => c.bookId === book.id)
   const cover = coverData?.coverUrl
   const displayTitle = book.metadataTitle ?? book.name
-  console.log('book', book)
+  console.log('cover', cover)
 
   const altText = cover
     ? `Cover of ${displayTitle}`

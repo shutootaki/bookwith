@@ -51,16 +51,24 @@ class BookContentStore(BaseVectorStore):
                 if split_docs:
                     logger.info(f"Sample document metadata: {split_docs[0].metadata}")
 
-                # ベクトルストアにドキュメントを保存
-                WeaviateVectorStore.from_documents(
-                    documents=split_docs,
-                    embedding=self.embedding_model,
-                    client=self.client,
-                    index_name=self.BOOK_CONTENT_COLLECTION_NAME,
-                    text_key="content",
-                    tenant=user_id,
-                    batch_size=64,
-                )
+                # バッチ処理でベクトルストアにドキュメントを保存
+                BATCH_SIZE = 100  # バッチサイズを定義  # noqa: N806
+                total_docs = len(split_docs)
+
+                for i in range(0, total_docs, BATCH_SIZE):
+                    batch_docs = split_docs[i : i + BATCH_SIZE]
+                    logger.info(f"Processing batch {i // BATCH_SIZE + 1}/{(total_docs + BATCH_SIZE - 1) // BATCH_SIZE}")
+
+                    # ベクトルストアにバッチを保存
+                    WeaviateVectorStore.from_documents(
+                        documents=batch_docs,
+                        embedding=self.embedding_model,
+                        client=self.client,
+                        index_name=self.BOOK_CONTENT_COLLECTION_NAME,
+                        text_key="content",
+                        tenant=user_id,
+                        batch_size=64,
+                    )
 
                 # 保存後の確認
                 self._verify_saved_content(user_id, book_id)

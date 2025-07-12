@@ -1,6 +1,10 @@
 """ハイライト検索サービス."""
 
+import logging
+
 from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class HighlightSearcher:
@@ -19,7 +23,11 @@ class HighlightSearcher:
         query_vector = self.memory_vector_store.encode_text(question)
 
         # ハイライトを検索
-        highlights = self.memory_vector_store.search_highlights(user_id=user_id, book_id=book_id, query_vector=query_vector, limit=limit)
+        try:
+            highlights = self.memory_vector_store.search_highlights(user_id=user_id, book_id=book_id, query_vector=query_vector, limit=limit)
+        except Exception as e:
+            logger.error(f"Failed to search highlights: {e}")
+            return ["検索でエラーが発生しました"]
 
         if not highlights:
             return ["No highlights found"]
