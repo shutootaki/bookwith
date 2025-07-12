@@ -53,10 +53,10 @@ def validate_script_for_tts(script: PodcastScript) -> bool:
     if not script.turns:
         raise ValueError("Script has no dialogue turns")
 
-    # Check that we only have two speakers (R and S)
+    # Check that we only have two speakers (HOST and GUEST)
     speakers = {str(turn.speaker) for turn in script.turns}
-    if speakers != {"R", "S"}:
-        raise ValueError(f"Script must contain exactly speakers R and S, found: {speakers}")
+    if speakers != {"HOST", "GUEST"}:
+        raise ValueError(f"Script must contain exactly speakers HOST and GUEST, found: {speakers}")
 
     # Check character limits
     total_chars = script.get_total_length()

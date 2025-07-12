@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
@@ -35,7 +36,7 @@ if TYPE_CHECKING:
 class BookDTO(TimestampMixin, Base):
     __tablename__ = "books"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
 
     name: Mapped[str] = mapped_column(String, index=True)

@@ -8,14 +8,14 @@ from src.domain.podcast.repositories.podcast_repository import PodcastRepository
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_script import PodcastScript
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus
+from src.infrastructure.external.audio import AudioProcessor
 from src.infrastructure.external.cloud_tts.tts_client import CloudTTSClient
 from src.infrastructure.external.gcs import GCSBucketError, GCSClient
 from src.infrastructure.external.gemini import GeminiClient
-from src.usecase.podcast.services.audio_processor_service import AudioProcessorService
-from src.usecase.podcast.services.audio_synthesis_service import AudioSynthesisService
-from src.usecase.podcast.services.chapter_summarizer_service import ChapterSummarizerService
-from src.usecase.podcast.services.epub_extractor_service import EpubExtractorService
-from src.usecase.podcast.services.script_generator_service import ScriptGeneratorService
+from src.usecase.podcast.extract_chapters_usecase import ExtractChaptersUseCase
+from src.usecase.podcast.generate_script_usecase import GenerateScriptUseCase
+from src.usecase.podcast.summarize_chapters_usecase import SummarizeChaptersUseCase
+from src.usecase.podcast.synthesize_audio_usecase import SynthesizeAudioUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +34,12 @@ class GeneratePodcastUseCase:
         self.podcast_repository = podcast_repository
         self.book_repository = book_repository
 
-        # Initialize services
-        self.epub_extractor = EpubExtractorService()
-        self.summarizer = ChapterSummarizerService(gemini_client)
-        self.script_generator = ScriptGeneratorService(gemini_client)
-        self.audio_synthesizer = AudioSynthesisService(tts_client)
-        self.audio_processor = AudioProcessorService()
+        # Initialize use cases and services
+        self.chapter_extractor = ExtractChaptersUseCase()
+        self.summarizer = SummarizeChaptersUseCase(gemini_client)
+        self.script_generator = GenerateScriptUseCase(gemini_client)
+        self.audio_synthesizer = SynthesizeAudioUseCase(tts_client)
+        self.audio_processor = AudioProcessor()
         self.gcs_client = gcs_client
 
     async def execute(self, podcast_id: PodcastId) -> None:
@@ -121,12 +121,7 @@ class GeneratePodcastUseCase:
             List of processed chapters
 
         """
-        logger.info(f"Extracting chapters from {book.file_path}")
-        chapters = await self.epub_extractor.extract_chapters(book.file_path)
-
-        # Filter and process chapters
-        filtered_chapters = self.epub_extractor.filter_chapters(chapters, max_chapters=15)
-        return self.epub_extractor.split_long_chapters(filtered_chapters)
+        return await self.chapter_extractor.execute(book.file_path, max_chapters=15)
 
     async def _generate_book_summary(self, chapters: list, book_title: str) -> str:
         """Generate book summary from chapters
@@ -140,7 +135,7 @@ class GeneratePodcastUseCase:
 
         """
         logger.info(f"Summarizing {len(chapters)} chapters")
-        return await self.summarizer.summarize_chapters(chapters, book_title)
+        return await self.summarizer.execute(chapters, book_title)
 
     async def _generate_and_save_script(self, podcast: Podcast, book_summary: str, book_title: str) -> PodcastScript:
         """Generate podcast script and save it
@@ -155,7 +150,7 @@ class GeneratePodcastUseCase:
 
         """
         logger.info("Generating podcast script")
-        script = await self.script_generator.generate_script(book_summary=book_summary, book_title=book_title, target_words=1000)
+        script = await self.script_generator.execute(book_summary=book_summary, book_title=book_title, target_words=1000)
 
         # Save script to podcast
         podcast.set_script(script)
@@ -174,7 +169,7 @@ class GeneratePodcastUseCase:
 
         """
         logger.info("Synthesizing audio")
-        audio_data = await self.audio_synthesizer.synthesize_script(script)
+        audio_data = await self.audio_synthesizer.execute(script)
 
         logger.info("Processing audio")
         return await self.audio_processor.process_audio(audio_data)

@@ -17,7 +17,7 @@ from src.infrastructure.postgres.db_util import TimestampMixin
 class MessageDTO(TimestampMixin, Base):
     __tablename__ = "messages"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
     content: Mapped[str] = mapped_column(String, nullable=False)
     sender_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
     sender_type: Mapped[SenderTypeEnum] = mapped_column(SQLAlchemyEnum(SenderTypeEnum), nullable=False)

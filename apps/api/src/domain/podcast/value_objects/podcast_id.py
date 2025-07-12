@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import uuid
 from dataclasses import dataclass
 
@@ -18,5 +16,5 @@ class PodcastId:
             raise ValueError("PodcastId must be a valid UUID")
 
     @classmethod
-    def generate(cls) -> PodcastId:
+    def generate(cls) -> "PodcastId":
         return cls(str(uuid.uuid4()))

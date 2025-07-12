@@ -56,7 +56,7 @@ async def create_podcast(
         # Start background generation
         background_tasks.add_task(generate_usecase.execute, podcast_id)
 
-        return CreatePodcastResponse(id=str(podcast_id), status="PENDING", message="Podcast creation started. Generation is in progress.")
+        return CreatePodcastResponse(id=podcast_id.value, status="PENDING", message="Podcast creation started. Generation is in progress.")
 
     except PodcastAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Podcast already exists for this book") from e
@@ -155,29 +155,20 @@ async def retry_podcast(
 ):
     """Retry failed podcast generation"""
     try:
-        # Validate podcast ID
         podcast_domain_id = PodcastId(podcast_id)
-
-        # Find the podcast
         podcast = await find_usecase.execute(podcast_domain_id)
 
         if not podcast:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Podcast not found")
 
-        # Check if podcast is in FAILED status
         if not podcast.is_failed():
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Podcast cannot be retried. Current status: {podcast.status}")
 
-        # Reset podcast status to PENDING and clear error message
         podcast.update_status(PodcastStatus.pending(), error_message="")
-
-        # Update the podcast in the repository
         await podcast_repository.update(podcast)
-
-        # Start background generation
         background_tasks.add_task(generate_usecase.execute, podcast_domain_id)
 
-        return CreatePodcastResponse(id=str(podcast_domain_id), status="PENDING", message="Podcast retry started. Generation is in progress.")
+        return CreatePodcastResponse(id=podcast_domain_id.value, status="PENDING", message="Podcast retry started. Generation is in progress.")
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid podcast ID format") from e

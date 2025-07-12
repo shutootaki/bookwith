@@ -1,4 +1,10 @@
-"""Converter functions for Podcast domain objects to API response schemas"""
+"""Converter functions for Podcast domain objects to API response schemas
+
+Note: 将来的にはBookエンティティと同様に、Podcastエンティティのmodel_dump(mode="json")を
+直接使用し、PodcastResponseのfrom_attributes=Trueと組み合わせることで、
+このconverterレイヤーを削除できる可能性があります。
+例: PodcastResponse(**podcast.model_dump(mode="json"))
+"""
 
 from src.domain.podcast.entities.podcast import Podcast
 from src.presentation.api.schemas.podcast_schema import (
@@ -20,14 +26,14 @@ def convert_podcast_to_response(podcast: Podcast) -> PodcastResponse:
     # Convert script to response format
     script_data = None
     if podcast.script:
-        script_data = [PodcastScriptTurn(speaker=str(turn.speaker), text=turn.text) for turn in podcast.script.turns]
+        script_data = [PodcastScriptTurn(speaker=turn.speaker.value.value, text=turn.text) for turn in podcast.script.turns]
 
     return PodcastResponse(
-        id=str(podcast.id),
-        book_id=str(podcast.book_id),
-        user_id=str(podcast.user_id),
+        id=podcast.id.value,
+        book_id=podcast.book_id.value,
+        user_id=podcast.user_id.value,
         title=podcast.title,
-        status=str(podcast.status),
+        status=podcast.status.value.value,
         audio_url=podcast.audio_url,
         error_message=podcast.error_message,
         script=script_data,

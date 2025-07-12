@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class PodcastDTO(TimestampMixin, Base):
     __tablename__ = "podcasts"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid4()))
     book_id: Mapped[str] = mapped_column(String, ForeignKey("books.id"), nullable=False)
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)

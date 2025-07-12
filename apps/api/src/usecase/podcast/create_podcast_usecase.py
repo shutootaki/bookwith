@@ -8,7 +8,6 @@ from src.domain.podcast.exceptions.podcast_exceptions import PodcastAlreadyExist
 from src.domain.podcast.repositories.podcast_repository import PodcastRepository
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus
-from src.usecase.podcast.decorators import handle_podcast_errors, log_use_case_execution
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +18,6 @@ class CreatePodcastUseCase:
     def __init__(self, podcast_repository: PodcastRepository) -> None:
         self.podcast_repository = podcast_repository
 
-    @log_use_case_execution
-    @handle_podcast_errors("Failed to create podcast")
     async def execute(self, book_id: BookId, user_id: UserId, title: str) -> PodcastId:
         """Create a new podcast for a book
 

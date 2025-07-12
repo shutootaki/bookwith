@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
+from uuid import uuid4
 
 from sqlalchemy import (
     DateTime,
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 class ChatDTO(TimestampMixin, Base):
     __tablename__ = "chats"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True, nullable=False)
     book_id: Mapped[str | None] = mapped_column(String, ForeignKey("books.id"), index=True, nullable=True)
 

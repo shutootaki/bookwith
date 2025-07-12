@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CreatePodcastRequest(BaseModel):
@@ -13,7 +13,7 @@ class CreatePodcastRequest(BaseModel):
 class PodcastScriptTurn(BaseModel):
     """Schema for a single script turn"""
 
-    speaker: str = Field(..., description="Speaker identifier (R or S)")
+    speaker: str = Field(..., description="Speaker identifier (HOST or GUEST)")
     text: str = Field(..., description="What the speaker says")
 
 
@@ -30,6 +30,8 @@ class PodcastResponse(BaseModel):
     script: list[PodcastScriptTurn] | None = Field(None, description="Podcast script")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PodcastStatusResponse(BaseModel):

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class UserDTO(TimestampMixin, Base):
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
 
     username: Mapped[str] = mapped_column(String, unique=True, index=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)

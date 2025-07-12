@@ -26,8 +26,8 @@ You are an expert podcast scriptwriter creating engaging dialogues about books.
 Your task is to transform book summaries into natural, conversational podcasts between two hosts.
 
 Guidelines:
-- Speaker R is the main host who leads the discussion
-- Speaker S is the co-host who provides insights and asks questions
+- Speaker HOST is the main host who leads the discussion
+- Speaker GUEST is the co-host who provides insights and asks questions
 - Keep the conversation natural and engaging
 - Include specific examples and interesting details from the book
 - Balance information with entertainment
@@ -41,7 +41,7 @@ Book Summary:
 {book_summary}
 
 Requirements:
-- Natural conversation flow between speakers R and S
+- Natural conversation flow between speakers HOST and GUEST
 - Engaging opening that hooks the listener
 - Clear explanation of the book's main themes
 - Interesting insights and analysis

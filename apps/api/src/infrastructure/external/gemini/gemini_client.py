@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import google.generativeai as genai
@@ -40,7 +43,7 @@ class GeminiClient:
     def __init__(self) -> None:
         self.config = AppConfig.get_config()
         self.gemini_flash_model = "gemini-2.0-flash"
-        self.gemini_pro_model = "gemini-2.0-pro"
+        self.gemini_pro_model = "gemini-2.0-flash"
 
         genai.configure(api_key=self.config.gemini_api_key)
 
@@ -117,6 +120,24 @@ class GeminiClient:
 
         """
         try:
+            # Log input for debugging
+            logger.info(f"Generating podcast script for '{book_title}' with target_words={target_words}")
+            logger.debug(f"Book summary length: {len(summary)} characters")
+            logger.debug(f"Book summary preview: {summary[:500]}...")
+
+            # Save debug info if DEBUG_PODCAST_GENERATION is set
+            if os.getenv("DEBUG_PODCAST_GENERATION", "").lower() == "true":
+                self._save_debug_info(
+                    "input",
+                    {
+                        "book_title": book_title,
+                        "summary_length": len(summary),
+                        "summary": summary,
+                        "target_words": target_words,
+                        "temperature": temperature,
+                    },
+                )
+
             # Define the function schema for structured output
             tools = [
                 {
@@ -132,7 +153,11 @@ class GeminiClient:
                                         "items": {
                                             "type": "object",
                                             "properties": {
-                                                "speaker": {"type": "string", "enum": ["R", "S"], "description": "Speaker identifier (R or S)"},
+                                                "speaker": {
+                                                    "type": "string",
+                                                    "enum": ["HOST", "GUEST"],
+                                                    "description": "Speaker identifier (HOST or GUEST)",
+                                                },
                                                 "text": {"type": "string", "description": "What the speaker says"},
                                             },
                                             "required": ["speaker", "text"],
@@ -170,14 +195,40 @@ class GeminiClient:
                 },
             )
 
+            # Save raw response for debugging
+            if os.getenv("DEBUG_PODCAST_GENERATION", "").lower() == "true":
+                self._save_debug_info(
+                    "raw_response",
+                    {"response": str(response), "candidates": [str(candidate) for candidate in response.candidates] if response.candidates else []},
+                )
+
             # Extract function call result or fallback to text parsing
             dialogue = self._extract_function_call_result(response)
             if dialogue:
+                logger.info(f"Successfully extracted {len(dialogue)} dialogue turns from function call")
+                logger.debug(f"Dialogue preview: {dialogue[:2] if len(dialogue) >= 2 else dialogue}")
+
+                if os.getenv("DEBUG_PODCAST_GENERATION", "").lower() == "true":
+                    self._save_debug_info("output", {"extraction_method": "function_call", "dialogue_turns": len(dialogue), "dialogue": dialogue})
+
                 return dialogue
 
             # Fallback to text parsing
+            logger.warning("Function call extraction failed, falling back to text parsing")
             text = self._extract_response_text(response)
-            return self._parse_dialogue_from_text(text)
+            logger.debug(f"Raw response text length: {len(text)} characters")
+            logger.debug(f"Raw response preview: {text[:500]}...")
+
+            parsed_dialogue = self._parse_dialogue_from_text(text)
+            logger.info(f"Parsed {len(parsed_dialogue)} dialogue turns from text")
+
+            if os.getenv("DEBUG_PODCAST_GENERATION", "").lower() == "true":
+                self._save_debug_info(
+                    "output",
+                    {"extraction_method": "text_parsing", "raw_text": text, "dialogue_turns": len(parsed_dialogue), "dialogue": parsed_dialogue},
+                )
+
+            return parsed_dialogue
 
         except Exception as e:
             logger.error(f"Error generating podcast script with Gemini Flash: {str(e)}")
@@ -191,16 +242,23 @@ You are tasked with creating an engaging podcast dialogue about the book "{book_
 Book Summary:
 {summary}
 
-Create a natural, conversational dialogue between two podcast hosts (R and S) discussing this book.
-The dialogue should:
+Create a natural, conversational dialogue between two podcast hosts (HOST and GUEST) discussing this book.
+
+IMPORTANT REQUIREMENTS:
+- The dialogue MUST have at least 10-15 turns (exchanges between speakers)
+- Each speaker should speak at least 5 times
 - Be approximately {target_words} words in total
 - Feel like a real podcast conversation with natural flow
 - Include interesting insights and analysis
-- Use only speakers R and S
+- Use only speakers HOST and GUEST
 - Maintain an engaging and informative tone
+- Start with an engaging introduction
+- Include specific examples from the book
+- End with thoughtful conclusions or recommendations
 
 Use the generate_podcast_dialogue function to structure your response as an array of dialogue turns.
-Each turn should have a "speaker" (either "R" or "S") and "text" (what they say).
+Each turn should have a "speaker" (either "HOST" or "GUEST") and "text" (what they say).
+Make sure to generate a substantial conversation, not just a brief exchange.
 """
 
     def _parse_dialogue_from_text(self, text: str) -> list[dict[str, str]]:
@@ -210,7 +268,7 @@ Each turn should have a "speaker" (either "R" or "S") and "text" (what they say)
 
         for line in lines:
             line = line.strip()
-            if line.startswith(("R:", "S:")):
+            if line.startswith(("HOST:", "GUEST:")):
                 speaker = line[0]
                 text = line[2:].strip()
                 if text:
@@ -357,3 +415,25 @@ Chapter Summaries:
 """
 
         return await self.summarize_text(prompt, max_output_tokens, temperature)
+
+    def _save_debug_info(self, stage: str, data: dict) -> None:
+        """Save debug information to file for troubleshooting
+
+        Args:
+            stage: Stage of processing (e.g., "input", "output", "raw_response")
+            data: Data to save
+
+        """
+        try:
+            debug_dir = Path("debug_podcast_generation")
+            debug_dir.mkdir(exist_ok=True)
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%GUEST")
+            filename = debug_dir / f"{timestamp}_{stage}.json"
+
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+            logger.info(f"Debug info saved to {filename}")
+        except Exception as e:
+            logger.error(f"Failed to save debug info: {e}")

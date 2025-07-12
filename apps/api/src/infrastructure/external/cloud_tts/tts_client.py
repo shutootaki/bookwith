@@ -24,7 +24,7 @@ class CloudTTSClient:
         #     name="en-US-Studio-MultiSpeaker",
         # )
 
-        # Fallback single-speaker voices (speaker R / speaker S)
+        # Fallback single-speaker voices (speaker HOST / speaker GUEST)
         self.voice_R = tts.VoiceSelectionParams(
             language_code="en-US",
             name="en-US-Studio-O",
@@ -75,7 +75,7 @@ class CloudTTSClient:
             audio_contents: list[bytes] = []
             for turn in turns:
                 synthesis_input = tts.SynthesisInput(text=turn["text"])
-                voice_params = self.voice_R if turn["speaker"] == "R" else self.voice_S
+                voice_params = self.voice_R if turn["speaker"] == "HOST" else self.voice_S
                 response = self.client.synthesize_speech(
                     input=synthesis_input,
                     voice=voice_params,
@@ -159,7 +159,7 @@ class CloudTTSClient:
         if not turns:
             raise ValueError("Dialogue turns cannot be empty")
 
-        valid_speakers = {"R", "S"}
+        valid_speakers = {"HOST", "GUEST"}
 
         for i, turn in enumerate(turns):
             if not isinstance(turn, dict):
