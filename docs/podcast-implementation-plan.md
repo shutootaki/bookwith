@@ -2,13 +2,13 @@
 
 **作成日**: 2025-07-09  
 **プロジェクト**: BookWith  
-**機能**: EPUB書籍からポッドキャスト音声を自動生成
+**機能**: EPUB 書籍からポッドキャスト音声を自動生成
 
 ## 1. 機能概要
 
-- EPUB形式の書籍から5-10分のポッドキャスト音声（MP3）を自動生成
-- LLM同士の対話形式で本の要旨を解説
-- Google Gemini（要約・台本生成）とGoogle Cloud TTS（音声合成）を使用
+- EPUB 形式の書籍から 5-10 分のポッドキャスト音声（MP3）を自動生成
+- LLM 同士の対話形式で本の要旨を解説
+- Google Gemini（要約・台本生成）と Google Cloud TTS（音声合成）を使用
 - 非同期処理により、ユーザーは生成完了を待たずに他の操作が可能
 
 ## 2. 技術スタック
@@ -16,14 +16,15 @@
 - **LLM**: Google Gemini 2.5 Pro（要約）/ Flash（台本生成）
 - **TTS**: Google Cloud Text-to-Speech Studio Multi-speaker + Neural2 JA
 - **音声処理**: pydub + ffmpeg
-- **ストレージ**: GCSエミュレーター（開発環境）
+- **ストレージ**: GCS エミュレーター（開発環境）
 - **非同期処理**: FastAPI BackgroundTasks / Celery（将来的な拡張）
 
-## 3. 実装アーキテクチャ（DDD準拠）
+## 3. 実装アーキテクチャ（DDD 準拠）
 
 ### 3.1 ドメイン層 (`src/domain/podcast/`)
 
 #### エンティティ
+
 ```python
 # entities/podcast.py
 - Podcast:
@@ -40,15 +41,17 @@
 ```
 
 #### 値オブジェクト
+
 ```python
 # value_objects/
 - PodcastId: UUID型のID
 - PodcastStatus: Enum (PENDING, PROCESSING, COMPLETED, FAILED)
 - PodcastScript: 台本データ（話者とテキストのリスト）
-- SpeakerRole: Enum (R, S)  # 話者識別子
+- SpeakerRole: Enum (HOST, GUEST)  # 話者識別子
 ```
 
 #### リポジトリインターフェース
+
 ```python
 # repositories/podcast_repository.py
 - PodcastRepository:
@@ -61,6 +64,7 @@
 ### 3.2 ユースケース層 (`src/usecase/podcast/`)
 
 #### ユースケース
+
 ```python
 # commands/
 - CreatePodcastCommand: ポッドキャスト作成コマンド
@@ -73,23 +77,24 @@
 ```
 
 #### サービス
+
 ```python
 # services/
 - PodcastGenerationService: ポッドキャスト生成の統合サービス
   - generate(book_id: BookId, podcast_id: PodcastId) -> None
-  
+
 - EpubExtractorService: EPUB章抽出
   - extract_chapters(epub_path: str) -> List[Chapter]
-  
+
 - ChapterSummarizerService: 章要約生成
   - summarize_chapters(chapters: List[Chapter]) -> str
-  
+
 - ScriptGeneratorService: 台本生成
   - generate_script(summary: str) -> PodcastScript
-  
+
 - AudioSynthesisService: 音声合成
   - synthesize(script: PodcastScript) -> bytes
-  
+
 - AudioProcessorService: 音声後処理
   - process_audio(audio_data: bytes) -> bytes
 ```
@@ -97,6 +102,7 @@
 ### 3.3 インフラストラクチャ層 (`src/infrastructure/`)
 
 #### データベース実装
+
 ```python
 # postgres/podcast/
 - models/podcast_orm.py: SQLAlchemyモデル
@@ -105,18 +111,20 @@
 ```
 
 #### 外部サービスクライアント
+
 ```python
 # external/
 - gemini/
   - gemini_client.py: Gemini API クライアント
   - prompts/: プロンプトテンプレート
-  
+
 - cloud_tts/
   - tts_client.py: Cloud TTS クライアント
   - markup_builder.py: MultiSpeakerMarkup生成
 ```
 
 #### ストレージ
+
 ```python
 # storage/
 - gcs_client.py: GCSエミュレータークライアント
@@ -124,7 +132,8 @@
 
 ### 3.4 プレゼンテーション層 (`src/presentation/api/`)
 
-#### APIエンドポイント
+#### API エンドポイント
+
 ```python
 # handlers/podcast_api_route_handler.py
 - POST /podcasts/create: ポッドキャスト作成開始
@@ -134,6 +143,7 @@
 ```
 
 #### スキーマ
+
 ```python
 # schemas/podcast_schema.py
 - CreatePodcastRequest
@@ -144,6 +154,7 @@
 ## 4. データベース設計
 
 ### podcasts テーブル
+
 ```sql
 CREATE TABLE podcasts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -166,31 +177,36 @@ CREATE INDEX idx_podcasts_status ON podcasts(status);
 ## 5. 実装手順
 
 ### Phase 1: 基盤構築
+
 1. ドメインモデルの実装
 2. データベーステーブルとマイグレーション作成
 3. リポジトリインターフェースと実装
 4. 基本的なユースケース実装
 
 ### Phase 2: 外部サービス統合
-1. Gemini APIクライアント実装
+
+1. Gemini API クライアント実装
 2. Cloud TTS クライアント実装
-3. GCSエミュレータークライアント実装
+3. GCS エミュレータークライアント実装
 4. プロンプトテンプレート作成
 
 ### Phase 3: コア機能実装
-1. EPUB抽出サービス
+
+1. EPUB 抽出サービス
 2. 章要約サービス
 3. 台本生成サービス
 4. 音声合成サービス
 5. 音声処理サービス
 
-### Phase 4: API実装
-1. APIエンドポイント実装
+### Phase 4: API 実装
+
+1. API エンドポイント実装
 2. スキーマ定義
 3. エラーハンドリング
 4. 非同期処理の統合
 
 ### Phase 5: テストと最適化
+
 1. ユニットテスト作成
 2. 統合テスト作成
 3. パフォーマンス最適化
@@ -199,6 +215,7 @@ CREATE INDEX idx_podcasts_status ON podcasts(status);
 ## 6. 設定項目
 
 ### 環境変数 (.env)
+
 ```env
 # Gemini API
 GEMINI_API_KEY=your-api-key
@@ -220,7 +237,8 @@ GCS_BUCKET_NAME=dev-bucket
 STORAGE_EMULATOR_HOST=http://localhost:4443
 ```
 
-### AppConfig拡張
+### AppConfig 拡張
+
 ```python
 # src/config/app_config.py
 class PodcastConfig(BaseModel):
@@ -237,61 +255,70 @@ class PodcastConfig(BaseModel):
 ## 7. 非機能要件対応
 
 ### エラーハンドリング
-- 各処理ステップでのエラーをキャッチし、podcast.statusをFAILEDに更新
-- error_messageフィールドに詳細なエラー情報を保存
+
+- 各処理ステップでのエラーをキャッチし、podcast.status を FAILED に更新
+- error_message フィールドに詳細なエラー情報を保存
 - ユーザーへの適切なエラーメッセージ返却
 
 ### パフォーマンス
+
 - 非同期処理により即座にレスポンスを返却
-- 長時間処理のタイムアウト設定（540秒）
+- 長時間処理のタイムアウト設定（540 秒）
 - キャッシュの活用（将来的な拡張）
 
 ### セキュリティ
+
 - ユーザー認証によるアクセス制御
 - 生成されたファイルへの適切なアクセス権限設定
-- APIキーの安全な管理
+- API キーの安全な管理
 
 ## 8. テスト戦略
 
 ### ユニットテスト
+
 - 各サービスクラスの個別テスト
 - ドメインロジックのテスト
-- 外部APIのモック化
+- 外部 API のモック化
 
 ### 統合テスト
+
 - エンドツーエンドのポッドキャスト生成フロー
-- APIエンドポイントのテスト
+- API エンドポイントのテスト
 - データベース操作のテスト
 
 ### 手動テスト
-- 実際のEPUBファイルでの動作確認
+
+- 実際の EPUB ファイルでの動作確認
 - 生成された音声ファイルの品質確認
-- UIとの統合確認
+- UI との統合確認
 
 ## 9. 今後の拡張案
 
 - 複数言語対応（英語以外の書籍）
 - カスタマイズ可能な話者設定
-- BGM追加オプション
+- BGM 追加オプション
 - 生成済みポッドキャストの編集機能
 - ポッドキャスト配信プラットフォームとの連携
 
 ## 10. 実装上の注意点
 
-1. **MultiSpeakerMarkup制限**
-   - 最大2話者まで
-   - SSMLとの併用不可
-   - 5000文字制限への対応
+1. **MultiSpeakerMarkup 制限**
+
+   - 最大 2 話者まで
+   - SSML との併用不可
+   - 5000 文字制限への対応
 
 2. **非同期処理**
-   - 現在はFastAPIのBackgroundTasksを使用
-   - 将来的にCeleryへの移行を検討
+
+   - 現在は FastAPI の BackgroundTasks を使用
+   - 将来的に Celery への移行を検討
 
 3. **音声品質**
+
    - サンプルレート: 24kHz（合成時）→ 44.1kHz（最終出力）
    - ビットレート: 192kbps
    - クロスフェード: 0（セグメント間）
 
 4. **エラーリトライ**
-   - API呼び出しのリトライ機構
+   - API 呼び出しのリトライ機構
    - 部分的な失敗時の復旧処理

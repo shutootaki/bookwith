@@ -652,7 +652,6 @@ export class Reader {
   setPodcast(podcast: PodcastResponse) {
     this.podcast.currentPodcast = podcast
     this.podcast.currentTime = 0
-    this.podcast.duration = 0
     this.podcast.error = undefined
   }
 

@@ -1,4 +1,5 @@
 import { AlertCircle, Clock, Play, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { SPEED_OPTIONS } from '../constants/audio'
 import {
@@ -163,6 +164,13 @@ export const getProcessingPodcast = (podcasts: any[]): any | undefined => {
 }
 
 /**
+ * 配列から失敗したポッドキャストを取得
+ */
+export const getFailedPodcast = (podcasts: any[]): any | undefined => {
+  return podcasts.find((p) => isPodcastFailed(p.status))
+}
+
+/**
  * ブラウザがWeb Share APIをサポートしているかチェック
  */
 export const isWebShareSupported = (): boolean => {
@@ -198,4 +206,43 @@ export const seekAudio = (
  */
 export const hasAudioUrl = (podcast: any): boolean => {
   return !!(podcast.audio_url && podcast.audio_url.trim())
+}
+
+/**
+ * ポッドキャスト操作のエラーハンドリング
+ * @param error - エラーオブジェクト
+ * @param operation - 操作の種類（'create' | 'retry' | 'load'など）
+ * @param t - 翻訳関数
+ */
+export const handlePodcastError = (
+  error: unknown,
+  operation: 'create' | 'retry' | 'load',
+  t: (key: string) => string,
+): void => {
+  console.error(`Error during podcast ${operation}:`, error)
+
+  const errorKey = {
+    create: 'podcast.pane.generation_failed',
+    retry: 'podcast.pane.regeneration_failed',
+    load: 'podcast.pane.loading_failed',
+  }[operation]
+
+  toast.error(t(errorKey))
+}
+
+/**
+ * ポッドキャスト操作の成功通知
+ * @param operation - 操作の種類（'create' | 'retry'など）
+ * @param t - 翻訳関数
+ */
+export const notifyPodcastSuccess = (
+  operation: 'create' | 'retry',
+  t: (key: string) => string,
+): void => {
+  const successKey = {
+    create: 'podcast.pane.generation_started',
+    retry: 'podcast.pane.regeneration_started',
+  }[operation]
+
+  toast.success(t(successKey))
 }

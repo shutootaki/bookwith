@@ -176,6 +176,10 @@ export default {
   'podcast.status.completed': '完成',
   'podcast.status.failed': '失败',
   'podcast.status.unknown': '未知',
+  'podcast.failed': '播客生成失败',
+  'podcast.failed_description': '发生错误，请稍后再试。',
+  'podcast.retry': '重试',
+  'podcast.retrying': '重试中...',
 
   // AudioPlayer 相关
   'podcast.audio_player.playback_failed': '音频播放失败',
@@ -205,6 +209,10 @@ export default {
   'podcast.list.retrying': '重新生成中...',
   'podcast.list.created_date': '创建时间',
   'podcast.list.updated_date': '更新时间',
+  'podcast.list.refresh': '刷新',
+  'podcast.list.refreshing_aria_label': '正在刷新播客列表',
+  'podcast.list.refresh_aria_label': '刷新播客列表',
+  'podcast.list.play_podcast_aria_label': '播放 {title}',
 
   // PodcastPane 相关
   'podcast.pane.generation_started': '播客生成已开始',
@@ -220,6 +228,17 @@ export default {
   'podcast.pane.library': '图书馆',
   'podcast.pane.library_description': '选择一本书来生成和播放播客',
   'podcast.pane.podcast_title': '{name}的播客',
+
+  // Library Podcast View 相关
+  'podcast.library.title': '图书馆',
+  'podcast.library.description': '选择一本书来生成和播放播客',
+
+  // Book Podcast Item 相关
+  'podcast.book_item.open_book_aria_label':
+    '打开 {name}{author, select, null {} other { (作者: {author})}}',
+  'podcast.book_item.play_podcast_aria_label': '播放 {name} 的播客',
+  'podcast.book_item.generating_podcast_aria_label': '正在生成 {name} 的播客',
+  'podcast.book_item.generate_podcast_aria_label': '生成 {name} 的播客',
 
   /**
    * Global Loading Overlay

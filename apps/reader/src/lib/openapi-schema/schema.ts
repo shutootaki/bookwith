@@ -1005,7 +1005,7 @@ export interface components {
     PodcastScriptTurn: {
       /**
        * Speaker
-       * @description Speaker identifier (R or S)
+       * @description Speaker identifier (HOST or GUEST)
        */
       speaker: string
       /**

@@ -7,7 +7,7 @@ export const PodcastView: React.FC<PaneViewProps> = (props) => {
   return (
     <PaneView {...props}>
       <div className="scroll">
-        <PodcastPane className="p-4" />
+        <PodcastPane />
       </div>
     </PaneView>
   )

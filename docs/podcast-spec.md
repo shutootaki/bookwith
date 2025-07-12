@@ -19,16 +19,16 @@ EPUB 形式の書籍を入力として、5〜10  分（約 1,000  語）の*
 
 ## 2. システム全体構成
 
-| レイヤ                         | 主な技術 / サービス                                                               |
-| ------------------------------ | --------------------------------------------------------------------------------- |
-| **0. トリガー**                | Web UI → HTTP **`POST /api/podcast/create`** (Cloud Run / Functions 2)            |
-| 1. 取込 / 分割                 | EbookLib (EPUB → 章テキスト)                                                      |
-| 2. 章要約                      | Gemini 2.5 **Pro**                                                                |
-| 3. 台本生成                    | Gemini 2.5 **Flash** (Function‑Calling JSON)                                      |
-| 4. **MultiSpeakerMarkup 生成** | Python モジュール（JSON → `MultiSpeakerMarkup.Turn[]`）                           |
-| 5. 音声合成                    | Cloud TTS **`en‑US‑Studio‑MultiSpeaker`** (話者 **R / S** 最大 2 名) + Neural2 JA |
-| 6. 音声結合                    | pydub + ffmpeg                                                                    |
-| **7. 出力保存**                | **GCS  エミュレーター** (`localhost:4443`)                                        |
+| レイヤ                         | 主な技術 / サービス                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| **0. トリガー**                | Web UI → HTTP **`POST /api/podcast/create`** (Cloud Run / Functions 2)                   |
+| 1. 取込 / 分割                 | EbookLib (EPUB → 章テキスト)                                                             |
+| 2. 章要約                      | Gemini 2.5 **Pro**                                                                       |
+| 3. 台本生成                    | Gemini 2.5 **Flash** (Function‑Calling JSON)                                             |
+| 4. **MultiSpeakerMarkup 生成** | Python モジュール（JSON → `MultiSpeakerMarkup.Turn[]`）                                  |
+| 5. 音声合成                    | Cloud TTS **`en‑US‑Studio‑MultiSpeaker`** (話者 **HOST / GUEST** 最大 2 名) + Neural2 JA |
+| 6. 音声結合                    | pydub + ffmpeg                                                                           |
+| **7. 出力保存**                | **GCS  エミュレーター** (`localhost:4443`)                                               |
 
 ---
 
@@ -41,12 +41,12 @@ EPUB 形式の書籍を入力として、5〜10  分（約 1,000  語）の*
 3. **章要約**
    Gemini Pro を map‑reduce 方式で呼び出し、章要約 → 全体要約へ統合。
 4. **台本生成**
-   Gemini Flash へ Function‑Calling プロンプトを送り、下記 JSON 配列を取得（**話者は R と S のみ**）：
+   Gemini Flash へ Function‑Calling プロンプトを送り、下記 JSON 配列を取得（**話者は HOST と GUEST のみ**）：
 
    ```json
    [
-     { "speaker": "R", "text": "Hi, I'm host A …" },
-     { "speaker": "S", "text": "Hello! …" }
+     { "speaker": "HOST", "text": "Hi, I'm host A …" },
+     { "speaker": "GUEST", "text": "Hello! …" }
    ]
    ```
 
@@ -90,7 +90,7 @@ EPUB 形式の書籍を入力として、5〜10  分（約 1,000  語）の*
 
 - **extract_epub.py** – EbookLib 0.18 → `chapters/{idx}.txt`
 - **summarizer.py** – Gemini Pro, temperature 0.3, max_output_tokens 600
-- **script_builder.py** – Gemini Flash, Function‑Calling JSON（R/S 交互）
+- **script_builder.py** – Gemini Flash, Function‑Calling JSON（HOST/GUEST 交互）
 - **markup_builder.py** – JSON → `MultiSpeakerMarkup`
 - **tts_client.py** – v1beta1 client、sample_rate_hertz 24000
 - **concat_audio.py** – pydub、crossfade 0

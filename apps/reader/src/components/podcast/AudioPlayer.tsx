@@ -15,7 +15,6 @@ interface AudioPlayerProps {
   onPlay?: () => void
   onPause?: () => void
   onEnd?: () => void
-  className?: string
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
@@ -24,14 +23,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onPlay,
   onPause,
   onEnd,
-  className = '',
 }) => {
-  const { audioRef, isLoading, state, controls } = useAudioPlayer({
-    audioUrl,
-    onPlay,
-    onPause,
-    onEnd,
-  })
+  const { audioRef, isLoading, isMetadataLoaded, state, controls } =
+    useAudioPlayer({
+      onPlay,
+      onPause,
+      onEnd,
+    })
   const t = useTranslation()
 
   const { isPlaying, currentTime, duration, volume, playbackRate, error } =
@@ -46,18 +44,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = controls
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className="space-y-4 pb-4">
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
-
       {/* Title */}
-      <div className="text-center">
-        <h3
-          className="text-foreground truncate text-lg font-semibold"
-          title={title}
-        >
-          {title}
-        </h3>
-      </div>
+      <h3
+        className="text-foreground text-md truncate font-semibold"
+        title={title}
+      >
+        {title}
+      </h3>
 
       {/* Error Display */}
       {error && (
@@ -88,7 +83,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           }}
         >
           <Progress
-            value={duration ? (currentTime / duration) * 100 : 0}
+            value={
+              duration && isMetadataLoaded ? (currentTime / duration) * 100 : 0
+            }
             aria-valuetext={formatTime(currentTime)}
             className="h-2 cursor-pointer"
             onClick={handleProgressClick}
@@ -99,7 +96,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {formatTime(currentTime)}
           </span>
           <span aria-label={t('podcast.audio_player.total_time')}>
-            {formatTime(duration)}
+            {isMetadataLoaded ? formatTime(duration) : '--:--'}
           </span>
         </div>
       </div>

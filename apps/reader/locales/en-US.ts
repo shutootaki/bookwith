@@ -210,6 +210,10 @@ export default {
   'podcast.list.retrying': 'Retrying...',
   'podcast.list.created_date': 'Created',
   'podcast.list.updated_date': 'Updated',
+  'podcast.list.refresh': 'Refresh',
+  'podcast.list.refreshing_aria_label': 'Refreshing podcast list',
+  'podcast.list.refresh_aria_label': 'Refresh podcast list',
+  'podcast.list.play_podcast_aria_label': 'Play {title}',
 
   // PodcastPane related
   'podcast.pane.generation_started': 'Podcast generation started',
@@ -227,6 +231,19 @@ export default {
     'Select a book to generate and play podcasts',
   'podcast.pane.podcast_title': 'Podcast for {name}',
 
+  // Library Podcast View related
+  'podcast.library.title': 'Library',
+  'podcast.library.description': 'Select a book to generate and play podcasts',
+
+  // Book Podcast Item related
+  'podcast.book_item.open_book_aria_label':
+    'Open {name}{author, select, null {} other { (Author: {author})}}',
+  'podcast.book_item.play_podcast_aria_label': 'Play podcast for {name}',
+  'podcast.book_item.generating_podcast_aria_label':
+    'Generating podcast for {name}',
+  'podcast.book_item.generate_podcast_aria_label':
+    'Generate podcast for {name}',
+
   /**
    * Global Loading Overlay
    */
@@ -243,4 +260,10 @@ export default {
    * Others
    */
   untitled: 'Untitled',
+  podcast: {
+    failed: 'Podcast generation failed',
+    failed_description: 'An error occurred. Please try again later.',
+    retry: 'Retry',
+    retrying: 'Retrying...',
+  },
 } as const

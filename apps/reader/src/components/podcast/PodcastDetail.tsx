@@ -1,16 +1,22 @@
 import { motion } from 'framer-motion'
-import { ArrowLeft, Download, MessageSquare, Share2 } from 'lucide-react'
+import {
+  Download,
+  MessageSquare,
+  Share2,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react'
 import React, { useState } from 'react'
 
 import { useTranslation } from '../../hooks/useTranslation'
-import { reader, useReaderSnapshot } from '../../models'
+import { reader } from '../../models'
 import { PodcastResponse } from '../../types/podcast'
 import {
-  formatDate,
   isWebShareSupported,
   isClipboardSupported,
   generateAudioFilename,
-  sanitizeErrorMessage,
+  isPodcastFailed,
+  isPodcastProcessing, // 追加
 } from '../../utils/podcast'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
@@ -20,27 +26,33 @@ import { AudioPlayer } from './AudioPlayer'
 
 interface PodcastDetailProps {
   podcast: PodcastResponse
-  onBack: () => void
+  bookTitle?: string
   className?: string
+  onBack?: () => void
+  onRetryPodcast?: (podcastId: string) => void
+  retryingPodcastId?: string | null
 }
 
 export const PodcastDetail: React.FC<PodcastDetailProps> = ({
   podcast,
+  bookTitle,
   onBack,
-  className = '',
+  onRetryPodcast,
+  retryingPodcastId,
 }) => {
   const t = useTranslation()
   const [showScript, setShowScript] = useState(false)
-  const { focusedBookTab } = useReaderSnapshot()
+
+  const isFailed = isPodcastFailed(podcast.status)
+  const isProcessing = isPodcastProcessing(podcast.status) // 追加
+  const isRetrying = retryingPodcastId === podcast.id
 
   const handleDownload = async () => {
     if (!podcast.audio_url) return
-
     try {
       const response = await fetch(podcast.audio_url)
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
-
       const a = document.createElement('a')
       a.href = url
       a.download = generateAudioFilename(podcast.title)
@@ -55,7 +67,6 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
 
   const handleShare = async () => {
     if (!podcast.audio_url) return
-
     if (isWebShareSupported()) {
       try {
         await navigator.share({
@@ -64,127 +75,133 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
           url: podcast.audio_url,
         })
       } catch {
-        // Fallback to copy to clipboard
         if (isClipboardSupported()) {
           navigator.clipboard.writeText(podcast.audio_url)
         }
       }
     } else if (isClipboardSupported()) {
-      // Fallback to copy to clipboard
       navigator.clipboard.writeText(podcast.audio_url)
     }
   }
 
-  // Get author from current book
-  const author = focusedBookTab?.book?.author
+  const handleRetry = () => {
+    if (onRetryPodcast) {
+      onRetryPodcast(podcast.id)
+    }
+  }
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className="space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="flex h-8 items-center space-x-1 px-2"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          <span className="text-xs">{t('podcast.detail.back')}</span>
-        </Button>
-
+        {onBack && (
+          <Button variant="outline" size="sm" onClick={onBack} className="h-8">
+            ← {t('podcast.detail.back')}
+          </Button>
+        )}
         <div className="flex items-center space-x-1">
-          {podcast.script && (
+          {podcast.script && !isFailed && !isProcessing && (
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => setShowScript(!showScript)}
-              className="flex h-7 items-center space-x-1 px-2"
+              className="h-8 w-8"
+              aria-label={t('podcast.script')}
             >
               <MessageSquare className="h-3 w-3" />
-              <span className="text-xs">{t('podcast.script')}</span>
             </Button>
           )}
-
-          {podcast.audio_url && (
+          {podcast.audio_url && !isFailed && !isProcessing && (
             <>
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={handleDownload}
-                className="flex h-7 items-center space-x-1 px-2"
+                className="h-8 w-8"
+                aria-label={t('podcast.detail.download_short')}
               >
                 <Download className="h-3 w-3" />
-                <span className="text-xs">
-                  {t('podcast.detail.download_short')}
-                </span>
               </Button>
-
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={handleShare}
-                className="flex h-7 items-center space-x-1 px-2"
+                className="h-8 w-8"
+                aria-label={t('podcast.share')}
               >
                 <Share2 className="h-3 w-3" />
-                <span className="text-xs">{t('podcast.share')}</span>
               </Button>
             </>
           )}
         </div>
       </div>
-
+      {/* Processing State */}
+      {isProcessing && (
+        <Card className="border-blue-200 bg-blue-50 p-6">
+          <div className="flex flex-col items-center text-center">
+            <RefreshCw className="mb-3 h-8 w-8 animate-spin text-blue-600" />
+            <h3 className="mb-2 text-lg font-semibold text-blue-900">
+              {t('podcast.status.processing')}
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              {t('podcast.book_item.generating_podcast_aria_label', {
+                name: bookTitle,
+              })}
+            </p>
+          </div>
+        </Card>
+      )}
+      {/* Failed State */}
+      {isFailed && !isProcessing && (
+        <Card className="border-destructive/50 bg-destructive/5 p-6">
+          <div className="flex flex-col items-center text-center">
+            <AlertCircle className="text-destructive mb-3 h-8 w-8" />
+            {bookTitle && (
+              <p className="text-muted-foreground mb-1 text-sm">{bookTitle}</p>
+            )}
+            <h3 className="mb-2 text-lg font-semibold">
+              {t('podcast.failed')}
+            </h3>
+            <p className="text-muted-foreground mb-4 text-sm">
+              {t('podcast.failed_description')}
+            </p>
+            <Button
+              variant="destructive"
+              size="default"
+              onClick={handleRetry}
+              disabled={isRetrying || !onRetryPodcast}
+            >
+              {isRetrying ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  {t('podcast.retrying')}
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {t('podcast.retry')}
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+      )}
       {/* Audio Player */}
-      {podcast.audio_url && (
-        <Card className="p-4">
+      {podcast.audio_url && !isFailed && !isProcessing && (
+        <Card className="px-4">
           <AudioPlayer
             audioUrl={podcast.audio_url}
             title={podcast.title}
             onPlay={() => {
               reader.setPodcast(podcast)
-              console.log('Playing:', podcast.title)
             }}
-            onPause={() => console.log('Paused:', podcast.title)}
-            onEnd={() => console.log('Ended:', podcast.title)}
+            onPause={() => {}}
+            onEnd={() => {}}
           />
         </Card>
       )}
-
-      {/* Podcast Info */}
-      <Card className="p-4">
-        <div className="space-y-3">
-          <div>
-            <h2 className="text-foreground mb-2 text-lg font-semibold">
-              {podcast.title}
-            </h2>
-            {author && <p className="text-foreground mb-2 text-sm">{author}</p>}
-            <div className="text-muted-foreground space-y-1 text-xs">
-              <p>
-                {t('podcast.detail.created_at')}:{' '}
-                {formatDate(podcast.created_at)}
-              </p>
-              <p>
-                {t('podcast.detail.updated_at')}:{' '}
-                {formatDate(podcast.updated_at)}
-              </p>
-              <p>
-                {t('podcast.detail.status')}: {podcast.status}
-              </p>
-            </div>
-          </div>
-
-          {podcast.error_message && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3">
-              <p className="text-sm text-red-700">
-                {t('podcast.detail.error')}:{' '}
-                {sanitizeErrorMessage(podcast.error_message)}
-              </p>
-            </div>
-          )}
-        </div>
-      </Card>
-
       {/* Script */}
-      {showScript && podcast.script && (
+      {showScript && podcast.script && !isFailed && !isProcessing && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
@@ -219,5 +236,3 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
     </div>
   )
 }
-
-export default PodcastDetail

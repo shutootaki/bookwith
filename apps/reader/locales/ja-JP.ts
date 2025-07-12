@@ -178,6 +178,11 @@ export default {
   'podcast.status.completed': '完了',
   'podcast.status.failed': '失敗',
   'podcast.status.unknown': '不明',
+  'podcast.failed': 'ポッドキャストの生成に失敗しました',
+  'podcast.failed_description':
+    'エラーが発生しました。しばらくしてから再度お試しください。',
+  'podcast.retry': 'リトライ',
+  'podcast.retrying': 'リトライ中...',
 
   // AudioPlayer関連
   'podcast.audio_player.playback_failed': '音声の再生に失敗しました',
@@ -207,6 +212,10 @@ export default {
   'podcast.list.retrying': '再生成中...',
   'podcast.list.created_date': '作成日',
   'podcast.list.updated_date': '更新日',
+  'podcast.list.refresh': '更新',
+  'podcast.list.refreshing_aria_label': 'ポッドキャスト一覧を更新中',
+  'podcast.list.refresh_aria_label': 'ポッドキャスト一覧を更新',
+  'podcast.list.play_podcast_aria_label': '{title}を再生',
 
   // PodcastPane関連
   'podcast.pane.generation_started': 'ポッドキャストの生成を開始しました',
@@ -223,6 +232,20 @@ export default {
   'podcast.pane.library_description':
     '本を選択してポッドキャストを生成・再生できます',
   'podcast.pane.podcast_title': '{name}のポッドキャスト',
+
+  // Library Podcast View関連
+  'podcast.library.title': 'ライブラリ',
+  'podcast.library.description':
+    '本を選択してポッドキャストを生成・再生できます',
+
+  // Book Podcast Item関連
+  'podcast.book_item.open_book_aria_label':
+    '{name}を開く{author, select, null {} other { (著者: {author})}}',
+  'podcast.book_item.play_podcast_aria_label': '{name}のポッドキャストを再生',
+  'podcast.book_item.generating_podcast_aria_label':
+    '{name}のポッドキャスト生成中',
+  'podcast.book_item.generate_podcast_aria_label':
+    '{name}のポッドキャストを生成',
 
   /**
    * Global Loading Overlay

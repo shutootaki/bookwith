@@ -10,21 +10,17 @@ interface AudioPlayerCallbacks {
   onEnd?: () => void
 }
 
-interface UseAudioPlayerProps extends AudioPlayerCallbacks {
-  audioUrl: string
-}
-
 /**
  * オーディオプレイヤーのロジックを管理するカスタムフック
  */
 export const useAudioPlayer = ({
-  // audioUrl,
   onPlay,
   onPause,
   onEnd,
-}: UseAudioPlayerProps) => {
+}: AudioPlayerCallbacks) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isMetadataLoaded, setIsMetadataLoaded] = useState(false)
   const { podcast } = useReaderSnapshot()
 
   // Valtio状態から値を取得
@@ -56,6 +52,7 @@ export const useAudioPlayer = ({
 
     const handleLoadedMetadata = () => {
       reader.updatePodcastTime(audio.currentTime, audio.duration)
+      setIsMetadataLoaded(true)
       setIsLoading(false)
     }
 
@@ -66,6 +63,7 @@ export const useAudioPlayer = ({
 
     const handleLoadStart = () => {
       setIsLoading(true)
+      setIsMetadataLoaded(false)
     }
 
     const handleCanPlay = () => {
@@ -75,6 +73,7 @@ export const useAudioPlayer = ({
     const handleError = () => {
       reader.setPodcastError('音声の読み込みに失敗しました')
       setIsLoading(false)
+      setIsMetadataLoaded(false)
     }
 
     // イベントリスナーの登録
@@ -174,6 +173,7 @@ export const useAudioPlayer = ({
   return {
     audioRef,
     isLoading,
+    isMetadataLoaded,
     state: {
       isPlaying,
       currentTime,
