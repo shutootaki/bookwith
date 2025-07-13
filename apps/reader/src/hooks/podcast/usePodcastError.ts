@@ -41,7 +41,7 @@ export const usePodcastError = (): UsePodcastErrorReturn => {
       const errorKey = getPodcastErrorKey(error)
       const message = getErrorMessage(errorKey)
       setErrorState(message)
-      
+
       // コンソールにエラーをログ出力
       console.error('[Podcast Error]', error)
     },

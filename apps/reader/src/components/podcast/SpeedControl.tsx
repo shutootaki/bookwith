@@ -2,7 +2,10 @@ import { Gauge } from 'lucide-react'
 import React, { memo, useCallback, useMemo } from 'react'
 
 import { SPEED_OPTIONS } from '../../constants/audio'
-import { PODCAST_ICON_SIZES, PODCAST_KEYBOARD_SHORTCUTS } from '../../constants/podcast'
+import {
+  PODCAST_ICON_SIZES,
+  PODCAST_KEYBOARD_SHORTCUTS,
+} from '../../constants/podcast'
 import { useTranslation } from '../../hooks/useTranslation'
 import { getSpeedLabel } from '../../utils/podcast'
 import { Button } from '../ui/button'
@@ -25,12 +28,12 @@ const SpeedControlComponent: React.FC<SpeedControlProps> = ({
   disabled = false,
 }) => {
   const t = useTranslation()
-  
+
   const currentSpeedLabel = useMemo(
     () => getSpeedLabel(playbackRate),
     [playbackRate],
   )
-  
+
   const handleSpeedChange = useCallback(
     (speed: number) => {
       onChange(speed)
@@ -59,39 +62,41 @@ const SpeedControlComponent: React.FC<SpeedControlProps> = ({
           </span>
         </DropdownMenuItem>
       )),
-    [SPEED_OPTIONS, playbackRate, handleSpeedChange],
+    [playbackRate, handleSpeedChange],
   )
 
   return (
     <div className="flex items-center space-x-2">
       <Gauge className={`text-muted-foreground ${PODCAST_ICON_SIZES.SM}`} />
-        <div className="flex-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-between"
-                aria-label={t('podcast.audio_player.change_speed')}
-                aria-haspopup="true"
-                aria-expanded="false"
-                disabled={disabled}
-                title={`${t('podcast.speed_control.adjust')} (${PODCAST_KEYBOARD_SHORTCUTS.SPEED_UP}/${PODCAST_KEYBOARD_SHORTCUTS.SPEED_DOWN})`}
-              >
-                <span>
-                  {t('podcast.audio_player.speed')}: {currentSpeedLabel}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align="end" 
-              className="w-[140px]"
-              aria-label={t('podcast.speed_control.options')}
+      <div className="flex-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-between"
+              aria-label={t('podcast.audio_player.change_speed')}
+              aria-haspopup="true"
+              aria-expanded="false"
+              disabled={disabled}
+              title={`${t('podcast.speed_control.adjust')} (${
+                PODCAST_KEYBOARD_SHORTCUTS.SPEED_UP
+              }/${PODCAST_KEYBOARD_SHORTCUTS.SPEED_DOWN})`}
             >
-              {menuItems}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              <span>
+                {t('podcast.audio_player.speed')}: {currentSpeedLabel}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-[140px]"
+            aria-label={t('podcast.speed_control.options')}
+          >
+            {menuItems}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

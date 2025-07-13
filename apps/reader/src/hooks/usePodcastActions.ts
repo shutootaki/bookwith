@@ -7,6 +7,7 @@ import {
   createPodcast,
   retryPodcast,
   pollPodcastStatus,
+  getPodcastById,
 } from '../lib/apiHandler/podcastApiHandler'
 
 import { useTranslation } from './useTranslation'
@@ -100,6 +101,26 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
 
       if (result) {
         notifySuccess('retry')
+        // 既存のポッドキャスト情報を取得してbookIdを取得
+        const existingPodcast = await getPodcastById(podcastId)
+        const bookId = existingPodcast?.book_id
+        // statusがPROCESSINGまたはPENDINGのときのみポーリング
+        if (
+          (result.status === 'PROCESSING' || result.status === 'PENDING') &&
+          bookId
+        ) {
+          pollPodcastStatus(
+            result.id,
+            (status) => {
+              if (status.status === 'COMPLETED' || status.status === 'FAILED') {
+                globalMutate(
+                  `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/book/${bookId}`,
+                )
+              }
+            },
+            5000, // 5秒間隔
+          )
+        }
         return true
       } else {
         handleError(new Error('Retry failed'), 'retry')

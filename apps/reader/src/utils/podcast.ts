@@ -1,5 +1,5 @@
 import { SPEED_OPTIONS } from '../constants/audio'
-import { PODCAST_ERROR_KEYS, PODCAST_STATUS_PRIORITY } from '../constants/podcast'
+import { PODCAST_ERROR_KEYS } from '../constants/podcast'
 import { PodcastResponse, PodcastStatus } from '../types/podcast'
 
 /**
@@ -10,20 +10,6 @@ export const formatTime = (time: number): string => {
   const minutes = Math.floor(time / 60)
   const seconds = Math.floor(time % 60)
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
-}
-
-/**
- * 日付を日本語形式でフォーマット
- */
-export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('ja-JP')
-}
-
-/**
- * 日付を日付のみの形式でフォーマット
- */
-export const formatDateOnly = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ja-JP')
 }
 
 /**
@@ -69,21 +55,6 @@ export const findPodcastByStatus = (
 }
 
 /**
- * 優先順位に基づいてポッドキャストを選択
- */
-export const selectPodcastByPriority = (
-  podcasts: PodcastResponse[],
-): PodcastResponse | null => {
-  for (const status of PODCAST_STATUS_PRIORITY) {
-    const podcast = findPodcastByStatus(podcasts, status)
-    if (podcast) {
-      return podcast
-    }
-  }
-  return null
-}
-
-/**
  * エラータイプに基づいてエラーメッセージキーを取得
  */
 export const getPodcastErrorKey = (error: unknown): string => {
@@ -99,39 +70,4 @@ export const getPodcastErrorKey = (error: unknown): string => {
     }
   }
   return PODCAST_ERROR_KEYS.UNKNOWN_ERROR
-}
-
-/**
- * ポッドキャストが再生可能かどうかを判定
- */
-export const isPodcastPlayable = (podcast: PodcastResponse): boolean => {
-  return podcast.status === 'COMPLETED' && !!podcast.audio_url
-}
-
-/**
- * ポッドキャストのタイトルをフォーマット
- */
-export const formatPodcastTitle = (
-  title: string,
-  maxLength?: number,
-): string => {
-  if (!maxLength || title.length <= maxLength) {
-    return title
-  }
-  return `${title.substring(0, maxLength - 3)}...`
-}
-
-/**
- * ポッドキャストの継続時間をフォーマット
- */
-export const formatDuration = (seconds: number): string => {
-  if (isNaN(seconds)) return '--:--'
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-  
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-  return formatTime(seconds)
 }

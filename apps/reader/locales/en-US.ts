@@ -37,7 +37,8 @@ export default {
    * Chat
    */
   'chat.created_at': 'Created at',
-  'chat.empty_description': 'AI will answer based on knowledge from the book you are reading.',
+  'chat.empty_description':
+    'AI will answer based on knowledge from the book you are reading.',
   'chat.empty_title': 'Start a chat',
   'chat.error': 'An error occurred',
   'chat.generating': 'Generating response...',
@@ -83,7 +84,8 @@ export default {
   import_error: 'An error occurred during import',
   import_error_log: 'An error occurred during import:',
   import_failed: 'Failed to import {count} books',
-  import_partial_success: 'Successfully imported {success} books (failed {failed})',
+  import_partial_success:
+    'Successfully imported {success} books (failed {failed})',
   import_success: 'Successfully imported {count} books',
   importing_books: 'Importing books',
   remote_epub_placeholder: 'Enter EPUB file URL',
@@ -106,7 +108,8 @@ export default {
   select_all: 'Select all',
   deselect_all: 'Deselect all',
   delete_confirmation: 'Confirm Deletion',
-  delete_confirmation_message: 'Are you sure you want to delete the selected books? This action cannot be undone.',
+  delete_confirmation_message:
+    'Are you sure you want to delete the selected books? This action cannot be undone.',
   delete_success: 'Books successfully deleted',
 
   /**
@@ -141,8 +144,10 @@ export default {
   'podcast.audio_player.skip_forward': 'Skip forward 10 seconds',
   'podcast.audio_player.speed': 'Speed',
   'podcast.audio_player.total_time': 'Total playback time',
-  'podcast.book_item.generate_podcast_aria_label': 'Generate podcast for {name}',
-  'podcast.book_item.generating_podcast_aria_label': 'Generating podcast for {name}',
+  'podcast.book_item.generate_podcast_aria_label':
+    'Generate podcast for {name}',
+  'podcast.book_item.generating_podcast_aria_label':
+    'Generating podcast for {name}',
   'podcast.detail.author_unknown': 'Unknown author',
   'podcast.detail.back': 'Back',
   'podcast.detail.download_short': 'DL',

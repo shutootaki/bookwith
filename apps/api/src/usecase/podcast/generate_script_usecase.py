@@ -51,7 +51,7 @@ class GenerateScriptUseCase:
                 if attempt == self.config.max_retries_script_generation - 1:
                     error_msg = f"Failed after {self.config.max_retries_script_generation} attempts: {str(e)}"
                     if "finish_reason=10" in str(e) or "safety" in str(e).lower():
-                        error_msg += " (Content blocked by Gemini safety filters. The content may contain sensitive topics. Please try with different content.)"
+                        error_msg += " (Content blocked by Gemini safety filters. The content may contain sensitive topics. Please try with different content.)"  # noqa: E501
                     raise PodcastScriptGenerationError(error_msg)
                 logger.error(f"Error generating podcast script (attempt {attempt + 1}): {str(e)}")
 

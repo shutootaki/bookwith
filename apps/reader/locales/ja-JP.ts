@@ -83,7 +83,8 @@ export default {
   import_error: 'インポート中にエラーが発生しました',
   import_error_log: 'インポート中にエラーが発生しました:',
   import_failed: '{count}冊の本のインポートに失敗しました',
-  import_partial_success: '{success}冊の本を正常にインポートしました（{failed}冊失敗）',
+  import_partial_success:
+    '{success}冊の本を正常にインポートしました（{failed}冊失敗）',
   import_success: '{count}冊の本を正常にインポートしました',
   importing_books: '本をインポート中',
   remote_epub_placeholder: 'EPUBファイルのURLを入力',
@@ -106,7 +107,8 @@ export default {
   select_all: 'すべて選択',
   deselect_all: 'すべて選択解除',
   delete_confirmation: '削除の確認',
-  delete_confirmation_message: '選択した本を削除してもよろしいですか？この操作は取り消せません。',
+  delete_confirmation_message:
+    '選択した本を削除してもよろしいですか？この操作は取り消せません。',
   delete_success: '本が正常に削除されました',
 
   /**
@@ -141,15 +143,19 @@ export default {
   'podcast.audio_player.skip_forward': '10秒進む',
   'podcast.audio_player.speed': '速度',
   'podcast.audio_player.total_time': '総再生時間',
-  'podcast.book_item.generate_podcast_aria_label': '{name}のポッドキャストを生成',
-  'podcast.book_item.generating_podcast_aria_label': '{name}のポッドキャスト生成中',
+  'podcast.book_item.generate_podcast_aria_label':
+    '{name}のポッドキャストを生成',
+  'podcast.book_item.generating_podcast_aria_label':
+    '{name}のポッドキャスト生成中',
   'podcast.detail.author_unknown': '作者不明',
   'podcast.detail.back': '戻る',
   'podcast.detail.download_short': 'DL',
   'podcast.failed': '生成に失敗しました',
-  'podcast.failed_description': 'エラーが発生しました。しばらくしてから再度お試しください。',
+  'podcast.failed_description':
+    'エラーが発生しました。しばらくしてから再度お試しください。',
   'podcast.generate': '生成',
-  'podcast.library.description': '本を選択してポッドキャストを生成・再生できます',
+  'podcast.library.description':
+    '本を選択してポッドキャストを生成・再生できます',
   'podcast.list.empty': 'まだポッドキャストがありません',
   'podcast.list.retry': 'リトライ',
   'podcast.pane.fetching_info': 'ポッドキャスト情報を取得しています',

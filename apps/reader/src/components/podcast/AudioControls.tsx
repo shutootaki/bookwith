@@ -1,7 +1,11 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import React, { memo } from 'react'
 
-import { PODCAST_ANIMATIONS, PODCAST_ICON_SIZES, PODCAST_UI_CLASSES } from '../../constants/podcast'
+import {
+  PODCAST_ANIMATIONS,
+  PODCAST_ICON_SIZES,
+  PODCAST_UI_CLASSES,
+} from '../../constants/podcast'
 import { useLongPress } from '../../hooks/useLongPress'
 import { useTranslation } from '../../hooks/useTranslation'
 import { Button } from '../ui/button'

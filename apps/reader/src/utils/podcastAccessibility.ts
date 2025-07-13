@@ -35,7 +35,7 @@ export const getPodcastStatusAriaLabel = (
     FAILED: 'Failed',
     PENDING: 'Pending',
   }
-  
+
   return `${title} - Status: ${statusLabels[status] || status}`
 }
 
