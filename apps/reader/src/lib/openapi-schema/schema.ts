@@ -329,6 +329,106 @@ export interface paths {
     patch: operations['update_chat_title_chats__chat_id__title_patch']
     trace?: never
   }
+  '/podcasts': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Create Podcast
+     * @description Create a new podcast for a book
+     */
+    post: operations['create_podcast_podcasts_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/podcasts/{podcast_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Podcast
+     * @description Get podcast details by ID
+     */
+    get: operations['get_podcast_podcasts__podcast_id__get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/podcasts/book/{book_id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Podcasts By Book
+     * @description Get all podcasts for a specific book
+     */
+    get: operations['get_podcasts_by_book_podcasts_book__book_id__get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/podcasts/{podcast_id}/status': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Podcast Status
+     * @description Get podcast generation status
+     */
+    get: operations['get_podcast_status_podcasts__podcast_id__status_get']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/podcasts/{podcast_id}/retry': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Retry Podcast
+     * @description Retry failed podcast generation
+     */
+    post: operations['retry_podcast_podcasts__podcast_id__retry_post']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -704,6 +804,45 @@ export interface components {
       /** Covers */
       covers: components['schemas']['CoverData'][]
     }
+    /**
+     * CreatePodcastRequest
+     * @description Request schema for creating a podcast
+     */
+    CreatePodcastRequest: {
+      /**
+       * Book Id
+       * @description ID of the book to create podcast for
+       */
+      book_id: string
+      /**
+       * Title
+       * @description Custom title for the podcast
+       */
+      title?: string | null
+      /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+      language: components['schemas']['PodcastLanguage']
+    }
+    /**
+     * CreatePodcastResponse
+     * @description Response schema for podcast creation
+     */
+    CreatePodcastResponse: {
+      /**
+       * Id
+       * @description Created podcast ID
+       */
+      id: string
+      /**
+       * Status
+       * @description Initial status
+       */
+      status: string
+      /**
+       * Message
+       * @description Success message
+       */
+      message: string
+    }
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
@@ -786,6 +925,163 @@ export interface components {
       metadata?: {
         [key: string]: unknown
       } | null
+    }
+    /**
+     * PodcastLanguage
+     * @enum {string}
+     */
+    PodcastLanguage: 'en-US' | 'ja-JP' | 'cmn-CN'
+    /**
+     * PodcastListResponse
+     * @description Response schema for podcast list
+     */
+    PodcastListResponse: {
+      /**
+       * Podcasts
+       * @description List of podcasts
+       */
+      podcasts: components['schemas']['PodcastResponse'][]
+      /**
+       * Total
+       * @description Total number of podcasts
+       */
+      total: number
+    }
+    /**
+     * PodcastResponse
+     * @description Response schema for podcast details
+     */
+    PodcastResponse: {
+      /**
+       * Id
+       * @description Podcast ID
+       */
+      id: string
+      /**
+       * Book Id
+       * @description Book ID
+       */
+      book_id: string
+      /**
+       * User Id
+       * @description User ID
+       */
+      user_id: string
+      /**
+       * Title
+       * @description Podcast title
+       */
+      title: string
+      /**
+       * Status
+       * @description Generation status
+       */
+      status: string
+      /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+      language: components['schemas']['PodcastLanguage']
+      /**
+       * Audio Url
+       * @description URL to the generated audio
+       */
+      audio_url?: string | null
+      /**
+       * Error Message
+       * @description Error message if generation failed
+       */
+      error_message?: string | null
+      /**
+       * Script
+       * @description Podcast script
+       */
+      script?: components['schemas']['PodcastScriptTurn'][] | null
+      /**
+       * Created At
+       * Format: date-time
+       * @description Creation timestamp
+       */
+      created_at: string
+      /**
+       * Updated At
+       * Format: date-time
+       * @description Last update timestamp
+       */
+      updated_at: string
+    }
+    /**
+     * PodcastScriptTurn
+     * @description Schema for a single script turn
+     */
+    PodcastScriptTurn: {
+      /**
+       * Speaker
+       * @description Speaker identifier (HOST or GUEST)
+       */
+      speaker: string
+      /**
+       * Text
+       * @description What the speaker says
+       */
+      text: string
+    }
+    /**
+     * PodcastStatusResponse
+     * @description Response schema for podcast status
+     */
+    PodcastStatusResponse: {
+      /**
+       * Id
+       * @description Podcast ID
+       */
+      id: string
+      /**
+       * Status
+       * @description Generation status
+       */
+      status: string
+      /**
+       * Title
+       * @description Podcast title
+       */
+      title: string
+      /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+      language: components['schemas']['PodcastLanguage']
+      /**
+       * Audio Url
+       * @description URL to the generated audio if completed
+       */
+      audio_url?: string | null
+      /**
+       * Error Message
+       * @description Error message if failed
+       */
+      error_message?: string | null
+      /**
+       * Has Script
+       * @description Whether script has been generated
+       */
+      has_script: boolean
+      /**
+       * Script Turn Count
+       * @description Number of script turns
+       */
+      script_turn_count?: number | null
+      /**
+       * Script Character Count
+       * @description Total character count in script
+       */
+      script_character_count?: number | null
+      /**
+       * Created At
+       * Format: date-time
+       * @description Creation timestamp
+       */
+      created_at: string
+      /**
+       * Updated At
+       * Format: date-time
+       * @description Last update timestamp
+       */
+      updated_at: string
     }
     /** RagChunk */
     RagChunk: {
@@ -1482,6 +1778,163 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['ChatResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  create_podcast_podcasts_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreatePodcastRequest']
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CreatePodcastResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_podcast_podcasts__podcast_id__get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        podcast_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PodcastResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_podcasts_by_book_podcasts_book__book_id__get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        book_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PodcastListResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  get_podcast_status_podcasts__podcast_id__status_get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        podcast_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PodcastStatusResponse']
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['HTTPValidationError']
+        }
+      }
+    }
+  }
+  retry_podcast_podcasts__podcast_id__retry_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        podcast_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['CreatePodcastResponse']
         }
       }
       /** @description Validation Error */

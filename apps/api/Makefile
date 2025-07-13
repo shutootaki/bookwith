@@ -11,14 +11,17 @@ endif
 -include src/config/.env.$(ENV).local
 
 # Exported variables will be visible in external scripts
-export CLOUD_STORAGE_EMULATOR_HOST
+export GCS_EMULATOR_HOST
 export DATABASE_URL
 export ENV
+export GCP_PROJECT_ID
+export GCS_BUCKET_NAME
+export GEMINI_API_KEY
 export LANGCHAIN_ENDPOINT
-export LANGSMITH_TRACING
-export LANGSMITH_ENDPOINT
 export LANGSMITH_API_KEY
+export LANGSMITH_ENDPOINT
 export LANGSMITH_PROJECT
+export LANGSMITH_TRACING
 export OPENAI_API_KEY
 export PORT
 
@@ -34,7 +37,7 @@ help: ## Show this help message.
 	@echo '  OPENAI_API_KEY                             OpenAI API Key'
 	@echo '  ENV                                        sets the environment. .env.${ENV} and .env.${ENV}.local will be automatically loaded.'
 	@echo '  PORT                                       Run server on the specified port'
-	@echo '  CLOUD_STORAGE_EMULATOR_HOST                Cloud Storage Emulator Host'
+	@echo '  GCS_EMULATOR_HOST                Cloud Storage Emulator Host'
 	@echo '  DATABASE_URL                               Database URL'
 	@echo '  LANGCHAIN_ENDPOINT                         LangChain API Endpoint'
 	@echo '  LANGSMITH_API_KEY                          LangSmith API Key'

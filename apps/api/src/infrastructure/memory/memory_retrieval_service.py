@@ -31,7 +31,7 @@ class MemoryRetrievalService:
 
         """
         if chat_limit is None:
-            chat_limit = self.config.memory_chat_results
+            chat_limit = 3
 
         try:
             query_vector = self.memory_store.encode_text(query)

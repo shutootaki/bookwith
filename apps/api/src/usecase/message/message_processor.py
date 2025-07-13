@@ -72,7 +72,7 @@ class MessageProcessor:
     def get_latest_messages(self, chat_id: str) -> list[Message]:
         """最新のメッセージを取得し、古い順にソートして返す."""
         # 新しい順（降順）で必要な分だけ取得
-        latest_messages = self.message_repository.find_latest_by_chat_id(chat_id, limit=self.memory_service.config.memory_buffer_size)
+        latest_messages = self.message_repository.find_latest_by_chat_id(chat_id, limit=5)
 
         # 古い順（昇順）に並べ直す
         return sorted(latest_messages, key=lambda msg: msg.created_at)

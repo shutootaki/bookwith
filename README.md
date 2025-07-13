@@ -16,7 +16,6 @@ It is more than an e-book reader: BookWith answers your questions, deepens compr
 
 https://github.com/user-attachments/assets/71ea703a-1213-4942-a355-5dc52f6b505d
 
-
 ## 🎯 Why BookWith?
 
 ### Pain Points of Conventional E-Book Readers
@@ -50,6 +49,34 @@ https://github.com/user-attachments/assets/71ea703a-1213-4942-a355-5dc52f6b505d
 User: "If we apply the theory explained in this chapter to a real business scene, what happens?"
 AI:   "Applying the innovation theory from Chapter 3 to actual business would…"
 ```
+
+### 🎙️ **AI Podcast Generation**
+
+**Convert book content into conversational podcasts**
+
+https://github.com/user-attachments/assets/c4288075-a83c-4b52-a5c0-55b1a79ee252
+
+- **Automatic Script Generation**: Extract key points and convert them into a host-guest dialogue format
+
+  - Optimized for 5-10 minute listenable length
+  - Explains complex topics in an easy-to-understand conversational style
+
+- **High-Quality Audio Synthesis**: Utilize Google Cloud Text-to-Speech's multi-speaker functionality
+
+  - Achieves natural conversation rhythm and intonation
+  - Supports both Japanese and English
+  - Supports multiple languages
+
+- **Seamless Experience**:
+  - Upload a book and automatically generate a podcast
+  - Generated audio is immediately playable
+  - Learn key points while commuting or during movement
+
+**Use Cases**
+
+- When you want to understand the summary of a long novel
+- Check the key points of a business book while commuting
+- Preview the main ideas of a technical book with audio
 
 ### 🧠 **Multi-Layer Memory System**
 
@@ -178,11 +205,12 @@ _Example_: Content from an economics book you read a week ago is automatically l
 
 ## �️ Local Setup
 
-Want to run BookWith on your own computer? 
+Want to run BookWith on your own computer?
 
 📋 **[Local Setup Guide](docs/DEVELOPMENT_GUIDE.md)** - Complete installation instructions
 
 The setup guide includes:
+
 - System requirements and prerequisites
 - Step-by-step installation process
 - How to configure your environment

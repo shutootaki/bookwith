@@ -49,7 +49,7 @@ const config = {
     return config
   },
   i18n: {
-    locales: ['en-US', 'zh-CN', 'ja-JP'],
+    locales: ['en-US', 'cmn-CN', 'ja-JP'],
     defaultLocale: 'en-US',
   },
   transpilePackages: [

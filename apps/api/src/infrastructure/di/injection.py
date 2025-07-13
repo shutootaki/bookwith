@@ -6,11 +6,13 @@ from src.domain.annotation.repositories.annotation_repository import AnnotationR
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
 from src.domain.message.repositories.message_repository import MessageRepository
+from src.domain.podcast.repositories.podcast_repository import PodcastRepository
 from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.postgres.annotation.annotation_repository import AnnotationRepositoryImpl
 from src.infrastructure.postgres.book.book_repository import BookRepositoryImpl
 from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
 from src.infrastructure.postgres.message.message_repository import MessageRepositoryImpl
+from src.infrastructure.postgres.podcast import PodcastRepositoryImpl
 from src.usecase.annotation.update_annotation_use_case import SyncAnnotationsUseCase, SyncAnnotationsUseCaseImpl
 from src.usecase.book.create_book_usecase import (
     CreateBookUseCase,
@@ -80,6 +82,11 @@ from src.usecase.message.find_messages_usecase import (
     FindMessagesUseCase,
     FindMessagesUseCaseImpl,
 )
+from src.usecase.podcast.create_podcast_usecase import CreatePodcastUseCase
+from src.usecase.podcast.find_podcast_by_id_usecase import FindPodcastByIdUseCase
+from src.usecase.podcast.find_podcasts_by_book_id_usecase import FindPodcastsByBookIdUseCase
+from src.usecase.podcast.generate_podcast_usecase import GeneratePodcastUseCase
+from src.usecase.podcast.get_podcast_status_usecase import GetPodcastStatusUseCase
 
 # ==============================================================================
 # Book
@@ -239,5 +246,49 @@ def get_sync_annotations_usecase(
 ) -> SyncAnnotationsUseCase:
     return SyncAnnotationsUseCaseImpl(
         annotation_repository=annotation_repository,
+        book_repository=book_repository,
+    )
+
+
+# ==============================================================================
+# Podcast
+# ==============================================================================
+
+
+def get_podcast_repository(db: Session = Depends(get_db)) -> PodcastRepository:
+    return PodcastRepositoryImpl(session=db)
+
+
+async def get_create_podcast_usecase(
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+    book_repository: BookRepository = Depends(get_book_repository),
+) -> CreatePodcastUseCase:
+    return CreatePodcastUseCase(podcast_repository, book_repository)
+
+
+async def get_find_podcast_by_id_usecase(
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+) -> FindPodcastByIdUseCase:
+    return FindPodcastByIdUseCase(podcast_repository)
+
+
+async def get_find_podcasts_by_book_id_usecase(
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+) -> FindPodcastsByBookIdUseCase:
+    return FindPodcastsByBookIdUseCase(podcast_repository)
+
+
+async def get_podcast_status_usecase(
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+) -> GetPodcastStatusUseCase:
+    return GetPodcastStatusUseCase(podcast_repository)
+
+
+async def get_generate_podcast_usecase(
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+    book_repository: BookRepository = Depends(get_book_repository),
+) -> GeneratePodcastUseCase:
+    return GeneratePodcastUseCase(
+        podcast_repository=podcast_repository,
         book_repository=book_repository,
     )

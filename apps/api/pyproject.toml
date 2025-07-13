@@ -25,6 +25,11 @@ sqlalchemy = {version = ">=2.0.40,<3.0.0", python = ">=3.13,<4.0"}
 psycopg2 = {version = ">=2.9.10,<3.0.0", python = ">=3.13,<4.0"}
 google-cloud-storage = {version = ">=3.1.0,<4.0.0", python = ">=3.13,<4.0"}
 pyhumps = "^3.8.0"
+google-cloud-texttospeech = "^2.27.0"
+google-generativeai = "^0.8.5"
+pydub = "^0.25.1"
+ebooklib = "^0.19"
+audioop-lts = "^0.2.1"
 
 [tool.mypy]
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]

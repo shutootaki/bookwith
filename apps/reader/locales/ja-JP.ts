@@ -1,5 +1,15 @@
 export default {
   /**
+   * Common
+   */
+  'common.loading': '読み込み中',
+  'common.retry': 'リトライ',
+  'common.retrying': 'リトライ中...',
+  'common.created_at': '作成日',
+  'common.updated_at': '更新日',
+  'common.cancel': 'キャンセル',
+
+  /**
    * Home
    */
   'home.title': 'ホーム',
@@ -7,7 +17,7 @@ export default {
   'home.download': 'ダウンロード',
   'home.download_sample_book': 'サンプルブックをダウンロード',
   'home.select': '選択',
-  'home.cancel': 'キャンセル',
+  'home.cancel': 'キャンセル', // TODO: 'common.cancel'を使用
   'home.select_all': 'すべて選択',
   'home.deselect_all': 'すべて選択解除',
   'home.export': 'エクスポート',
@@ -163,11 +173,98 @@ export default {
   'chat.book_info': '[{title}] の情報を参照します',
 
   /**
+   * Podcast
+   */
+  'podcast.title': 'ポッドキャスト',
+  'podcast.refresh': '更新',
+  'podcast.generate': '生成',
+  'podcast.play': '再生',
+  'podcast.pause': '一時停止',
+  'podcast.download': 'ダウンロード',
+  'podcast.share': '共有',
+  'podcast.script': 'トランスクリプト',
+  'podcast.script_dialogue': 'ポッドキャスト会話',
+  'podcast.search_script': 'スクリプト内を検索',
+  'podcast.status.pending': '待機中',
+  'podcast.status.processing': '生成中',
+  'podcast.status.completed': '完了',
+  'podcast.status.failed': '失敗',
+  'podcast.status.unknown': '不明',
+  'podcast.failed': '生成に失敗しました',
+  'podcast.failed_description':
+    'エラーが発生しました。しばらくしてから再度お試しください。',
+  'podcast.retry': 'リトライ', // TODO: 'common.retry'を使用
+  'podcast.retrying': 'リトライ中...', // TODO: 'common.retrying'を使用
+
+  // AudioPlayer関連
+  'podcast.audio_player.playback_failed': '音声の再生に失敗しました',
+  'podcast.audio_player.skip_back': '10秒戻る',
+  'podcast.audio_player.skip_forward': '10秒進む',
+  'podcast.audio_player.loading': '読み込み中', // TODO: 'common.loading'を使用
+  'podcast.audio_player.current_time': '現在の再生時間',
+  'podcast.audio_player.total_time': '総再生時間',
+  'podcast.audio_player.controls': '音声コントロール',
+  'podcast.audio_player.position': '音声再生位置',
+  'podcast.audio_player.speed': '速度',
+  'podcast.audio_player.change_speed': '再生速度を変更',
+
+  // PodcastDetail関連
+  'podcast.detail.back': '戻る',
+  'podcast.detail.download_short': 'DL',
+  'podcast.detail.created_at': '作成日', // TODO: 'common.created_at'を使用
+  'podcast.detail.updated_at': '更新日', // TODO: 'common.updated_at'を使用
+  'podcast.detail.status': '状態',
+  'podcast.detail.error': 'エラー',
+  'podcast.detail.author_unknown': '作者不明',
+
+  // PodcastList関連
+  'podcast.list.empty': 'まだポッドキャストがありません',
+  'podcast.list.generating': 'ポッドキャストを生成中...',
+  'podcast.list.retry': 'リトライ', // TODO: 'common.retry'を使用
+  'podcast.list.retrying': 'リトライ中...', // TODO: 'common.retrying'を使用
+  'podcast.list.created_date': '作成日', // TODO: 'common.created_at'を使用
+  'podcast.list.updated_date': '更新日', // TODO: 'common.updated_at'を使用
+  'podcast.list.refresh': '更新',
+  'podcast.list.refreshing_aria_label': 'ポッドキャスト一覧を更新中',
+  'podcast.list.refresh_aria_label': 'ポッドキャスト一覧を更新',
+  'podcast.list.play_podcast_aria_label': '{title}を再生',
+
+  // PodcastPane関連
+  'podcast.pane.generation_started': 'ポッドキャストの生成を開始しました',
+  'podcast.pane.generation_failed': '生成に失敗しました',
+  'podcast.pane.regeneration_started': 'ポッドキャストの再生成を開始しました',
+  'podcast.pane.regeneration_failed': 'ポッドキャストの再生成に失敗しました',
+  'podcast.pane.generating': '生成中...',
+  'podcast.pane.generate_podcast': 'ポッドキャスト生成',
+  'podcast.pane.podcast_list': 'ポッドキャスト一覧',
+  'podcast.pane.loading_failed': 'ポッドキャストの読み込みに失敗しました',
+  'podcast.pane.loading': '読み込み中', // TODO: 'common.loading'を使用
+  'podcast.pane.fetching_info': 'ポッドキャスト情報を取得しています',
+  'podcast.pane.library': 'ライブラリ',
+  'podcast.pane.library_description':
+    '本を選択してポッドキャストを生成・再生できます',
+  'podcast.pane.podcast_title': '{name}のポッドキャスト',
+
+  // Library Podcast View関連
+  'podcast.library.title': 'ライブラリ',
+  'podcast.library.description':
+    '本を選択してポッドキャストを生成・再生できます',
+
+  // Book Podcast Item関連
+  'podcast.book_item.open_book_aria_label':
+    '{name}を開く{author, select, null {} other { (著者: {author})}}',
+  'podcast.book_item.play_podcast_aria_label': '{name}のポッドキャストを再生',
+  'podcast.book_item.generating_podcast_aria_label':
+    '{name}のポッドキャスト生成中',
+  'podcast.book_item.generate_podcast_aria_label':
+    '{name}のポッドキャストを生成',
+
+  /**
    * Global Loading Overlay
    */
-  'loading_overlay.loading': '読み込み中',
+  'loading_overlay.loading': '読み込み中', // TODO: 'common.loading'を使用
   'loading_overlay.importing_books': '{completed}/{total}冊をインポート中',
-  'loading_overlay.cancel': 'キャンセル',
+  'loading_overlay.cancel': 'キャンセル', // TODO: 'common.cancel'を使用
 
   /**
    * Dropzone

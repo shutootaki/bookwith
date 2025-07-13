@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
@@ -28,13 +29,14 @@ from src.infrastructure.postgres.db_util import TimestampMixin
 if TYPE_CHECKING:
     from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO
     from src.infrastructure.postgres.chat.chat_dto import ChatDTO
+    from src.infrastructure.postgres.podcast.podcast_dto import PodcastDTO
     from src.infrastructure.postgres.user.user_dto import UserDTO
 
 
 class BookDTO(TimestampMixin, Base):
     __tablename__ = "books"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, index=True, default=lambda: str(uuid4()))
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
 
     name: Mapped[str] = mapped_column(String, index=True)
@@ -67,6 +69,7 @@ class BookDTO(TimestampMixin, Base):
     user: Mapped["UserDTO"] = relationship("UserDTO", back_populates="books")
     annotations: Mapped[list["AnnotationDTO"]] = relationship("AnnotationDTO", back_populates="book", cascade="all, delete-orphan")
     chats: Mapped[list["ChatDTO"]] = relationship("ChatDTO", back_populates="book", cascade="all, delete-orphan")
+    podcasts: Mapped[list["PodcastDTO"]] = relationship("PodcastDTO", back_populates="book", cascade="all, delete-orphan")
 
     def to_entity(self) -> Book:
         book_id = BookId(self.id)

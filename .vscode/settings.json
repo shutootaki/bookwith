@@ -21,7 +21,7 @@
   },
   "python.defaultInterpreterPath": "${workspaceFolder}/apps/api/.venv/bin/python",
   "ruff.path": ["${workspaceFolder}/apps/api/.venv/bin/ruff"],
-  "cSpell.words": ["unsummarized"],
+  "cSpell.words": ["ebooklib", "unsummarized"],
   "mypy-type-checker.path": ["${workspaceFolder}/apps/api/.venv/bin/mypy"],
   "mypy-type-checker.args": [
     "--config-file=${workspaceFolder}/apps/api/pyproject.toml"

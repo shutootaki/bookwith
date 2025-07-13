@@ -10,7 +10,6 @@ class BookId:
         if not self.value:
             raise ValueError("BookIdは必須です")
 
-        # 既存のIDはそのまま許可し、新しいIDはUUIDの形式をチェック
         if not self._is_valid_uuid(self.value):
             raise ValueError("BookIdは有効なUUID形式である必要があります")
 

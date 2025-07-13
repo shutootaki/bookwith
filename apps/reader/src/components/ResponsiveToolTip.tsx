@@ -13,7 +13,9 @@ export const ResponsiveToolTip = ({
   content,
   children,
   className,
+  align = 'start',
 }: React.PropsWithChildren<{
+  align?: 'start' | 'center' | 'end'
   content: string | React.ReactNode
   className?: string
 }>) => {
@@ -44,7 +46,7 @@ export const ResponsiveToolTip = ({
           className={!content ? 'hidden' : ''}
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
-          align="start"
+          align={align}
         >
           <span className="inline-block">{content}</span>
         </TooltipContent>
