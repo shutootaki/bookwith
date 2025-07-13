@@ -679,7 +679,9 @@ export class Reader {
   }
 
   setPodcastVolume(volume: number) {
+    console.log('setPodcastVolume called with:', volume)
     this.podcast.volume = Math.max(0, Math.min(1, volume))
+    console.log('podcast.volume is now:', this.podcast.volume)
   }
 
   setPodcastPlaybackRate(rate: number) {
@@ -689,16 +691,6 @@ export class Reader {
   setPodcastError(error: string) {
     this.podcast.error = error
     this.podcast.isPlaying = false
-  }
-
-  clearPodcast() {
-    this.podcast = {
-      isPlaying: false,
-      currentTime: 0,
-      duration: 0,
-      volume: this.podcast.volume, // Keep volume setting
-      playbackRate: this.podcast.playbackRate, // Keep playback rate setting
-    }
   }
 }
 

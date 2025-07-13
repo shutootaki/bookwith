@@ -1,14 +1,12 @@
 import React from 'react'
 
-import { PaneView, PaneViewProps } from '../base'
+import { PaneViewProps } from '../base'
 import { PodcastPane } from '../podcast'
 
-export const PodcastView: React.FC<PaneViewProps> = (props) => {
+export const PodcastView: React.FC<PaneViewProps> = () => {
   return (
-    <PaneView {...props}>
-      <div className="scroll">
-        <PodcastPane />
-      </div>
-    </PaneView>
+    <div className="flex h-full flex-col">
+      <PodcastPane />
+    </div>
   )
 }

@@ -8,6 +8,8 @@ import {
 } from '../../constants/podcast'
 import { useTranslation } from '../../hooks/useTranslation'
 import { formatVolumePercentage } from '../../utils/podcast'
+import { Button } from '../ui/button'
+import { Slider } from '../ui/slider'
 
 interface VolumeControlProps {
   volume: number
@@ -24,8 +26,10 @@ const VolumeControlComponent: React.FC<VolumeControlProps> = ({
   const isMuted = volume === 0
 
   const handleVolumeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(parseFloat(e.target.value))
+    (value: number[]) => {
+      if (value[0] !== undefined) {
+        onChange(value[0])
+      }
     },
     [onChange],
   )
@@ -39,17 +43,21 @@ const VolumeControlComponent: React.FC<VolumeControlProps> = ({
     [volume],
   )
 
-  const volumeIcon = useMemo(
-    () => (isMuted ? <VolumeX /> : <Volume2 />),
-    [isMuted],
-  )
+  const volumeIcon = (className: string) =>
+    isMuted ? (
+      <VolumeX className={className} />
+    ) : (
+      <Volume2 className={className} />
+    )
 
   return (
     <div className="flex items-center space-x-2">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={handleMuteToggle}
         disabled={disabled}
-        className="text-muted-foreground focus:ring-primary rounded p-1 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-4 w-4"
         aria-label={
           isMuted
             ? t('podcast.audio_player.unmute')
@@ -59,28 +67,24 @@ const VolumeControlComponent: React.FC<VolumeControlProps> = ({
           PODCAST_KEYBOARD_SHORTCUTS.MUTE_TOGGLE
         })`}
       >
-        <div className={PODCAST_ICON_SIZES.SM}>{volumeIcon}</div>
-      </button>
+        <span>{volumeIcon(PODCAST_ICON_SIZES.SM)}</span>
+      </Button>
       <div className="flex-1">
-        <input
-          type="range"
+        <Slider
           min={VOLUME_SLIDER.MIN}
           max={VOLUME_SLIDER.MAX}
           step={VOLUME_SLIDER.STEP}
-          value={volume}
+          value={[volume]}
+          onValueChange={handleVolumeChange}
+          disabled={disabled}
           aria-label={t('podcast.volume_control.slider')}
           aria-valuetext={volumePercentage}
-          onChange={handleVolumeChange}
-          disabled={disabled}
-          className="slider h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full"
           title={`${t('podcast.volume_control.adjust')} (${
             PODCAST_KEYBOARD_SHORTCUTS.VOLUME_UP
           }/${PODCAST_KEYBOARD_SHORTCUTS.VOLUME_DOWN})`}
         />
       </div>
-      <span className="text-muted-foreground w-12 text-right text-sm">
-        {volumePercentage}
-      </span>
     </div>
   )
 }
@@ -95,5 +99,3 @@ export const VolumeControl = memo(
     )
   },
 )
-
-VolumeControl.displayName = 'VolumeControl'

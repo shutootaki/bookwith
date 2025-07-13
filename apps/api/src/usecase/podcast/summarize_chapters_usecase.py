@@ -24,6 +24,9 @@ class SummarizeChaptersUseCase:
             logger.info(f"Starting summarization of {len(chapters)} chapters")
             chapter_summaries = await self._summarize_chapters_batch(chapters, language)
 
+            # NOTE: Skip chapters after 6 due to API rate limits
+            chapter_summaries = chapter_summaries[:6]
+
             # Then, combine chapter summaries into a book summary
             logger.info("Combining chapter summaries into book summary")
             return await self._create_book_summary(chapter_summaries, book_title, language)

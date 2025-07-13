@@ -17,7 +17,6 @@ from src.infrastructure.di.injection import (
     get_podcast_repository,
     get_podcast_status_usecase,
 )
-from src.presentation.api.converters import convert_podcast_to_response, convert_podcasts_to_response_list
 from src.presentation.api.schemas.podcast_schema import (
     CreatePodcastRequest,
     CreatePodcastResponse,
@@ -80,7 +79,8 @@ async def get_podcast(
         if not podcast:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Podcast not found")
 
-        return convert_podcast_to_response(podcast)
+        # converterを使わず直接Pydanticモデルで返す
+        return PodcastResponse.model_validate(podcast.model_dump(mode="json"))
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid podcast ID format") from e
@@ -101,9 +101,8 @@ async def get_podcasts_by_book(
         book_domain_id = BookId(book_id)
         podcasts = await find_usecase.execute(book_domain_id)
 
-        # Convert to response format
-        podcast_responses = convert_podcasts_to_response_list(podcasts)
-
+        # converterを使わず直接Pydanticモデルで返す
+        podcast_responses = [PodcastResponse.model_validate(p.model_dump(mode="json")) for p in podcasts]
         return PodcastListResponse(podcasts=podcast_responses, total=len(podcast_responses))
 
     except Exception as e:

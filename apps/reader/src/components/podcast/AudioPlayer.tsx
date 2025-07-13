@@ -1,12 +1,10 @@
 import React, { memo } from 'react'
 
-import {
-  PODCAST_KEYBOARD_SHORTCUTS,
-  PODCAST_UI_CLASSES,
-} from '../../constants/podcast'
-import { useAudioPlayer } from '../../hooks/useAudioPlayer'
+import { PODCAST_KEYBOARD_SHORTCUTS } from '../../constants/podcast'
+import { useAudioPlayer } from '../../hooks/podcast/useAudioPlayer'
 import { useTranslation } from '../../hooks/useTranslation'
 import { formatTime } from '../../utils/podcast'
+import { Alert, AlertDescription } from '../ui/alert'
 import { Progress } from '../ui/progress'
 
 import { AudioControls } from './AudioControls'
@@ -19,6 +17,8 @@ export interface AudioPlayerProps {
   onPlay?: () => void
   onPause?: () => void
   onEnd?: () => void
+  onTimeUpdate?: (currentTime: number) => void
+  onSeek?: (time: number) => void
 }
 
 const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
@@ -27,12 +27,15 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
   onPlay,
   onPause,
   onEnd,
+  onTimeUpdate,
+  onSeek,
 }) => {
   const { audioRef, isLoading, isMetadataLoaded, state, controls } =
     useAudioPlayer({
       onPlay,
       onPause,
       onEnd,
+      onTimeUpdate,
     })
   const t = useTranslation()
 
@@ -45,7 +48,18 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
     skipBack,
     skipForward,
     handleProgressClick,
+    seekToTime,
   } = controls
+
+  // onSeekプロパティをseekToTimeに接続
+  React.useEffect(() => {
+    if (onSeek && seekToTime) {
+      window.podcastSeekFunction = seekToTime
+    }
+    return () => {
+      delete window.podcastSeekFunction
+    }
+  }, [onSeek, seekToTime])
 
   return (
     <div className="space-y-4 pb-4">
@@ -60,9 +74,9 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
 
       {/* Error Display */}
       {error && (
-        <div className={PODCAST_UI_CLASSES.ERROR_CARD}>
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {/* Progress Bar */}
@@ -137,7 +151,3 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
 }
 
 export const AudioPlayer = memo(AudioPlayerComponent)
-
-AudioPlayer.displayName = 'AudioPlayer'
-
-export default AudioPlayer

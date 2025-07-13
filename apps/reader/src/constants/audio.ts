@@ -1,4 +1,4 @@
-export interface SpeedOption {
+interface SpeedOption {
   value: number
   label: string
 }
@@ -28,9 +28,6 @@ export const SPEED_OPTIONS: SpeedOption[] = [
   { value: 2, label: '2x' },
 ]
 
-// デフォルト再生速度
-export const DEFAULT_PLAYBACK_RATE = 1.0
-
 // オーディオ関連のキー定数
 export const AUDIO_EVENTS = {
   TIME_UPDATE: 'timeupdate',
@@ -53,19 +50,3 @@ export const AUDIO_FILE = {
   PRELOAD: 'metadata' as const,
   CROSSORIGIN: 'anonymous' as const,
 }
-
-// オーディオ状態の定数
-export const AUDIO_STATE = {
-  LOADING: 'loading',
-  PLAYING: 'playing',
-  PAUSED: 'paused',
-  ENDED: 'ended',
-  ERROR: 'error',
-} as const
-
-// フォーマット関連の定数
-export const TIME_FORMAT = {
-  INVALID_TIME: '0:00',
-  PAD_START_LENGTH: 2,
-  PAD_CHAR: '0',
-} as const

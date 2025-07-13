@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react'
 
-import { AUDIO_CONTROLS } from '../constants/audio'
-import { PODCAST_KEYBOARD_SHORTCUTS } from '../constants/podcast'
-import { seekAudio } from '../utils/podcast'
+import { AUDIO_CONTROLS } from '../../constants/audio'
+import { PODCAST_KEYBOARD_SHORTCUTS } from '../../constants/podcast'
+import { seekAudio } from '../../utils/podcast'
 
 interface UseAudioControlsParams {
   audioRef: React.RefObject<HTMLAudioElement | null>
@@ -51,17 +51,13 @@ export const useAudioControls = ({
 
   const handleVolumeChange = useCallback(
     (volume: number) => {
-      const audio = audioRef.current
-      if (!audio) return
-
       const clampedVolume = Math.max(
         AUDIO_CONTROLS.MIN_VOLUME,
         Math.min(AUDIO_CONTROLS.MAX_VOLUME, volume),
       )
-      audio.volume = clampedVolume
       onVolumeChange?.(clampedVolume)
     },
-    [audioRef, onVolumeChange],
+    [onVolumeChange],
   )
 
   const handleSpeedChange = useCallback(

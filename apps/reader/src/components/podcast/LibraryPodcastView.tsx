@@ -75,10 +75,8 @@ export const LibraryPodcastView: React.FC = () => {
       return (
         <PodcastDetail
           podcast={selectedPodcast}
-          bookTitle={selectedBook?.metadataTitle || selectedBook?.name}
+          book={selectedBook!}
           onBack={() => setSelectedBookId(null)}
-          onRetryPodcast={handleRetryPodcast}
-          retryingPodcastId={retryingPodcastId}
         />
       )
     }
@@ -86,21 +84,21 @@ export const LibraryPodcastView: React.FC = () => {
 
   if (books.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center px-4">
         <p className="text-muted-foreground">{t('podcast.list.empty')}</p>
       </div>
     )
   }
 
   return (
-    <div className="px-4">
-      <div className="mb-4">
+    <div className="flex h-full flex-col px-4">
+      <div className="mb-4 flex-shrink-0">
         <p className="text-muted-foreground mt-1 text-xs">
           {t('podcast.library.description')}
         </p>
       </div>
 
-      <div className="scroll h-full">
+      <div className="flex-1 overflow-y-auto">
         <ul
           className="grid"
           style={{

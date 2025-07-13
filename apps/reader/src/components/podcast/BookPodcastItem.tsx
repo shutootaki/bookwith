@@ -52,6 +52,13 @@ export const BookPodcastItem = memo<BookPodcastItemProps>(
     const failedPodcast = findPodcastByStatus(displayPodcasts, 'FAILED')
     const handleRetry = () => {
       if (failedPodcast && onRetryPodcast) {
+        // 楽観的更新：ローカルで状態をPROCESSINGに変更
+        const optimisticPodcasts = displayPodcasts.map((podcast) =>
+          podcast.id === failedPodcast.id
+            ? { ...podcast, status: 'PROCESSING' as const }
+            : podcast,
+        )
+        onPodcastsLoaded(optimisticPodcasts)
         onRetryPodcast(failedPodcast.id)
       }
     }
@@ -132,7 +139,6 @@ export const BookPodcastItem = memo<BookPodcastItemProps>(
       </div>
     )
 
-    // ポッドキャスト生成ボタン
     const renderCreatePodcastButton = () => {
       const ariaLabel = isCreating
         ? t('podcast.book_item.generating_podcast_aria_label', {

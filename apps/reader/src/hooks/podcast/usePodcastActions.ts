@@ -5,12 +5,13 @@ import { mutate as globalMutate } from 'swr'
 
 import {
   createPodcast,
-  retryPodcast,
-  pollPodcastStatus,
   getPodcastById,
-} from '../lib/apiHandler/podcastApiHandler'
+  pollPodcastStatus,
+  retryPodcast,
+} from '../../lib/apiHandler/podcastApiHandler'
+import { useTranslation } from '../useTranslation'
 
-import { useTranslation } from './useTranslation'
+import { usePodcastError } from './usePodcastError'
 
 export interface UsePodcastActionsReturn {
   isCreating: boolean
@@ -29,20 +30,7 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
   const [retryingPodcastId, setRetryingPodcastId] = useState<string | null>(
     null,
   )
-
-  /**
-   * エラーハンドリング
-   */
-  const handleError = (error: unknown, operation: 'create' | 'retry'): void => {
-    console.error(`Error during podcast ${operation}:`, error)
-
-    const errorKey = {
-      create: 'podcast.pane.generation_failed',
-      retry: 'podcast.pane.regeneration_failed',
-    }[operation]
-
-    toast.error(t(errorKey))
-  }
+  const { setError, clearError } = usePodcastError()
 
   /**
    * 成功通知
@@ -52,7 +40,6 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
       create: 'podcast.pane.generation_started',
       retry: 'podcast.pane.regeneration_started',
     }[operation]
-
     toast.success(t(successKey))
   }
 
@@ -60,14 +47,13 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
     bookId: string,
     bookName: string,
   ): Promise<boolean> => {
+    clearError()
     setIsCreating(true)
     try {
       const title = `${bookName}のポッドキャスト`
       const result = await createPodcast(bookId, locale, title)
-
       if (result) {
         notifySuccess('create')
-        // statusがPROCESSINGまたはPENDINGのときのみポーリング
         if (result.status === 'PROCESSING' || result.status === 'PENDING') {
           pollPodcastStatus(
             result.id,
@@ -78,16 +64,16 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
                 )
               }
             },
-            5000, // 5秒間隔
+            5000,
           )
         }
         return true
       } else {
-        handleError(new Error('Creation failed'), 'create')
+        setError(new Error('Creation failed'))
         return false
       }
     } catch (error) {
-      handleError(error, 'create')
+      setError(error)
       return false
     } finally {
       setIsCreating(false)
@@ -95,16 +81,14 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
   }
 
   const handleRetryPodcast = async (podcastId: string): Promise<boolean> => {
+    clearError()
     setRetryingPodcastId(podcastId)
     try {
       const result = await retryPodcast(podcastId)
-
       if (result) {
         notifySuccess('retry')
-        // 既存のポッドキャスト情報を取得してbookIdを取得
         const existingPodcast = await getPodcastById(podcastId)
         const bookId = existingPodcast?.book_id
-        // statusがPROCESSINGまたはPENDINGのときのみポーリング
         if (
           (result.status === 'PROCESSING' || result.status === 'PENDING') &&
           bookId
@@ -118,16 +102,16 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
                 )
               }
             },
-            5000, // 5秒間隔
+            5000,
           )
         }
         return true
       } else {
-        handleError(new Error('Retry failed'), 'retry')
+        setError(new Error('Retry failed'))
         return false
       }
     } catch (error) {
-      handleError(error, 'retry')
+      setError(error)
       return false
     } finally {
       setRetryingPodcastId(null)

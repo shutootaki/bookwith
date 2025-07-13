@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-import { AUDIO_EVENTS } from '../constants/audio'
-import { PODCAST_ERROR_KEYS } from '../constants/podcast'
-import { reader, useReaderSnapshot } from '../models'
+import { AUDIO_EVENTS } from '../../constants/audio'
+import { PODCAST_ERROR_KEYS } from '../../constants/podcast'
+import { reader, useReaderSnapshot } from '../../models'
 
 import { useAudioControls } from './useAudioControls'
 
@@ -19,6 +19,7 @@ interface AudioPlayerCallbacks {
   onPlay?: () => void
   onPause?: () => void
   onEnd?: () => void
+  onTimeUpdate?: (currentTime: number) => void
 }
 
 /**
@@ -28,6 +29,7 @@ export const useAudioPlayer = ({
   onPlay,
   onPause,
   onEnd,
+  onTimeUpdate,
 }: AudioPlayerCallbacks) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -59,6 +61,7 @@ export const useAudioPlayer = ({
 
     const handleTimeUpdate = () => {
       reader.updatePodcastTime(audio.currentTime)
+      onTimeUpdate?.(audio.currentTime)
     }
 
     const handleLoadedMetadata = () => {
@@ -106,7 +109,7 @@ export const useAudioPlayer = ({
       audio.removeEventListener(AUDIO_EVENTS.CAN_PLAY, handleCanPlay)
       audio.removeEventListener(AUDIO_EVENTS.ERROR, handleError)
     }
-  }, [onEnd])
+  }, [onEnd, onTimeUpdate])
 
   // オーディオコントロールのフックを使用
   const controls = useAudioControls({
@@ -131,7 +134,7 @@ export const useAudioPlayer = ({
         }
       }
     },
-    onVolumeChange: reader.setPodcastVolume,
+    onVolumeChange: (volume: number) => reader.setPodcastVolume(volume),
     onSpeedChange: (rate) => reader.setPodcastPlaybackRate(rate),
   })
 
@@ -144,6 +147,16 @@ export const useAudioPlayer = ({
       reader.updatePodcastTime(newTime)
     }
   }, [])
+
+  // 特定時間へのシーク（スクリプトクリック用）
+  const seekToTime = useCallback(
+    (time: number) => {
+      if (!audioRef.current || !isMetadataLoaded) return
+      audioRef.current.currentTime = time
+      reader.updatePodcastTime(time)
+    },
+    [isMetadataLoaded],
+  )
 
   return {
     audioRef,
@@ -160,6 +173,7 @@ export const useAudioPlayer = ({
     controls: {
       ...controls,
       handleSeek,
+      seekToTime,
     },
   }
 }

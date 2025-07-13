@@ -41,8 +41,8 @@ class GeminiClient:
 
     def __init__(self) -> None:
         self.config = AppConfig.get_config()
-        self.gemini_flash_model = "gemini-2.0-flash"
-        self.gemini_pro_model = "gemini-2.0-flash"
+        self.gemini_flash_model = "gemini-2.5-flash"
+        self.gemini_pro_model = "gemini-2.5-flash"
 
         genai.configure(api_key=self.config.gemini_api_key)
 

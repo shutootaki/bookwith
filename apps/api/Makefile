@@ -23,7 +23,6 @@ export LANGSMITH_ENDPOINT
 export LANGSMITH_PROJECT
 export LANGSMITH_TRACING
 export OPENAI_API_KEY
-
 export PORT
 
 default: help

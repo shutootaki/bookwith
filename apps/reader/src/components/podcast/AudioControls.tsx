@@ -1,14 +1,11 @@
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import React, { memo } from 'react'
 
-import {
-  PODCAST_ANIMATIONS,
-  PODCAST_ICON_SIZES,
-  PODCAST_UI_CLASSES,
-} from '../../constants/podcast'
+import { PODCAST_ICON_SIZES, PODCAST_UI_CLASSES } from '../../constants/podcast'
 import { useLongPress } from '../../hooks/useLongPress'
 import { useTranslation } from '../../hooks/useTranslation'
 import { Button } from '../ui/button'
+import { CircularProgress } from '../ui/spinner'
 
 interface AudioControlsProps {
   isPlaying: boolean
@@ -60,8 +57,9 @@ export const AudioControls = memo<AudioControlsProps>(
           aria-label={isPlaying ? t('podcast.pause') : t('podcast.play')}
         >
           {isLoading ? (
-            <div
-              className={`${PODCAST_ICON_SIZES.SM} ${PODCAST_ANIMATIONS.SPIN} rounded-full border-2 border-current border-t-transparent`}
+            <CircularProgress
+              size="sm"
+              className="border-current"
               aria-label={t('podcast.audio_player.loading')}
             />
           ) : isPlaying ? (
@@ -85,5 +83,3 @@ export const AudioControls = memo<AudioControlsProps>(
     )
   },
 )
-
-AudioControls.displayName = 'AudioControls'

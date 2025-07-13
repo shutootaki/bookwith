@@ -138,33 +138,3 @@ class CloudTTSClient:
             chunks.append(audio_chunk)
 
         return chunks
-
-    def validate_dialogue_turns(self, turns: list[dict]) -> bool:
-        """Validate dialogue turns format and content
-
-        Args:
-            turns: List of dialogue turns to validate
-
-        Returns:
-            True if valid, raises exception otherwise
-
-        """
-        if not turns:
-            raise ValueError("Dialogue turns cannot be empty")
-
-        valid_speakers = {"HOST", "GUEST"}
-
-        for i, turn in enumerate(turns):
-            if not isinstance(turn, dict):
-                raise ValueError(f"Turn {i} must be a dictionary")
-
-            if "speaker" not in turn or "text" not in turn:
-                raise ValueError(f"Turn {i} must have 'speaker' and 'text' keys")
-
-            if turn["speaker"] not in valid_speakers:
-                raise ValueError(f"Turn {i} has invalid speaker: {turn['speaker']}")
-
-            if not turn["text"] or not isinstance(turn["text"], str):
-                raise ValueError(f"Turn {i} has invalid text")
-
-        return True

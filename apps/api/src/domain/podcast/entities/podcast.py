@@ -24,8 +24,8 @@ class Podcast(BaseModel):
     audio_url: str | None = None
     script: PodcastScript | None = None
     error_message: str | None = None
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

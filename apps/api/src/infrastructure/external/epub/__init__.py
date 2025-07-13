@@ -1,3 +1,3 @@
-from .epub_reader import Chapter, EpubReader
+from .epub_reader import Chapter
 
-__all__ = ["EpubReader", "Chapter"]
+__all__ = ["Chapter"]

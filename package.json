@@ -1,0 +1,49 @@
+{
+  "name": "@flow/monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "release": "pnpm -r publish --access public",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,json,css,ts,tsx,md,mdx}": "prettier --write",
+    "!(pnpm-lock).{yml,yaml}": "prettier --write",
+    "*.{js,ts,tsx}": "eslint --fix"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "0.4.4",
+    "@changesets/cli": "2.22.0",
+    "@typescript-eslint/eslint-plugin": "5.19.0",
+    "cross-env": "7.0.3",
+    "eslint": "9.25.1",
+    "eslint-config-next": "15.0.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-react": "7.29.4",
+    "esno": "0.14.1",
+    "globals": "^16.0.0",
+    "husky": "7.0.4",
+    "lint-staged": "12.3.7",
+    "prettier": "2.6.2",
+    "prettier-plugin-tailwindcss": "0.1.8",
+    "rimraf": "3.0.2",
+    "rollup": "2.72.1",
+    "rollup-plugin-dts": "4.2.1",
+    "rollup-plugin-typescript2": "0.31.2",
+    "tsup": "5.12.7",
+    "turbo": "2.5.0",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.1.0"
+    }
+  }
+}
