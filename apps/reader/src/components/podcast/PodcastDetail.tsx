@@ -38,7 +38,7 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = memo(
     // ポッドキャストが存在しない場合
     if (!podcast) {
       return (
-        <div className="flex h-full flex-col">
+        <div className="flex flex-col">
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <div className="flex items-center justify-between">
               {onBack && (
@@ -72,7 +72,7 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = memo(
     // ポッドキャストが完了していない場合はBookPodcastItemを使用
     if (podcast.status !== 'COMPLETED') {
       return (
-        <div className="flex h-full flex-col">
+        <div className="flex flex-col">
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <div className="flex items-center justify-between">
               {onBack && (
