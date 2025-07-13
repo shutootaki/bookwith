@@ -113,6 +113,8 @@ _Example_: Content from an economics book you read a week ago is automatically l
 
 **Convert book content into conversational podcasts**
 
+https://github.com/user-attachments/assets/c4288075-a83c-4b52-a5c0-55b1a79ee252
+
 - **Automatic Script Generation**: Extract key points and convert them into a host-guest dialogue format
 
   - Optimized for 5-10 minute listenable length
