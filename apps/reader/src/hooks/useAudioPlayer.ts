@@ -1,8 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-import { AUDIO_CONTROLS, AUDIO_EVENTS } from '../constants/audio'
+import { AUDIO_EVENTS } from '../constants/audio'
+import { PODCAST_ERROR_KEYS } from '../constants/podcast'
 import { reader, useReaderSnapshot } from '../models'
-import { seekAudio } from '../utils/podcast'
+
+import { useAudioControls } from './useAudioControls'
+
+export interface AudioPlayerState {
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+  volume: number
+  playbackRate: number
+  error: string | null
+}
 
 interface AudioPlayerCallbacks {
   onPlay?: () => void
@@ -25,7 +36,7 @@ export const useAudioPlayer = ({
 
   // Valtio状態から値を取得
   const { isPlaying, currentTime, duration, volume, playbackRate, error } =
-    podcast
+    podcast as AudioPlayerState
 
   // 音量の更新
   useEffect(() => {
@@ -71,7 +82,7 @@ export const useAudioPlayer = ({
     }
 
     const handleError = () => {
-      reader.setPodcastError('音声の読み込みに失敗しました')
+      reader.setPodcastError(PODCAST_ERROR_KEYS.PLAYBACK_FAILED)
       setIsLoading(false)
       setIsMetadataLoaded(false)
     }
@@ -97,27 +108,34 @@ export const useAudioPlayer = ({
     }
   }, [onEnd])
 
-  // 再生/一時停止の切り替え
-  const togglePlayPause = useCallback(async () => {
-    if (!audioRef.current) return
+  // オーディオコントロールのフックを使用
+  const controls = useAudioControls({
+    audioRef,
+    duration,
+    onTimeUpdate: reader.updatePodcastTime,
+    onPlayPause: async () => {
+      if (!audioRef.current) return
 
-    if (isPlaying) {
-      audioRef.current.pause()
-      reader.pausePodcast()
-      onPause?.()
-    } else {
-      try {
-        await audioRef.current.play()
-        reader.playPodcast()
-        onPlay?.()
-      } catch (error) {
-        console.error('Error playing audio:', error)
-        reader.setPodcastError('音声の再生に失敗しました')
+      if (isPlaying) {
+        audioRef.current.pause()
+        reader.pausePodcast()
+        onPause?.()
+      } else {
+        try {
+          await audioRef.current.play()
+          reader.playPodcast()
+          onPlay?.()
+        } catch (error) {
+          console.error('Error playing audio:', error)
+          reader.setPodcastError(PODCAST_ERROR_KEYS.PLAYBACK_FAILED)
+        }
       }
-    }
-  }, [isPlaying, onPlay, onPause])
+    },
+    onVolumeChange: reader.setPodcastVolume,
+    onSpeedChange: (rate) => reader.setPodcastPlaybackRate(rate),
+  })
 
-  // シーク処理
+  // シーク処理（スライダー用）
   const handleSeek = useCallback((value: number[]) => {
     if (!audioRef.current) return
     const newTime = value[0]
@@ -126,49 +144,6 @@ export const useAudioPlayer = ({
       reader.updatePodcastTime(newTime)
     }
   }, [])
-
-  // 音量変更
-  const handleVolumeChange = useCallback((value: number) => {
-    reader.setPodcastVolume(value)
-  }, [])
-
-  // 再生速度変更
-  const handleSpeedChange = useCallback((speed: number) => {
-    reader.setPodcastPlaybackRate(speed)
-  }, [])
-
-  // スキップ処理のヘルパー
-  const seek = useCallback(
-    (delta: number) => {
-      if (!audioRef.current) return
-      seekAudio(audioRef.current, delta, duration, (time) => {
-        reader.updatePodcastTime(time)
-      })
-    },
-    [duration],
-  )
-
-  // 10秒戻る
-  const skipBack = useCallback(() => seek(-AUDIO_CONTROLS.SKIP_SECONDS), [seek])
-
-  // 10秒進む
-  const skipForward = useCallback(
-    () => seek(AUDIO_CONTROLS.SKIP_SECONDS),
-    [seek],
-  )
-
-  // プログレスバーのクリック処理
-  const handleProgressClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!audioRef.current || !duration) return
-      const rect = e.currentTarget.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const percentage = x / rect.width
-      const newTime = percentage * duration
-      handleSeek([newTime])
-    },
-    [duration, handleSeek],
-  )
 
   return {
     audioRef,
@@ -183,13 +158,8 @@ export const useAudioPlayer = ({
       error,
     },
     controls: {
-      togglePlayPause,
+      ...controls,
       handleSeek,
-      handleVolumeChange,
-      handleSpeedChange,
-      skipBack,
-      skipForward,
-      handleProgressClick,
     },
   }
 }

@@ -1,4 +1,7 @@
-import { SpeedOption } from '../types/podcast'
+export interface SpeedOption {
+  value: number
+  label: string
+}
 
 // オーディオ制御関連の定数
 export const AUDIO_CONTROLS = {

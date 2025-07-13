@@ -1,10 +1,12 @@
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { mutate as globalMutate } from 'swr'
 
 import {
   createPodcast,
   retryPodcast,
+  pollPodcastStatus,
 } from '../lib/apiHandler/podcastApiHandler'
 
 import { useTranslation } from './useTranslation'
@@ -64,6 +66,20 @@ export const usePodcastActions = (): UsePodcastActionsReturn => {
 
       if (result) {
         notifySuccess('create')
+        // statusがPROCESSINGまたはPENDINGのときのみポーリング
+        if (result.status === 'PROCESSING' || result.status === 'PENDING') {
+          pollPodcastStatus(
+            result.id,
+            (status) => {
+              if (status.status === 'COMPLETED' || status.status === 'FAILED') {
+                globalMutate(
+                  `${process.env.NEXT_PUBLIC_API_BASE_URL}/podcasts/book/${bookId}`,
+                )
+              }
+            },
+            5000, // 5秒間隔
+          )
+        }
         return true
       } else {
         handleError(new Error('Creation failed'), 'create')

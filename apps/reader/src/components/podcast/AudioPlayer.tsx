@@ -1,5 +1,9 @@
-import React from 'react'
+import React, { memo } from 'react'
 
+import {
+  PODCAST_KEYBOARD_SHORTCUTS,
+  PODCAST_UI_CLASSES,
+} from '../../constants/podcast'
 import { useAudioPlayer } from '../../hooks/useAudioPlayer'
 import { useTranslation } from '../../hooks/useTranslation'
 import { formatTime } from '../../utils/podcast'
@@ -9,7 +13,7 @@ import { AudioControls } from './AudioControls'
 import { SpeedControl } from './SpeedControl'
 import { VolumeControl } from './VolumeControl'
 
-interface AudioPlayerProps {
+export interface AudioPlayerProps {
   audioUrl: string
   title: string
   onPlay?: () => void
@@ -17,7 +21,7 @@ interface AudioPlayerProps {
   onEnd?: () => void
 }
 
-export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
   audioUrl,
   title,
   onPlay,
@@ -56,7 +60,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {/* Error Display */}
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3">
+        <div className={PODCAST_UI_CLASSES.ERROR_CARD}>
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
@@ -72,13 +76,17 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           tabIndex={0}
           className="focus:ring-primary rounded focus:outline-none focus:ring-2 focus:ring-offset-2"
           onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              skipBack()
-            } else if (e.key === 'ArrowRight') {
-              skipForward()
-            } else if (e.key === ' ') {
-              e.preventDefault()
-              togglePlayPause()
+            switch (e.key) {
+              case PODCAST_KEYBOARD_SHORTCUTS.SKIP_BACK:
+                skipBack()
+                break
+              case PODCAST_KEYBOARD_SHORTCUTS.SKIP_FORWARD:
+                skipForward()
+                break
+              case PODCAST_KEYBOARD_SHORTCUTS.PLAY_PAUSE:
+                e.preventDefault()
+                togglePlayPause()
+                break
             }
           }}
         >
@@ -127,5 +135,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     </div>
   )
 }
+
+export const AudioPlayer = memo(AudioPlayerComponent)
+
+AudioPlayer.displayName = 'AudioPlayer'
 
 export default AudioPlayer

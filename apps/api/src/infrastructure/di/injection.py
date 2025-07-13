@@ -7,9 +7,6 @@ from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
 from src.domain.message.repositories.message_repository import MessageRepository
 from src.domain.podcast.repositories.podcast_repository import PodcastRepository
-from src.infrastructure.external.cloud_tts.tts_client import CloudTTSClient
-from src.infrastructure.external.gcs import GCSClient
-from src.infrastructure.external.gemini import GeminiClient
 from src.infrastructure.memory.memory_service import MemoryService
 from src.infrastructure.postgres.annotation.annotation_repository import AnnotationRepositoryImpl
 from src.infrastructure.postgres.book.book_repository import BookRepositoryImpl
@@ -262,18 +259,6 @@ def get_podcast_repository(db: Session = Depends(get_db)) -> PodcastRepository:
     return PodcastRepositoryImpl(session=db)
 
 
-def get_gemini_client() -> GeminiClient:
-    return GeminiClient()
-
-
-def get_cloud_tts_client() -> CloudTTSClient:
-    return CloudTTSClient()
-
-
-def get_gcs_client() -> GCSClient:
-    return GCSClient()
-
-
 async def get_create_podcast_usecase(
     podcast_repository: PodcastRepository = Depends(get_podcast_repository),
     book_repository: BookRepository = Depends(get_book_repository),
@@ -302,14 +287,8 @@ async def get_podcast_status_usecase(
 async def get_generate_podcast_usecase(
     podcast_repository: PodcastRepository = Depends(get_podcast_repository),
     book_repository: BookRepository = Depends(get_book_repository),
-    gemini_client: GeminiClient = Depends(get_gemini_client),
-    tts_client: CloudTTSClient = Depends(get_cloud_tts_client),
-    gcs_client: GCSClient = Depends(get_gcs_client),
 ) -> GeneratePodcastUseCase:
     return GeneratePodcastUseCase(
         podcast_repository=podcast_repository,
         book_repository=book_repository,
-        gemini_client=gemini_client,
-        tts_client=tts_client,
-        gcs_client=gcs_client,
     )

@@ -13,50 +13,40 @@ class CloudTTSClient:
 
     def __init__(self) -> None:
         self.config = AppConfig.get_config()
-
-        # Use default credentials (ADC). If gcloud auth application-default login has been run,
-        # ~/.config/gcloud/application_default_credentials.json will be used.
         self.client = tts.TextToSpeechClient()
-
         # Configure voice settings by language
         self.voices = {
             "en-US": {
                 "HOST": tts.VoiceSelectionParams(
                     language_code="en-US",
-                    name="en-US-Studio-O",
+                    name="en-US-Standard-B",
                 ),
                 "GUEST": tts.VoiceSelectionParams(
                     language_code="en-US",
-                    name="en-US-Studio-Q",
+                    name="en-US-Standard-F",
                 ),
             },
             "ja-JP": {
                 "HOST": tts.VoiceSelectionParams(
                     language_code="ja-JP",
-                    name="ja-JP-Neural2-B",  # Male voice
+                    name="ja-JP-Standard-B",
                 ),
                 "GUEST": tts.VoiceSelectionParams(
                     language_code="ja-JP",
-                    name="ja-JP-Neural2-A",  # Female voice
+                    name="ja-JP-Standard-D",
                 ),
             },
             "cmn-CN": {
                 "HOST": tts.VoiceSelectionParams(
                     language_code="cmn-CN",
-                    name="cmn-CN-Standard-C",  # Male voice
+                    name="cmn-CN-Standard-C",
                 ),
                 "GUEST": tts.VoiceSelectionParams(
                     language_code="cmn-CN",
-                    name="cmn-CN-Standard-A",  # Female voice
+                    name="cmn-CN-Standard-A",
                 ),
             },
         }
-
-        # Legacy voice settings for backward compatibility
-        self.voice_R = self.voices["en-US"]["HOST"]
-        self.voice_S = self.voices["en-US"]["GUEST"]
-        self.japanese_voice = self.voices["ja-JP"]["HOST"]
-
         # Configure audio settings
         self.audio_config = tts.AudioConfig(
             audio_encoding=tts.AudioEncoding.MP3,
@@ -111,27 +101,6 @@ class CloudTTSClient:
         except Exception as e:
             logger.error(f"Error synthesizing multi-speaker audio: {str(e)}")
             raise PodcastAudioSynthesisError(f"Multi-speaker synthesis failed: {str(e)}")
-
-    async def synthesize_japanese(self, text: str) -> bytes:
-        """Synthesize Japanese text using Neural2 voice
-
-        Args:
-            text: Japanese text to synthesize
-
-        Returns:
-            Audio data in MP3 format
-
-        """
-        try:
-            synthesis_input = tts.SynthesisInput(text=text)
-
-            response = self.client.synthesize_speech(input=synthesis_input, voice=self.japanese_voice, audio_config=self.audio_config)
-
-            return response.audio_content
-
-        except Exception as e:
-            logger.error(f"Error synthesizing Japanese audio: {str(e)}")
-            raise PodcastAudioSynthesisError(f"Japanese synthesis failed: {str(e)}")
 
     async def synthesize_with_chunks(self, turns: list[dict], max_chars_per_request: int = 5000, language: str = "en-US") -> list[bytes]:
         """Synthesize dialogue in chunks if it exceeds the character limit

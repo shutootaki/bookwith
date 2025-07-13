@@ -43,7 +43,6 @@ class CreatePodcastUseCase:
         if existing_podcast:
             raise PodcastAlreadyExistsError(str(book_id), str(user_id))
 
-        # Bookの存在チェックのみ
         book = self.book_repository.find_by_id(book_id)
         if not book:
             raise ValueError(f"Book not found: {book_id}")

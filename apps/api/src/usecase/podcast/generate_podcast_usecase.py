@@ -10,11 +10,10 @@ from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_script import PodcastScript
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus
 from src.infrastructure.external.audio import AudioProcessor
-from src.infrastructure.external.cloud_tts.tts_client import CloudTTSClient
 from src.infrastructure.external.gcs import GCSBucketError, GCSClient
-from src.infrastructure.external.gemini import GeminiClient
 from src.usecase.podcast.extract_chapters_usecase import ExtractChaptersUseCase
 from src.usecase.podcast.generate_script_usecase import GenerateScriptUseCase
+from src.usecase.podcast.podcast_config import PodcastConfig
 from src.usecase.podcast.summarize_chapters_usecase import SummarizeChaptersUseCase
 from src.usecase.podcast.synthesize_audio_usecase import SynthesizeAudioUseCase
 
@@ -28,20 +27,16 @@ class GeneratePodcastUseCase:
         self,
         podcast_repository: PodcastRepository,
         book_repository: BookRepository,
-        gemini_client: GeminiClient,
-        tts_client: CloudTTSClient,
-        gcs_client: GCSClient,
     ) -> None:
         self.podcast_repository = podcast_repository
         self.book_repository = book_repository
-
-        # Initialize use cases and services
+        self.gcs_client = GCSClient()
         self.chapter_extractor = ExtractChaptersUseCase()
-        self.summarizer = SummarizeChaptersUseCase(gemini_client)
-        self.script_generator = GenerateScriptUseCase(gemini_client)
-        self.audio_synthesizer = SynthesizeAudioUseCase(tts_client)
+        self.summarizer = SummarizeChaptersUseCase()
+        self.script_generator = GenerateScriptUseCase()
+        self.audio_synthesizer = SynthesizeAudioUseCase()
         self.audio_processor = AudioProcessor()
-        self.gcs_client = gcs_client
+        self.config = PodcastConfig()
 
     async def execute(self, podcast_id: PodcastId) -> None:
         """Generate podcast audio for the given podcast ID"""
@@ -99,19 +94,17 @@ class GeneratePodcastUseCase:
 
     async def _extract_and_process_chapters(self, book: Book) -> list:
         """Extract chapters from EPUB and process them"""
-        return await self.chapter_extractor.execute(book.file_path, max_chapters=15)
+        return await self.chapter_extractor.execute(book.file_path)
 
-    async def _generate_book_summary(self, chapters: list, book_title: str, language: PodcastLanguage = PodcastLanguage.EN_US) -> str:
+    async def _generate_book_summary(self, chapters: list, book_title: str, language: PodcastLanguage) -> str:
         """Generate book summary from chapters"""
         logger.info(f"Summarizing {len(chapters)} chapters")
         return await self.summarizer.execute(chapters, book_title, language)
 
-    async def _generate_and_save_script(
-        self, podcast: Podcast, book_summary: str, book_title: str, language: PodcastLanguage = PodcastLanguage.EN_US
-    ) -> PodcastScript:
+    async def _generate_and_save_script(self, podcast: Podcast, book_summary: str, book_title: str, language: PodcastLanguage) -> PodcastScript:
         """Generate podcast script and save it"""
         logger.info("Generating podcast script")
-        script = await self.script_generator.execute(book_summary=book_summary, book_title=book_title, target_words=1000, language=language)
+        script = await self.script_generator.execute(book_summary=book_summary, book_title=book_title, language=language)
 
         # Save script to podcast
         podcast.set_script(script)
@@ -119,7 +112,7 @@ class GeneratePodcastUseCase:
 
         return script
 
-    async def _synthesize_and_process_audio(self, script: PodcastScript, language: PodcastLanguage = PodcastLanguage.EN_US) -> bytes:
+    async def _synthesize_and_process_audio(self, script: PodcastScript, language: PodcastLanguage) -> bytes:
         """Synthesize and process audio from script"""
         logger.info("Synthesizing audio")
         audio_data = await self.audio_synthesizer.execute(script, language=language)
@@ -128,17 +121,9 @@ class GeneratePodcastUseCase:
         return await self.audio_processor.process_audio(audio_data)
 
     async def _upload_and_complete(self, podcast: Podcast, audio_data: bytes) -> None:
-        """Upload audio and mark podcast as completed
-
-        Args:
-            podcast: Podcast entity
-            audio_data: Processed audio data
-
-        """
+        """Upload audio and mark podcast as completed"""
         logger.info("Uploading to storage")
         audio_url = await self._upload_audio(podcast, audio_data)
-
-        # Mark as completed
         await self.podcast_repository.update_status(podcast.id, PodcastStatus.completed(), audio_url=audio_url)
 
     async def _upload_audio(self, podcast: Podcast, audio_data: bytes) -> str:

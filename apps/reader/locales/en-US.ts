@@ -1,277 +1,190 @@
 export default {
   /**
-   * Common
+   * Actions
    */
-  'common.loading': 'Loading',
-  'common.retry': 'Retry',
-  'common.retrying': 'Retrying...',
-  'common.created_at': 'Created',
-  'common.updated_at': 'Updated',
-  'common.cancel': 'Cancel',
-
-  /**
-   * Home
-   */
-  'home.title': 'Home',
-  'home.share': 'Share',
-  'home.download': 'Download',
-  'home.download_sample_book': 'Download sample book',
-  'home.select': 'Select',
-  'home.cancel': 'Cancel', // TODO: use 'common.cancel'
-  'home.select_all': 'Select all',
-  'home.deselect_all': 'Deselect all',
-  'home.export': 'Export',
-  'home.import': 'Import',
-  'home.upload': 'Upload',
-  'home.delete': 'Delete',
-  'home.delete_success': 'Books successfully deleted',
-  'home.delete_confirmation': 'Confirm Deletion',
-  'home.delete_confirmation_message':
-    'Are you sure you want to delete the selected books? This action cannot be undone.',
-  'home.import_success': 'Successfully imported {count} books',
-  'home.import_failed': 'Failed to import {count} books',
-  'home.import_partial_success':
-    'Successfully imported {success} books (failed {failed})',
-  'home.import_error': 'An error occurred during import',
-  'home.import_error_log': 'An error occurred during import:',
-  'home.file_import_error_log': 'An error occurred during file import:',
-  'home.no_books_message': 'No books found. Please import some books.',
-  'home.selected_books': '{count} books selected',
-  'home.importing_books': 'Importing books',
-  'home.remote_epub_placeholder': 'Enter EPUB file URL',
-
-  /**
-   * Import
-   */
-  'import.processing': 'Processing',
-  'import.processing_aria': 'Processing',
-  'import.analyzing_file': 'Analyzing file...',
-  'import.processing_metadata': 'Processing metadata...',
-  'import.processing_content': 'Processing content...',
-  'import.saving': 'Saving...',
-  'import.files_processed': 'files processed',
-  'import.import_status':
-    '{success} books imported successfully, {failed} books failed',
-  'import.please_wait': 'Please wait for import to complete...',
-  'import.api_registration_failed':
-    'Failed to register book to API: {filename}',
-  'import.book_registration_error':
-    'Error occurred while registering book ({filename}):',
-
-  /**
-   * Table of Contents
-   */
-  'toc.title': 'TOC',
-  'toc.library': 'Library',
-
-  /**
-   * Search
-   */
-  'search.title': 'Search',
-  'search.files.result': '{n} results in {m} sections',
-
-  /**
-   * Annotation
-   */
-  'annotation.title': 'Annotation',
-  'annotation.definitions': 'Definitions',
-  'annotation.annotations': 'Annotations',
-  'annotation.copy_as_markdown': 'Copy as Markdown',
-
-  /**
-   * Image
-   */
-  'image.title': 'Image',
-
-  /**
-   * Timeline
-   */
-  'timeline.title': 'Timeline',
-
-  /**
-   * Typography
-   */
-  'typography.title': 'Typography',
-  'typography.scope.book': 'Book',
-  'typography.scope.global': 'Global',
-  'typography.page_view': 'Page View',
-  'typography.page_view.single_page': 'Single Page',
-  'typography.page_view.double_page': 'Double Page',
-  'typography.font_family': 'Font Family',
-  'typography.font_size': 'Font Size',
-  'typography.font_weight': 'Font Weight',
-  'typography.line_height': 'Line Height',
-  'typography.zoom': 'Zoom',
-
-  /**
-   * Theme
-   */
-  'theme.title': 'Theme',
-  'theme.source_color': 'Source Color',
-  'theme.background_color': 'Background Color',
-
-  /**
-   * Settings
-   */
-  'settings.title': 'Settings',
-  'settings.language': 'Language',
-  'settings.language.english': 'English',
-  'settings.language.japanese': '日本語',
-  'settings.language.chinese': '简体中文',
-  'settings.color_scheme': 'Color Scheme',
-  'settings.color_scheme.system': 'System',
-  'settings.color_scheme.light': 'Light',
-  'settings.color_scheme.dark': 'Dark',
-  'settings.synchronization.title': 'Synchronization',
-  'settings.synchronization.authorize': 'Authorize',
-  'settings.synchronization.unauthorize': 'Unauthorize',
-  'settings.cache': 'Cache',
-  'settings.cache.clear': 'Clear',
-
-  /**
-   * Menu
-   */
-  'menu.copy': 'Copy',
-  'menu.search_in_book': 'Search in book',
-  'menu.annotate': 'Annotate',
-  'menu.define': 'Define',
-  'menu.undefine': 'Undefine',
-  'menu.create': 'Create',
-  'menu.delete': 'Delete',
-  'menu.update': 'Update',
-
-  /**
-   * Action
-   */
-  'action.expand_all': 'Expand All',
-  'action.collapse_all': 'Collapse All',
-  'action.close': 'Close',
   'action.clear': 'Clear',
-  'action.step_down': 'Step Down',
-  'action.step_up': 'Step Up',
+  'action.close': 'Close',
+  'action.collapse_all': 'Collapse All',
+  'action.expand_all': 'Expand All',
+
+  /**
+   * Annotations
+   */
+  annotate: 'Annotate',
+  'annotation.title': 'Annotation',
+  annotations: 'Annotations',
+  definitions: 'Definitions',
+  define: 'Define',
+  undefine: 'Undefine',
+  copy_as_markdown: 'Copy as Markdown',
+
+  /**
+   * Book Info
+   */
+  author: 'Author:',
+  book_info: 'Reference information about [{title}]',
+  progress: 'Progress:',
+  pubdate: 'Publication date:',
+  not_found: 'Not found',
+
+  /**
+   * Cache
+   */
+  cache: 'Cache',
+  'cache.clear': 'Clear',
 
   /**
    * Chat
    */
-  'chat.title': 'Chat',
-  'chat.placeholder': 'Ask me anything',
-  'chat.new_chat': 'Open New Chat',
-  'chat.history': 'Chat History',
-  'chat.new': 'New Chat',
-  'chat.empty_title': 'Start a chat',
-  'chat.empty_description':
-    'AI will answer based on knowledge from the book you are reading.',
-  'chat.search_history': 'Search chat history',
-  'chat.no_history': 'No history found',
-  'chat.keyboard_shortcut': '`Cmd + Enter` or `Ctrl + Enter` to send',
-  'chat.send': 'Send',
-  'chat.error': 'An error occurred',
   'chat.created_at': 'Created at',
-  'chat.sending': '💬 Sending message...',
-  'chat.author': 'Author:',
-  'chat.progress': 'Progress:',
+  'chat.empty_description': 'AI will answer based on knowledge from the book you are reading.',
+  'chat.empty_title': 'Start a chat',
+  'chat.error': 'An error occurred',
   'chat.generating': 'Generating response...',
-  'chat.pubdate': 'Publication date:',
-  'chat.not_found': 'Not found',
-  'chat.book_info': 'Reference information about [{title}]',
+  'chat.history': 'Chat History',
+  'chat.history_fetch_error': 'Failed to fetch history',
+  'chat.keyboard_shortcut': '`Cmd + Enter` or `Ctrl + Enter` to send',
+  'chat.loading': 'Loading...',
+  'chat.new': 'New Chat',
+  'chat.no_history': 'No history found',
+  'chat.placeholder': 'Ask me anything',
+  'chat.search_history': 'Search chat history',
+  'chat.send': 'Send',
+  'chat.title': 'Chat',
+  'chat.untitled': 'Untitled Chat',
+
+  /**
+   * Color/Theme
+   */
+  color_scheme: 'Color Scheme',
+  'color_scheme.dark': 'Dark',
+  'color_scheme.light': 'Light',
+  'color_scheme.system': 'System',
+  source_color: 'Source Color',
+  background_color: 'Background Color',
+
+  /**
+   * CRUD Operations
+   */
+  create: 'Create',
+  update: 'Update',
+  delete: 'Delete',
+  cancel: 'Cancel',
+  copy: 'Copy',
+
+  /**
+   * Files/Import
+   */
+  download: 'Download',
+  download_sample_book: 'Download sample book',
+  drop_to_import: 'Drop to import',
+  file_import_error_log: 'An error occurred during file import:',
+  import: 'Import',
+  import_error: 'An error occurred during import',
+  import_error_log: 'An error occurred during import:',
+  import_failed: 'Failed to import {count} books',
+  import_partial_success: 'Successfully imported {success} books (failed {failed})',
+  import_success: 'Successfully imported {count} books',
+  importing_books: 'Importing books',
+  remote_epub_placeholder: 'Enter EPUB file URL',
+
+  /**
+   * Language
+   */
+  language: 'Language',
+  'language.chinese': '简体中文',
+  'language.english': 'English',
+  'language.japanese': '日本語',
+
+  /**
+   * Library/Book Management
+   */
+  library: 'Library',
+  no_books_message: 'No books found. Please import some books.',
+  selected_books: '{count} books selected',
+  select: 'Select',
+  select_all: 'Select all',
+  deselect_all: 'Deselect all',
+  delete_confirmation: 'Confirm Deletion',
+  delete_confirmation_message: 'Are you sure you want to delete the selected books? This action cannot be undone.',
+  delete_success: 'Books successfully deleted',
+
+  /**
+   * Loading/UI States
+   */
+  loading: 'Loading',
+  share: 'Share',
+
+  /**
+   * Navigation/Section Titles
+   */
+  'home.title': 'Home',
+  'image.title': 'Image',
+  'podcast.title': 'Podcast',
+  'search.title': 'Search',
+  'settings.title': 'Settings',
+  'theme.title': 'Theme',
+  'timeline.title': 'Timeline',
+  'toc.title': 'TOC',
+  'typography.title': 'Typography',
+  title: 'Title',
 
   /**
    * Podcast
    */
-  'podcast.title': 'Podcast',
-  'podcast.refresh': 'Refresh',
-  'podcast.generate': 'Generate',
-  'podcast.play': 'Play',
-  'podcast.pause': 'Pause',
-  'podcast.download': 'Download',
-  'podcast.share': 'Share',
-  'podcast.script': 'Script',
-  'podcast.status.pending': 'Pending',
-  'podcast.status.processing': 'Processing',
-  'podcast.status.completed': 'Completed',
-  'podcast.status.failed': 'Failed',
-  'podcast.status.unknown': 'Unknown',
-  'podcast.failed': 'Podcast generation failed',
-  'podcast.failed_description': 'An error occurred. Please try again later.',
-  'podcast.retry': 'Retry', // TODO: use 'common.retry'
-  'podcast.retrying': 'Retrying...', // TODO: use 'common.retrying'
-
-  // AudioPlayer related
-  'podcast.audio_player.playback_failed': 'Audio playback failed',
+  'podcast.audio_player.change_speed': 'Change playback speed',
+  'podcast.audio_player.controls': 'Audio controls',
+  'podcast.audio_player.current_time': 'Current playback time',
+  'podcast.audio_player.loading': 'Loading',
+  'podcast.audio_player.position': 'Audio playback position',
   'podcast.audio_player.skip_back': 'Skip back 10 seconds',
   'podcast.audio_player.skip_forward': 'Skip forward 10 seconds',
-  'podcast.audio_player.loading': 'Loading', // TODO: use 'common.loading'
-  'podcast.audio_player.current_time': 'Current playback time',
-  'podcast.audio_player.total_time': 'Total playback time',
-  'podcast.audio_player.controls': 'Audio controls',
-  'podcast.audio_player.position': 'Audio playback position',
   'podcast.audio_player.speed': 'Speed',
-  'podcast.audio_player.change_speed': 'Change playback speed',
-
-  // PodcastDetail related
+  'podcast.audio_player.total_time': 'Total playback time',
+  'podcast.book_item.generate_podcast_aria_label': 'Generate podcast for {name}',
+  'podcast.book_item.generating_podcast_aria_label': 'Generating podcast for {name}',
+  'podcast.detail.author_unknown': 'Unknown author',
   'podcast.detail.back': 'Back',
   'podcast.detail.download_short': 'DL',
-  'podcast.detail.created_at': 'Created', // TODO: use 'common.created_at'
-  'podcast.detail.updated_at': 'Updated', // TODO: use 'common.updated_at'
-  'podcast.detail.status': 'Status',
-  'podcast.detail.error': 'Error',
-  'podcast.detail.author_unknown': 'Unknown author',
-
-  // PodcastList related
-  'podcast.list.empty': 'No podcasts yet',
-  'podcast.list.generating': 'Generating podcast...',
-  'podcast.list.retry': 'Retry', // TODO: use 'common.retry'
-  'podcast.list.retrying': 'Retrying...', // TODO: use 'common.retrying'
-  'podcast.list.created_date': 'Created', // TODO: use 'common.created_at'
-  'podcast.list.updated_date': 'Updated', // TODO: use 'common.updated_at'
-  'podcast.list.refresh': 'Refresh',
-  'podcast.list.refreshing_aria_label': 'Refreshing podcast list',
-  'podcast.list.refresh_aria_label': 'Refresh podcast list',
-  'podcast.list.play_podcast_aria_label': 'Play {title}',
-
-  // PodcastPane related
-  'podcast.pane.generation_started': 'Podcast generation started',
-  'podcast.pane.generation_failed': 'Podcast generation failed',
-  'podcast.pane.regeneration_started': 'Podcast regeneration started',
-  'podcast.pane.regeneration_failed': 'Podcast regeneration failed',
-  'podcast.pane.generating': 'Generating...',
-  'podcast.pane.generate_podcast': 'Generate Podcast',
-  'podcast.pane.podcast_list': 'Podcast List',
-  'podcast.pane.loading_failed': 'Failed to load podcasts',
-  'podcast.pane.loading': 'Loading', // TODO: use 'common.loading'
-  'podcast.pane.fetching_info': 'Fetching podcast information',
-  'podcast.pane.library': 'Library',
-  'podcast.pane.library_description':
-    'Select a book to generate and play podcasts',
-  'podcast.pane.podcast_title': 'Podcast for {name}',
-
-  // Library Podcast View related
-  'podcast.library.title': 'Library',
+  'podcast.failed': 'Podcast generation failed',
+  'podcast.failed_description': 'An error occurred. Please try again later.',
+  'podcast.generate': 'Generate',
   'podcast.library.description': 'Select a book to generate and play podcasts',
-
-  // Book Podcast Item related
-  'podcast.book_item.open_book_aria_label':
-    'Open {name}{author, select, null {} other { (Author: {author})}}',
-  'podcast.book_item.play_podcast_aria_label': 'Play podcast for {name}',
-  'podcast.book_item.generating_podcast_aria_label':
-    'Generating podcast for {name}',
-  'podcast.book_item.generate_podcast_aria_label':
-    'Generate podcast for {name}',
-
-  /**
-   * Global Loading Overlay
-   */
-  'loading_overlay.loading': 'Loading', // TODO: use 'common.loading'
-  'loading_overlay.importing_books': 'Importing {completed}/{total} books',
-  'loading_overlay.cancel': 'Cancel', // TODO: use 'common.cancel'
-
-  /**
-   * Dropzone
-   */
-  'dropzone.drop_to_import': 'Drop to import',
+  'podcast.list.empty': 'No podcasts yet',
+  'podcast.list.retry': 'Retry',
+  'podcast.pane.fetching_info': 'Fetching podcast information',
+  'podcast.pane.generate_podcast': 'Generate Podcast',
+  'podcast.pane.generating': 'Generating...',
+  'podcast.pane.loading': 'Loading',
+  'podcast.pane.loading_failed': 'Failed to load podcasts',
+  'podcast.pane.podcast_title': 'Podcast for {name}',
+  'podcast.pause': 'Pause',
+  'podcast.play': 'Play',
+  'podcast.retry': 'Retry',
+  'podcast.retrying': 'Retrying...',
+  'podcast.script': 'Script',
+  'podcast.share': 'Share',
+  'podcast.status.processing': 'Processing',
 
   /**
-   * Others
+   * Search
    */
-  untitled: 'Untitled',
+  search_in_book: 'Search in book',
+  'files.result': '{n} results in {m} sections',
+
+  /**
+   * Typography
+   */
+  font_family: 'Font Family',
+  font_size: 'Font Size',
+  font_weight: 'Font Weight',
+  line_height: 'Line Height',
+  page_view: 'Page View',
+  'page_view.double_page': 'Double Page',
+  'page_view.single_page': 'Single Page',
+  'scope.book': 'Book',
+  'scope.global': 'Global',
+  step_down: 'Step Down',
+  step_up: 'Step Up',
+  zoom: 'Zoom',
 } as const

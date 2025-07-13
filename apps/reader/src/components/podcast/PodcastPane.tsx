@@ -1,10 +1,13 @@
 import { RefreshCw } from 'lucide-react'
-import React, { useCallback } from 'react'
+import React, { useCallback, memo } from 'react'
 
+import { PODCAST_ANIMATIONS, PODCAST_ICON_SIZES } from '../../constants/podcast'
 import { usePodcastActions } from '../../hooks'
+import { usePodcastError } from '../../hooks/podcast/usePodcastError'
 import { usePodcastSelection } from '../../hooks/podcast/usePodcastSelection'
 import { usePodcastsByBook } from '../../hooks/useSWR/usePodcast'
 import { useTranslation } from '../../hooks/useTranslation'
+import { cn } from '../../lib/utils'
 import { useReaderSnapshot } from '../../models'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
@@ -12,7 +15,7 @@ import { Card } from '../ui/card'
 import { LibraryPodcastView } from './LibraryPodcastView'
 import { PodcastDetail } from './PodcastDetail'
 
-export const PodcastPane: React.FC = () => {
+export const PodcastPane: React.FC = memo(() => {
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
   const {
@@ -26,6 +29,8 @@ export const PodcastPane: React.FC = () => {
     focusedBookTab?.book.id,
   )
 
+  const { setError: setPodcastError, clearError } = usePodcastError()
+
   const { selectedPodcast } = usePodcastSelection({
     podcasts,
     bookId: focusedBookTab?.book.id,
@@ -34,30 +39,38 @@ export const PodcastPane: React.FC = () => {
   const handleCreatePodcast = useCallback(async () => {
     if (!focusedBookTab?.book.id) return
 
-    const success = await createPodcastAction(
-      focusedBookTab.book.id,
-      focusedBookTab.book.name,
-    )
-    if (success) {
-      mutate() // Refresh the podcast list
+    clearError()
+    try {
+      const success = await createPodcastAction(
+        focusedBookTab.book.id,
+        focusedBookTab.book.name,
+      )
+      if (success) {
+        await mutate() // Refresh the podcast list
+      }
+    } catch (error) {
+      setPodcastError(error)
     }
   }, [
     focusedBookTab?.book.id,
     focusedBookTab?.book.name,
     createPodcastAction,
     mutate,
+    clearError,
+    setPodcastError,
   ])
 
   const handleRetryPodcast = useCallback(
     async (podcastId: string) => {
+      clearError()
       try {
         await retryPodcastGeneration(podcastId)
-        mutate() // リトライ後にリストをリフレッシュ
+        await mutate() // リトライ後にリストをリフレッシュ
       } catch (error) {
-        console.error('Failed to retry podcast:', error)
+        setPodcastError(error)
       }
     },
-    [retryPodcastGeneration, mutate],
+    [retryPodcastGeneration, mutate, clearError, setPodcastError],
   )
 
   if (!focusedBookTab) {
@@ -111,7 +124,10 @@ export const PodcastPane: React.FC = () => {
               {isCreating ? (
                 <>
                   <RefreshCw
-                    className="h-3 w-3 animate-spin"
+                    className={cn(
+                      PODCAST_ICON_SIZES.XS,
+                      PODCAST_ANIMATIONS.SPIN,
+                    )}
                     aria-hidden="true"
                   />
                   <span className="text-xs">
@@ -149,7 +165,13 @@ export const PodcastPane: React.FC = () => {
           {isLoading ? (
             <Card className="p-4">
               <div className="space-y-2 text-center">
-                <RefreshCw className="text-primary mx-auto h-4 w-4 animate-spin" />
+                <RefreshCw
+                  className={cn(
+                    PODCAST_ICON_SIZES.SM,
+                    PODCAST_ANIMATIONS.SPIN,
+                    'text-primary mx-auto',
+                  )}
+                />
                 <div>
                   <p className="text-foreground text-xs font-medium">
                     {t('podcast.pane.loading')}
@@ -165,7 +187,13 @@ export const PodcastPane: React.FC = () => {
             // ここには到達しないはずだが、念のためローディング表示
             <Card className="p-4">
               <div className="space-y-2 text-center">
-                <RefreshCw className="text-primary mx-auto h-4 w-4 animate-spin" />
+                <RefreshCw
+                  className={cn(
+                    PODCAST_ICON_SIZES.SM,
+                    PODCAST_ANIMATIONS.SPIN,
+                    'text-primary mx-auto',
+                  )}
+                />
                 <div>
                   <p className="text-foreground text-xs font-medium">
                     {t('podcast.pane.loading')}
@@ -181,6 +209,4 @@ export const PodcastPane: React.FC = () => {
       )}
     </div>
   )
-}
-
-export default PodcastPane
+})
