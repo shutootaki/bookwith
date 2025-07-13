@@ -21,11 +21,9 @@ export const PodcastPane: React.FC = memo(() => {
   }
 
   return (
-    <div className="flex h-full">
-      <PodcastDetail
-        podcast={selectedPodcast || undefined}
-        book={focusedBookTab.book as components['schemas']['BookDetail']}
-      />
-    </div>
+    <PodcastDetail
+      podcast={selectedPodcast || undefined}
+      book={focusedBookTab.book as components['schemas']['BookDetail']}
+    />
   )
 })

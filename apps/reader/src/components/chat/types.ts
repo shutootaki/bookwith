@@ -1,4 +1,4 @@
-import { components } from '../../../lib/openapi-schema/schema'
+import { components } from '../../lib/openapi-schema/schema'
 
 export interface Message {
   text: components['schemas']['MessageResponse']['content']

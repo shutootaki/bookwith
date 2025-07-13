@@ -1,8 +1,8 @@
 import { Check, Copy } from 'lucide-react'
 import React, { useState } from 'react'
 
-import { FormattedText } from '../../FormattedText'
-import { Button } from '../../ui/button'
+import { FormattedText } from '../FormattedText'
+import { Button } from '../ui/button'
 
 import { Message } from './types'
 

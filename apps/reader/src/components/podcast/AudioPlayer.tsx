@@ -5,7 +5,7 @@ import { useAudioPlayer } from '../../hooks/podcast/useAudioPlayer'
 import { useTranslation } from '../../hooks/useTranslation'
 import { formatTime } from '../../utils/podcast'
 import { Alert, AlertDescription } from '../ui/alert'
-import { Progress } from '../ui/progress'
+import { Slider } from '../ui/slider'
 
 import { AudioControls } from './AudioControls'
 import { SpeedControl } from './SpeedControl'
@@ -47,7 +47,6 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
     handleSpeedChange,
     skipBack,
     skipForward,
-    handleProgressClick,
     seekToTime,
   } = controls
 
@@ -104,13 +103,24 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
             }
           }}
         >
-          <Progress
+          <Slider
             value={
-              duration && isMetadataLoaded ? (currentTime / duration) * 100 : 0
+              duration && isMetadataLoaded
+                ? [(currentTime / duration) * 100]
+                : [0]
             }
+            onValueChange={(value) => {
+              if (value[0] !== undefined && duration && isMetadataLoaded) {
+                const newTime = (value[0] / 100) * duration
+                seekToTime(newTime)
+              }
+            }}
+            max={100}
+            step={0.1}
+            disabled={!isMetadataLoaded || !duration}
+            aria-label={t('podcast.audio_player.position')}
             aria-valuetext={formatTime(currentTime)}
-            className="h-2 cursor-pointer"
-            onClick={handleProgressClick}
+            className="w-full cursor-pointer"
           />
         </div>
         <div className="text-muted-foreground flex justify-between text-sm">

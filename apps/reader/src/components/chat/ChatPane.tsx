@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { useTranslation } from '@flow/reader/hooks'
 
-import { apiClient } from '../../../lib/apiHandler/apiClient'
-import { components } from '../../../lib/openapi-schema/schema'
-import { useReaderSnapshot } from '../../../models'
-import { TEST_USER_ID } from '../../../pages/_app'
-import { ResponsiveToolTip } from '../../ResponsiveToolTip'
+import { apiClient } from '../../lib/apiHandler/apiClient'
+import { components } from '../../lib/openapi-schema/schema'
+import { useReaderSnapshot } from '../../models'
+import { TEST_USER_ID } from '../../pages/_app'
+import { ResponsiveToolTip } from '../ResponsiveToolTip'
 
 import { BookInfoTooltipContent } from './BookInfoTooltipContent'
 import { ChatInputForm } from './ChatInputForm'

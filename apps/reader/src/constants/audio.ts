@@ -42,7 +42,7 @@ export const AUDIO_EVENTS = {
 export const VOLUME_SLIDER = {
   MIN: 0,
   MAX: 1,
-  STEP: 0.1,
+  STEP: 0.01,
 } as const
 
 // オーディオファイル関連の定数

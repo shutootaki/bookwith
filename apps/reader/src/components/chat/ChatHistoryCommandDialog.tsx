@@ -3,9 +3,9 @@ import React, { useEffect, useState, useCallback } from 'react'
 
 import { useTranslation } from '@flow/reader/hooks'
 
-import { getUserChats } from '../../../lib/apiHandler/chatApiHandler'
-import { components } from '../../../lib/openapi-schema/schema'
-import { TEST_USER_ID } from '../../../pages/_app'
+import { getUserChats } from '../../lib/apiHandler/chatApiHandler'
+import { components } from '../../lib/openapi-schema/schema'
+import { TEST_USER_ID } from '../../pages/_app'
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,8 +13,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '../../ui/command'
-import { DialogTitle } from '../../ui/dialog'
+} from '../ui/command'
+import { DialogTitle } from '../ui/dialog'
 
 interface ChatHistoryCommandDialogProps {
   open: boolean

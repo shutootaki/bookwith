@@ -107,7 +107,7 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = memo(
     // ポッドキャストが完了している場合は詳細UIを表示
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <div className="space-y-4 overflow-y-auto p-4">
+        <div className="space-y-4 overflow-y-auto px-4">
           <div className="flex items-center justify-between">
             {onBack && (
               <Button

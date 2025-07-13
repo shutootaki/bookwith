@@ -79,7 +79,7 @@ const VolumeControlComponent: React.FC<VolumeControlProps> = ({
           disabled={disabled}
           aria-label={t('podcast.volume_control.slider')}
           aria-valuetext={volumePercentage}
-          className="w-full"
+          className="w-full cursor-pointer"
           title={`${t('podcast.volume_control.adjust')} (${
             PODCAST_KEYBOARD_SHORTCUTS.VOLUME_UP
           }/${PODCAST_KEYBOARD_SHORTCUTS.VOLUME_DOWN})`}

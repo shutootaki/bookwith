@@ -7,10 +7,9 @@ import { useTranslation } from '@flow/reader/hooks'
 import { useIntermediateChatKeyword } from '../../hooks/useIntermediateChatKeyword'
 import { getChatMessages } from '../../lib/apiHandler/chatApiHandler'
 import { PaneViewProps, PaneView } from '../base'
-
-import { ChatHistoryCommandDialog } from './chat/ChatHistoryCommandDialog'
-import { ChatPane } from './chat/ChatPane'
-import { Message } from './chat/types'
+import { ChatHistoryCommandDialog } from '../chat/ChatHistoryCommandDialog'
+import { ChatPane } from '../chat/ChatPane'
+import { Message } from '../chat/types'
 
 export const ChatView: React.FC<PaneViewProps> = (props) => {
   const [messages, setMessages] = useState<Message[]>([])

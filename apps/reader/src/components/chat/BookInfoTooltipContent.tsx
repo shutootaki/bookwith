@@ -3,7 +3,7 @@ import React from 'react'
 
 import { useTranslation } from '@flow/reader/hooks'
 
-import { Progress } from '../../ui/progress'
+import { Progress } from '../ui/progress'
 
 const iconClass = 'mt-px h-3.5 w-3.5 shrink-0'
 
