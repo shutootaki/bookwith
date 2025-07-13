@@ -13,19 +13,19 @@ logger = logging.getLogger(__name__)
 class SummarizeChaptersUseCase:
     """Use case for summarizing book chapters"""
 
-    def __init__(self, config: PodcastConfig | None = None) -> None:
+    def __init__(self) -> None:
         self.gemini_client = GeminiClient()
-        self.config = config or PodcastConfig()
+        self.config = PodcastConfig()
 
     async def execute(self, chapters: list[Chapter], book_title: str, language: PodcastLanguage = PodcastLanguage.EN_US) -> str:
         """Summarize all chapters and create a comprehensive book summary"""
         try:
-            # First, summarize individual chapters
-            logger.info(f"Starting summarization of {len(chapters)} chapters")
-            chapter_summaries = await self._summarize_chapters_batch(chapters, language)
+            # NOTE: Limit chapters to 6 to avoid API rate limits
+            chapters_to_summarize = chapters[:6]
+            logger.info(f"Starting summarization of {len(chapters_to_summarize)} chapters (limited to 6)")
 
-            # NOTE: Skip chapters after 6 due to API rate limits
-            chapter_summaries = chapter_summaries[:6]
+            # First, summarize individual chapters
+            chapter_summaries = await self._summarize_chapters_batch(chapters_to_summarize, language)
 
             # Then, combine chapter summaries into a book summary
             logger.info("Combining chapter summaries into book summary")
@@ -36,15 +36,16 @@ class SummarizeChaptersUseCase:
             raise
 
     async def _summarize_chapters_batch(self, chapters: list[Chapter], language: PodcastLanguage = PodcastLanguage.EN_US) -> list[str]:
-        """Summarize chapters concurrently with rate limiting"""
-        semaphore = asyncio.Semaphore(self.config.max_concurrent_summarization_requests)
-
-        async def summarize_with_semaphore(chapter: Chapter) -> str:
-            async with semaphore:
-                return await self._summarize_single_chapter(chapter, language)
-
-        tasks = [summarize_with_semaphore(chapter) for chapter in chapters]
-        return await asyncio.gather(*tasks)
+        """Summarize chapters sequentially with a delay to respect rate limits."""
+        summaries = []
+        # 15 requests per minute for the free tier. Wait 4 seconds between requests.
+        delay_seconds = 4
+        for i, chapter in enumerate(chapters):
+            summary = await self._summarize_single_chapter(chapter, language)
+            summaries.append(summary)
+            if i < len(chapters) - 1:  # Don't sleep after the last chapter
+                await asyncio.sleep(delay_seconds)
+        return summaries
 
     async def _summarize_single_chapter(self, chapter: Chapter, language: PodcastLanguage = PodcastLanguage.EN_US) -> str:
         """Summarize a single chapter"""
@@ -103,6 +104,8 @@ class SummarizeChaptersUseCase:
 
         # 1st pass: create partial summaries
         partial_summaries: list[str] = []
+        # 15 requests per minute for the free tier. Wait 4 seconds between requests.
+        delay_seconds = 4
         for i in range(0, len(chapter_summaries), chunk_size):
             chunk = chapter_summaries[i : i + chunk_size]
             try:
@@ -114,6 +117,8 @@ class SummarizeChaptersUseCase:
                     language=language,
                 )
                 partial_summaries.append(partial)
+                if i + chunk_size < len(chapter_summaries):
+                    await asyncio.sleep(delay_seconds)
             except ValueError as ve:
                 # If even a small chunk hits length, fall back to summarize_text on truncated text
                 logger.warning(f"Partial summarization failed for chapters {i}-{i + len(chunk) - 1}: {ve}")
