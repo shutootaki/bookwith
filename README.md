@@ -3,9 +3,10 @@
 > A next-generation conversational reading platform that goes beyond traditional e-book readers
 
 <p align="center">
-  <img src="https://img.shields.io/badge/AI-GPT--4o-blue" alt="AI Powered" />
+  <img src="https://img.shields.io/badge/AI-Multi_LLM-blue" alt="Multi-LLM AI Powered" />
+  <img src="https://img.shields.io/badge/Languages-EN_|_JA_|_ZH-red" alt="Multi-language Support" />
   <img src="https://img.shields.io/badge/Platform-Web-green" alt="Web Platform" />
-  <img src="https://img.shields.io/badge/Language-Japanese-red" alt="Japanese Support" />
+  <img src="https://img.shields.io/badge/Feature-AI_Podcast-purple" alt="AI Podcast Generation" />
 </p>
 
 ## 📖 What is BookWith?
