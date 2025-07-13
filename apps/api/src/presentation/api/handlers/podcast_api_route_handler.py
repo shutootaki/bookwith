@@ -51,7 +51,7 @@ async def create_podcast(
         title = request.title or f"Podcast for book {request.book_id}"
 
         # Create podcast
-        podcast_id = await create_usecase.execute(book_id, user_id, title)
+        podcast_id = await create_usecase.execute(book_id, user_id, title, request.language)
 
         # Start background generation
         background_tasks.add_task(generate_usecase.execute, podcast_id)
@@ -127,6 +127,7 @@ async def get_podcast_status(
             id=status_info["id"],
             status=status_info["status"],
             title=status_info["title"],
+            language=status_info["language"],
             audio_url=status_info.get("audio_url"),
             error_message=status_info.get("error_message"),
             has_script=status_info["has_script"],

@@ -5,11 +5,7 @@ import { usePodcastsByBook } from '../../hooks/useSWR/usePodcast'
 import { useTranslation } from '../../hooks/useTranslation'
 import { components } from '../../lib/openapi-schema/schema'
 import { PodcastResponse } from '../../types/podcast'
-import {
-  getCompletedPodcast,
-  getProcessingPodcast,
-  getFailedPodcast,
-} from '../../utils/podcast'
+import { findPodcastByStatus } from '../../utils/podcast'
 import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 
@@ -46,9 +42,9 @@ export const BookPodcastItem = memo<BookPodcastItemProps>(
     }, [podcasts, cachedPodcasts, onPodcastsLoaded])
 
     const displayPodcasts = cachedPodcasts || podcasts
-    const completedPodcast = getCompletedPodcast(displayPodcasts)
-    const processingPodcast = getProcessingPodcast(displayPodcasts)
-    const failedPodcast = getFailedPodcast(displayPodcasts)
+    const completedPodcast = findPodcastByStatus(displayPodcasts, 'COMPLETED')
+    const processingPodcast = findPodcastByStatus(displayPodcasts, 'PROCESSING')
+    const failedPodcast = findPodcastByStatus(displayPodcasts, 'FAILED')
     const handleRetry = () => {
       if (failedPodcast && onRetryPodcast) {
         onRetryPodcast(failedPodcast.id)

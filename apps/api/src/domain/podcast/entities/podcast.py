@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.chat.value_objects.user_id import UserId
+from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_script import PodcastScript
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus
@@ -19,6 +20,7 @@ class Podcast(BaseModel):
     user_id: UserId
     title: str
     status: PodcastStatus
+    language: PodcastLanguage = PodcastLanguage.EN_US
     audio_url: str | None = None
     script: PodcastScript | None = None
     error_message: str | None = None

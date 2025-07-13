@@ -1,12 +1,11 @@
 import { RefreshCw } from 'lucide-react'
-import React, { useCallback, useState, useEffect } from 'react'
+import React, { useCallback } from 'react'
 
 import { usePodcastActions } from '../../hooks'
+import { usePodcastSelection } from '../../hooks/podcast/usePodcastSelection'
 import { usePodcastsByBook } from '../../hooks/useSWR/usePodcast'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useReaderSnapshot } from '../../models'
-import { PodcastResponse } from '../../types/podcast'
-import { isPodcastProcessing } from '../../utils/podcast'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 
@@ -16,8 +15,6 @@ import { PodcastDetail } from './PodcastDetail'
 export const PodcastPane: React.FC = () => {
   const t = useTranslation()
   const { focusedBookTab } = useReaderSnapshot()
-  const [selectedPodcast, setSelectedPodcast] =
-    useState<PodcastResponse | null>(null)
   const {
     isCreating,
     createPodcast: createPodcastAction,
@@ -29,39 +26,10 @@ export const PodcastPane: React.FC = () => {
     focusedBookTab?.book.id,
   )
 
-  // 本が切り替わったときにselectedPodcastをリセット
-  useEffect(() => {
-    setSelectedPodcast(null)
-  }, [focusedBookTab?.book.id])
-
-  // 自動的に最初の利用可能なポッドキャストを選択
-  useEffect(() => {
-    if (
-      podcasts.length > 0 &&
-      (!selectedPodcast || selectedPodcast.book_id !== focusedBookTab?.book.id)
-    ) {
-      // 完了したポッドキャストを優先
-      const completedPodcast = podcasts.find(
-        (p) => p.status === 'COMPLETED' && p.audio_url,
-      )
-      if (completedPodcast) {
-        setSelectedPodcast(completedPodcast)
-        return
-      }
-      // 処理中のポッドキャストがあれば選択
-      const processingPodcast = podcasts.find((p) => p.status === 'PROCESSING')
-      if (processingPodcast) {
-        setSelectedPodcast(processingPodcast)
-        return
-      }
-      // 失敗したポッドキャストがあれば選択
-      const failedPodcast = podcasts.find((p) => p.status === 'FAILED')
-      if (failedPodcast) {
-        setSelectedPodcast(failedPodcast)
-        return
-      }
-    }
-  }, [podcasts, selectedPodcast, focusedBookTab?.book.id])
+  const { selectedPodcast } = usePodcastSelection({
+    podcasts,
+    bookId: focusedBookTab?.book.id,
+  })
 
   const handleCreatePodcast = useCallback(async () => {
     if (!focusedBookTab?.book.id) return
@@ -128,8 +96,7 @@ export const PodcastPane: React.FC = () => {
             <Button
               onClick={handleCreatePodcast}
               disabled={
-                isCreating ||
-                podcasts.some((p) => isPodcastProcessing(p.status))
+                isCreating || podcasts.some((p) => p.status === 'PROCESSING')
               }
               className="flex h-8 w-full items-center justify-center space-x-2"
               size="sm"

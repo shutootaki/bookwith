@@ -4,1937 +4,1948 @@
  */
 
 export interface paths {
-  '/messages': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Stream Create Message
-     * @description 新しいメッセージを作成し、AI の応答をストリーミングで返す.
-     */
-    post: operations['stream_create_message_messages_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/messages/{chat_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Messages By Chat Id
-     * @description チャットIDでメッセージを検索する.
-     */
-    get: operations['get_messages_by_chat_id_messages__chat_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/messages/{message_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    /**
-     * Delete Message
-     * @description メッセージを削除する.
-     */
-    delete: operations['delete_message_messages__message_id__delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/messages/bulk': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    /**
-     * Bulk Delete Messages
-     * @description 複数のメッセージを一括削除する.
-     */
-    delete: operations['bulk_delete_messages_messages_bulk_delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/rag': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Upload And Process Rag
-     * @description Base64 で送られてきた EPUB をデコードし、ベクトルストアにインデックス化する.
-     */
-    post: operations['upload_and_process_rag_rag_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/user/{user_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Books By User */
-    get: operations['get_books_by_user_books_user__user_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/covers': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Covers */
-    get: operations['get_covers_books_covers_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/{book_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Book */
-    get: operations['get_book_books__book_id__get']
-    /** Put Book */
-    put: operations['put_book_books__book_id__put']
-    post?: never
-    /** Delete Book */
-    delete: operations['delete_book_books__book_id__delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/{book_id}/file': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get Book File */
-    get: operations['get_book_file_books__book_id__file_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Post Book */
-    post: operations['post_book_books_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/bulk-delete': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    /** Bulk Delete Books Endpoint */
-    delete: operations['bulk_delete_books_endpoint_books_bulk_delete_delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/books/{book_id}/annotations': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    /** Update Annotation */
-    put: operations['update_annotation_books__book_id__annotations_put']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/chats': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Create Chat
-     * @description チャットを作成する.
-     */
-    post: operations['create_chat_chats_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/chats/{chat_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Chat By Id
-     * @description IDでチャットを取得する.
-     */
-    get: operations['get_chat_by_id_chats__chat_id__get']
-    put?: never
-    post?: never
-    /**
-     * Delete Chat
-     * @description チャットを削除する.
-     */
-    delete: operations['delete_chat_chats__chat_id__delete']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/chats/user/{user_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Chats By User Id
-     * @description ユーザーIDに紐づくチャットをすべて取得する.
-     */
-    get: operations['get_chats_by_user_id_chats_user__user_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/chats/user/{user_id}/book/{book_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Chats By User Id And Book Id
-     * @description ユーザーIDと本IDに紐づくチャットをすべて取得する.
-     */
-    get: operations['get_chats_by_user_id_and_book_id_chats_user__user_id__book__book_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/chats/{chat_id}/title': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    /**
-     * Update Chat Title
-     * @description チャットのタイトルを更新する.
-     */
-    patch: operations['update_chat_title_chats__chat_id__title_patch']
-    trace?: never
-  }
-  '/podcasts': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Create Podcast
-     * @description Create a new podcast for a book
-     */
-    post: operations['create_podcast_podcasts_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/podcasts/{podcast_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Podcast
-     * @description Get podcast details by ID
-     */
-    get: operations['get_podcast_podcasts__podcast_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/podcasts/book/{book_id}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Podcasts By Book
-     * @description Get all podcasts for a specific book
-     */
-    get: operations['get_podcasts_by_book_podcasts_book__book_id__get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/podcasts/{podcast_id}/status': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /**
-     * Get Podcast Status
-     * @description Get podcast generation status
-     */
-    get: operations['get_podcast_status_podcasts__podcast_id__status_get']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/podcasts/{podcast_id}/retry': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /**
-     * Retry Podcast
-     * @description Retry failed podcast generation
-     */
-    post: operations['retry_podcast_podcasts__podcast_id__retry_post']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    "/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream Create Message
+         * @description 新しいメッセージを作成し、AI の応答をストリーミングで返す.
+         */
+        post: operations["stream_create_message_messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/messages/{chat_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Messages By Chat Id
+         * @description チャットIDでメッセージを検索する.
+         */
+        get: operations["get_messages_by_chat_id_messages__chat_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/messages/{message_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Message
+         * @description メッセージを削除する.
+         */
+        delete: operations["delete_message_messages__message_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/messages/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Bulk Delete Messages
+         * @description 複数のメッセージを一括削除する.
+         */
+        delete: operations["bulk_delete_messages_messages_bulk_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload And Process Rag
+         * @description Base64 で送られてきた EPUB をデコードし、ベクトルストアにインデックス化する.
+         */
+        post: operations["upload_and_process_rag_rag_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Books By User */
+        get: operations["get_books_by_user_books_user__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/covers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Covers */
+        get: operations["get_covers_books_covers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/{book_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Book */
+        get: operations["get_book_books__book_id__get"];
+        /** Put Book */
+        put: operations["put_book_books__book_id__put"];
+        post?: never;
+        /** Delete Book */
+        delete: operations["delete_book_books__book_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/{book_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Book File */
+        get: operations["get_book_file_books__book_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Book */
+        post: operations["post_book_books_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/bulk-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Bulk Delete Books Endpoint */
+        delete: operations["bulk_delete_books_endpoint_books_bulk_delete_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/books/{book_id}/annotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Annotation */
+        put: operations["update_annotation_books__book_id__annotations_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Chat
+         * @description チャットを作成する.
+         */
+        post: operations["create_chat_chats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats/{chat_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Chat By Id
+         * @description IDでチャットを取得する.
+         */
+        get: operations["get_chat_by_id_chats__chat_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Chat
+         * @description チャットを削除する.
+         */
+        delete: operations["delete_chat_chats__chat_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats/user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Chats By User Id
+         * @description ユーザーIDに紐づくチャットをすべて取得する.
+         */
+        get: operations["get_chats_by_user_id_chats_user__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats/user/{user_id}/book/{book_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Chats By User Id And Book Id
+         * @description ユーザーIDと本IDに紐づくチャットをすべて取得する.
+         */
+        get: operations["get_chats_by_user_id_and_book_id_chats_user__user_id__book__book_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chats/{chat_id}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Chat Title
+         * @description チャットのタイトルを更新する.
+         */
+        patch: operations["update_chat_title_chats__chat_id__title_patch"];
+        trace?: never;
+    };
+    "/podcasts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Podcast
+         * @description Create a new podcast for a book
+         */
+        post: operations["create_podcast_podcasts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/podcasts/{podcast_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Podcast
+         * @description Get podcast details by ID
+         */
+        get: operations["get_podcast_podcasts__podcast_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/podcasts/book/{book_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Podcasts By Book
+         * @description Get all podcasts for a specific book
+         */
+        get: operations["get_podcasts_by_book_podcasts_book__book_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/podcasts/{podcast_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Podcast Status
+         * @description Get podcast generation status
+         */
+        get: operations["get_podcast_status_podcasts__podcast_id__status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/podcasts/{podcast_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry Podcast
+         * @description Retry failed podcast generation
+         */
+        post: operations["retry_podcast_podcasts__podcast_id__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /**
-     * AnnotationColorEnum
-     * @enum {string}
-     */
-    AnnotationColorEnum: 'yellow' | 'red' | 'green' | 'blue'
-    /** AnnotationSchema */
-    AnnotationSchema: {
-      /** Id */
-      id: string
-      /** Bookid */
-      bookId: string
-      /** Cfi */
-      cfi: string
-      color: components['schemas']['AnnotationColorEnum']
-      /** Notes */
-      notes?: string | null
-      /** Spine */
-      spine: {
-        [key: string]: unknown
-      }
-      /** Text */
-      text: string
-      type: components['schemas']['AnnotationTypeEnum']
-    }
-    /**
-     * AnnotationTypeEnum
-     * @enum {string}
-     */
-    AnnotationTypeEnum: 'highlight'
-    /** BookCreateRequest */
-    BookCreateRequest: {
-      /**
-       * Userid
-       * @description User ID
-       */
-      userId: string
-      /**
-       * Filedata
-       * @description Base64 encoded file data
-       */
-      fileData: string
-      /**
-       * Filename
-       * @description File name
-       */
-      fileName: string
-      /**
-       * Bookid
-       * @description Book ID (auto-generated if not specified)
-       */
-      bookId?: string | null
-      /**
-       * Bookname
-       * @description Book name (file name is used if not specified)
-       */
-      bookName?: string | null
-      /**
-       * Coverimage
-       * @description Base64 encoded cover image data
-       */
-      coverImage?: string | null
-      /**
-       * Bookmetadata
-       * @description Book metadata (JSON string)
-       */
-      bookMetadata?: string | null
-    }
-    /** BookDetail */
-    BookDetail: {
-      /** Id */
-      id: string
-      /** Annotations */
-      annotations?: components['schemas']['AnnotationSchema'][] | null
-      /** Author */
-      author?: string | null
-      /** Cfi */
-      cfi?: string | null
-      /** Configuration */
-      configuration?: {
-        [key: string]: unknown
-      } | null
-      /** Coverpath */
-      coverPath?: string | null
-      /**
-       * Definitions
-       * @default []
-       */
-      definitions: string[]
-      /**
-       * Hascover
-       * @default false
-       */
-      hasCover: boolean
-      /** Name */
-      name: string
-      /**
-       * Percentage
-       * @default 0
-       */
-      percentage: number
-      /** Size */
-      size: number
-      /** Userid */
-      userId?: string | null
-      /** Createdat */
-      createdAt?: string | null
-      /** Updatedat */
-      updatedAt?: string | null
-      /** Metadatatitle */
-      metadataTitle?: string | null
-      /** Metadatacreator */
-      metadataCreator?: string | null
-      /** Metadatadescription */
-      metadataDescription?: string | null
-      /** Metadatapubdate */
-      metadataPubdate?: string | null
-      /** Metadatapublisher */
-      metadataPublisher?: string | null
-      /** Metadataidentifier */
-      metadataIdentifier?: string | null
-      /** Metadatalanguage */
-      metadataLanguage?: string | null
-      /** Metadatarights */
-      metadataRights?: string | null
-      /** Metadatamodifieddate */
-      metadataModifiedDate?: string | null
-      /** Metadatalayout */
-      metadataLayout?: string | null
-      /** Metadataorientation */
-      metadataOrientation?: string | null
-      /** Metadataflow */
-      metadataFlow?: string | null
-      /** Metadataviewport */
-      metadataViewport?: string | null
-      /** Metadataspread */
-      metadataSpread?: string | null
-    }
-    /** BookFileResponse */
-    BookFileResponse: {
-      /** Url */
-      url: string
-    }
-    /** BookResponse */
-    BookResponse: {
-      bookDetail: components['schemas']['BookDetail']
-    }
-    /** BookUpdateRequest */
-    BookUpdateRequest: {
-      /**
-       * Userid
-       * @description User ID
-       * @default 91527c9d-48aa-41d0-bb85-dc96f26556a0
-       */
-      userId: string
-      /**
-       * Name
-       * @description Book name
-       */
-      name?: string | null
-      /**
-       * Author
-       * @description Author name
-       */
-      author?: string | null
-      /**
-       * Cfi
-       * @description Current reading position (CFI)
-       */
-      cfi?: string | null
-      /**
-       * Percentage
-       * @description Reading progress percentage (%)
-       */
-      percentage?: number | null
-      /**
-       * Annotations
-       * @description Annotation information
-       */
-      annotations?: components['schemas']['AnnotationSchema'][] | null
-      /**
-       * Bookmetadata
-       * @description Book metadata
-       */
-      bookMetadata?: {
-        [key: string]: unknown
-      } | null
-      /**
-       * Definitions
-       * @description User defined information
-       */
-      definitions?: string[] | null
-      /**
-       * Configuration
-       * @description Book configuration information
-       */
-      configuration?: {
-        [key: string]: unknown
-      } | null
-      /**
-       * Metadatatitle
-       * @description Book title from metadata
-       */
-      metadataTitle?: string | null
-      /**
-       * Metadatacreator
-       * @description Book creator/author from metadata
-       */
-      metadataCreator?: string | null
-      /**
-       * Metadatadescription
-       * @description Book description from metadata
-       */
-      metadataDescription?: string | null
-      /**
-       * Metadatapubdate
-       * @description Publication date from metadata
-       */
-      metadataPubdate?: string | null
-      /**
-       * Metadatapublisher
-       * @description Publisher from metadata
-       */
-      metadataPublisher?: string | null
-      /**
-       * Metadataidentifier
-       * @description Book identifier from metadata
-       */
-      metadataIdentifier?: string | null
-      /**
-       * Metadatalanguage
-       * @description Language from metadata
-       */
-      metadataLanguage?: string | null
-      /**
-       * Metadatarights
-       * @description Rights information from metadata
-       */
-      metadataRights?: string | null
-      /**
-       * Metadatamodifieddate
-       * @description Modified date from metadata
-       */
-      metadataModifiedDate?: string | null
-      /**
-       * Metadatalayout
-       * @description Layout setting from metadata
-       */
-      metadataLayout?: string | null
-      /**
-       * Metadataorientation
-       * @description Orientation setting from metadata
-       */
-      metadataOrientation?: string | null
-      /**
-       * Metadataflow
-       * @description Flow setting from metadata
-       */
-      metadataFlow?: string | null
-      /**
-       * Metadataviewport
-       * @description Viewport setting from metadata
-       */
-      metadataViewport?: string | null
-      /**
-       * Metadataspread
-       * @description Spread setting from metadata
-       */
-      metadataSpread?: string | null
-    }
-    /** BooksResponse */
-    BooksResponse: {
-      /** Books */
-      books: components['schemas']['BookDetail'][]
-      /** Count */
-      count: number
-    }
-    /** BulkDeleteRequestBody */
-    BulkDeleteRequestBody: {
-      /** Bookids */
-      bookIds: string[]
-    }
-    /** BulkDeleteResponse */
-    BulkDeleteResponse: {
-      /** Deletedids */
-      deletedIds: string[]
-      /** Count */
-      count: number
-    }
-    /** ChatCreateRequest */
-    ChatCreateRequest: {
-      /**
-       * Userid
-       * @description ユーザーID
-       */
-      userId: string
-      /**
-       * Title
-       * @description チャットのタイトル
-       */
-      title?: string | null
-      /**
-       * Bookid
-       * @description 関連する本のID
-       */
-      bookId?: string | null
-    }
-    /** ChatResponse */
-    ChatResponse: {
-      /**
-       * Id
-       * @description チャットID
-       */
-      id: string
-      /**
-       * Userid
-       * @description ユーザーID
-       */
-      userId: string
-      /**
-       * Title
-       * @description チャットのタイトル
-       */
-      title: string
-      /**
-       * Bookid
-       * @description 関連する本のID
-       */
-      bookId?: string | null
-      /**
-       * Createdat
-       * Format: date-time
-       * @description 作成日時
-       */
-      createdAt: string
-      /**
-       * Updatedat
-       * Format: date-time
-       * @description 更新日時
-       */
-      updatedAt: string
-    }
-    /** ChatUpdateTitleRequest */
-    ChatUpdateTitleRequest: {
-      /**
-       * Title
-       * @description 更新するチャットのタイトル
-       */
-      title: string
-    }
-    /** ChatsResponse */
-    ChatsResponse: {
-      /**
-       * Chats
-       * @description チャットリスト
-       */
-      chats: components['schemas']['ChatResponse'][]
-    }
-    /** CoverData */
-    CoverData: {
-      /** Bookid */
-      bookId: string
-      /** Name */
-      name: string
-      /** Coverurl */
-      coverUrl: string
-    }
-    /** CoversResponse */
-    CoversResponse: {
-      /** Covers */
-      covers: components['schemas']['CoverData'][]
-    }
-    /**
-     * CreatePodcastRequest
-     * @description Request schema for creating a podcast
-     */
-    CreatePodcastRequest: {
-      /**
-       * Book Id
-       * @description ID of the book to create podcast for
-       */
-      book_id: string
-      /**
-       * Title
-       * @description Custom title for the podcast
-       */
-      title?: string | null
-    }
-    /**
-     * CreatePodcastResponse
-     * @description Response schema for podcast creation
-     */
-    CreatePodcastResponse: {
-      /**
-       * Id
-       * @description Created podcast ID
-       */
-      id: string
-      /**
-       * Status
-       * @description Initial status
-       */
-      status: string
-      /**
-       * Message
-       * @description Success message
-       */
-      message: string
-    }
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][]
-    }
-    /**
-     * MessageBulkDelete
-     * @description 複数メッセージ削除リクエストモデル.
-     */
-    MessageBulkDelete: {
-      /**
-       * Messageids
-       * @description 削除するメッセージIDのリスト
-       */
-      messageIds: string[]
-    }
-    /**
-     * MessageCreate
-     * @description メッセージ作成リクエストモデル.
-     */
-    MessageCreate: {
-      /**
-       * Content
-       * @description メッセージの内容
-       */
-      content: string
-      /**
-       * Chatid
-       * @description メッセージが所属するチャットID
-       */
-      chatId: string
-      /**
-       * Senderid
-       * @description 送信者ID
-       */
-      senderId: string
-      /**
-       * Metadata
-       * @description メッセージの追加情報
-       */
-      metadata?: {
-        [key: string]: unknown
-      } | null
-      /**
-       * Bookid
-       * @description メッセージが所属するブックID
-       */
-      bookId?: string | null
-    }
-    /**
-     * MessageListResponse
-     * @description メッセージリストレスポンスモデル.
-     */
-    MessageListResponse: {
-      /** Messages */
-      messages: components['schemas']['MessageResponse'][]
-      /** Total */
-      total: number
-    }
-    /**
-     * MessageResponse
-     * @description メッセージレスポンスモデル.
-     */
-    MessageResponse: {
-      /** Id */
-      id: string
-      /** Content */
-      content: string
-      /** Senderid */
-      senderId: string
-      senderType: components['schemas']['SenderTypeEnum']
-      /** Chatid */
-      chatId: string
-      /**
-       * Createdat
-       * Format: date-time
-       */
-      createdAt: string
-      /** Metadata */
-      metadata?: {
-        [key: string]: unknown
-      } | null
-    }
-    /**
-     * PodcastListResponse
-     * @description Response schema for podcast list
-     */
-    PodcastListResponse: {
-      /**
-       * Podcasts
-       * @description List of podcasts
-       */
-      podcasts: components['schemas']['PodcastResponse'][]
-      /**
-       * Total
-       * @description Total number of podcasts
-       */
-      total: number
-    }
-    /**
-     * PodcastResponse
-     * @description Response schema for podcast details
-     */
-    PodcastResponse: {
-      /**
-       * Id
-       * @description Podcast ID
-       */
-      id: string
-      /**
-       * Book Id
-       * @description Book ID
-       */
-      book_id: string
-      /**
-       * User Id
-       * @description User ID
-       */
-      user_id: string
-      /**
-       * Title
-       * @description Podcast title
-       */
-      title: string
-      /**
-       * Status
-       * @description Generation status
-       */
-      status: string
-      /**
-       * Audio Url
-       * @description URL to the generated audio
-       */
-      audio_url?: string | null
-      /**
-       * Error Message
-       * @description Error message if generation failed
-       */
-      error_message?: string | null
-      /**
-       * Script
-       * @description Podcast script
-       */
-      script?: components['schemas']['PodcastScriptTurn'][] | null
-      /**
-       * Created At
-       * Format: date-time
-       * @description Creation timestamp
-       */
-      created_at: string
-      /**
-       * Updated At
-       * Format: date-time
-       * @description Last update timestamp
-       */
-      updated_at: string
-    }
-    /**
-     * PodcastScriptTurn
-     * @description Schema for a single script turn
-     */
-    PodcastScriptTurn: {
-      /**
-       * Speaker
-       * @description Speaker identifier (HOST or GUEST)
-       */
-      speaker: string
-      /**
-       * Text
-       * @description What the speaker says
-       */
-      text: string
-    }
-    /**
-     * PodcastStatusResponse
-     * @description Response schema for podcast status
-     */
-    PodcastStatusResponse: {
-      /**
-       * Id
-       * @description Podcast ID
-       */
-      id: string
-      /**
-       * Status
-       * @description Generation status
-       */
-      status: string
-      /**
-       * Title
-       * @description Podcast title
-       */
-      title: string
-      /**
-       * Audio Url
-       * @description URL to the generated audio if completed
-       */
-      audio_url?: string | null
-      /**
-       * Error Message
-       * @description Error message if failed
-       */
-      error_message?: string | null
-      /**
-       * Has Script
-       * @description Whether script has been generated
-       */
-      has_script: boolean
-      /**
-       * Script Turn Count
-       * @description Number of script turns
-       */
-      script_turn_count?: number | null
-      /**
-       * Script Character Count
-       * @description Total character count in script
-       */
-      script_character_count?: number | null
-      /**
-       * Created At
-       * Format: date-time
-       * @description Creation timestamp
-       */
-      created_at: string
-      /**
-       * Updated At
-       * Format: date-time
-       * @description Last update timestamp
-       */
-      updated_at: string
-    }
-    /** RagChunk */
-    RagChunk: {
-      /** Text */
-      text: string
-      /**
-       * Metadata
-       * @default {}
-       */
-      metadata: {
-        [key: string]: unknown
-      }
-    }
-    /** RagProcessRequest */
-    RagProcessRequest: {
-      /** Userid */
-      userId: string
-      /** Bookid */
-      bookId: string
-      /** Filedata */
-      fileData: string
-      /** Filename */
-      fileName: string
-    }
-    /** RagProcessResponse */
-    RagProcessResponse: {
-      /** Filename */
-      fileName: string
-      /** Chunkcount */
-      chunkCount: number
-      /** Userid */
-      userId?: string | null
-      /** Indexname */
-      indexName?: string | null
-      /** Chunks */
-      chunks?: components['schemas']['RagChunk'][] | null
-    }
-    /**
-     * SenderTypeEnum
-     * @enum {string}
-     */
-    SenderTypeEnum: 'user' | 'assistant'
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[]
-      /** Message */
-      msg: string
-      /** Error Type */
-      type: string
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+    schemas: {
+        /**
+         * AnnotationColorEnum
+         * @enum {string}
+         */
+        AnnotationColorEnum: "yellow" | "red" | "green" | "blue";
+        /** AnnotationSchema */
+        AnnotationSchema: {
+            /** Id */
+            id: string;
+            /** Bookid */
+            bookId: string;
+            /** Cfi */
+            cfi: string;
+            color: components["schemas"]["AnnotationColorEnum"];
+            /** Notes */
+            notes?: string | null;
+            /** Spine */
+            spine: {
+                [key: string]: unknown;
+            };
+            /** Text */
+            text: string;
+            type: components["schemas"]["AnnotationTypeEnum"];
+        };
+        /**
+         * AnnotationTypeEnum
+         * @enum {string}
+         */
+        AnnotationTypeEnum: "highlight";
+        /** BookCreateRequest */
+        BookCreateRequest: {
+            /**
+             * Userid
+             * @description User ID
+             */
+            userId: string;
+            /**
+             * Filedata
+             * @description Base64 encoded file data
+             */
+            fileData: string;
+            /**
+             * Filename
+             * @description File name
+             */
+            fileName: string;
+            /**
+             * Bookid
+             * @description Book ID (auto-generated if not specified)
+             */
+            bookId?: string | null;
+            /**
+             * Bookname
+             * @description Book name (file name is used if not specified)
+             */
+            bookName?: string | null;
+            /**
+             * Coverimage
+             * @description Base64 encoded cover image data
+             */
+            coverImage?: string | null;
+            /**
+             * Bookmetadata
+             * @description Book metadata (JSON string)
+             */
+            bookMetadata?: string | null;
+        };
+        /** BookDetail */
+        BookDetail: {
+            /** Id */
+            id: string;
+            /** Annotations */
+            annotations?: components["schemas"]["AnnotationSchema"][] | null;
+            /** Author */
+            author?: string | null;
+            /** Cfi */
+            cfi?: string | null;
+            /** Configuration */
+            configuration?: {
+                [key: string]: unknown;
+            } | null;
+            /** Coverpath */
+            coverPath?: string | null;
+            /**
+             * Definitions
+             * @default []
+             */
+            definitions: string[];
+            /**
+             * Hascover
+             * @default false
+             */
+            hasCover: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Percentage
+             * @default 0
+             */
+            percentage: number;
+            /** Size */
+            size: number;
+            /** Userid */
+            userId?: string | null;
+            /** Createdat */
+            createdAt?: string | null;
+            /** Updatedat */
+            updatedAt?: string | null;
+            /** Metadatatitle */
+            metadataTitle?: string | null;
+            /** Metadatacreator */
+            metadataCreator?: string | null;
+            /** Metadatadescription */
+            metadataDescription?: string | null;
+            /** Metadatapubdate */
+            metadataPubdate?: string | null;
+            /** Metadatapublisher */
+            metadataPublisher?: string | null;
+            /** Metadataidentifier */
+            metadataIdentifier?: string | null;
+            /** Metadatalanguage */
+            metadataLanguage?: string | null;
+            /** Metadatarights */
+            metadataRights?: string | null;
+            /** Metadatamodifieddate */
+            metadataModifiedDate?: string | null;
+            /** Metadatalayout */
+            metadataLayout?: string | null;
+            /** Metadataorientation */
+            metadataOrientation?: string | null;
+            /** Metadataflow */
+            metadataFlow?: string | null;
+            /** Metadataviewport */
+            metadataViewport?: string | null;
+            /** Metadataspread */
+            metadataSpread?: string | null;
+        };
+        /** BookFileResponse */
+        BookFileResponse: {
+            /** Url */
+            url: string;
+        };
+        /** BookResponse */
+        BookResponse: {
+            bookDetail: components["schemas"]["BookDetail"];
+        };
+        /** BookUpdateRequest */
+        BookUpdateRequest: {
+            /**
+             * Userid
+             * @description User ID
+             * @default 91527c9d-48aa-41d0-bb85-dc96f26556a0
+             */
+            userId: string;
+            /**
+             * Name
+             * @description Book name
+             */
+            name?: string | null;
+            /**
+             * Author
+             * @description Author name
+             */
+            author?: string | null;
+            /**
+             * Cfi
+             * @description Current reading position (CFI)
+             */
+            cfi?: string | null;
+            /**
+             * Percentage
+             * @description Reading progress percentage (%)
+             */
+            percentage?: number | null;
+            /**
+             * Annotations
+             * @description Annotation information
+             */
+            annotations?: components["schemas"]["AnnotationSchema"][] | null;
+            /**
+             * Bookmetadata
+             * @description Book metadata
+             */
+            bookMetadata?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Definitions
+             * @description User defined information
+             */
+            definitions?: string[] | null;
+            /**
+             * Configuration
+             * @description Book configuration information
+             */
+            configuration?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Metadatatitle
+             * @description Book title from metadata
+             */
+            metadataTitle?: string | null;
+            /**
+             * Metadatacreator
+             * @description Book creator/author from metadata
+             */
+            metadataCreator?: string | null;
+            /**
+             * Metadatadescription
+             * @description Book description from metadata
+             */
+            metadataDescription?: string | null;
+            /**
+             * Metadatapubdate
+             * @description Publication date from metadata
+             */
+            metadataPubdate?: string | null;
+            /**
+             * Metadatapublisher
+             * @description Publisher from metadata
+             */
+            metadataPublisher?: string | null;
+            /**
+             * Metadataidentifier
+             * @description Book identifier from metadata
+             */
+            metadataIdentifier?: string | null;
+            /**
+             * Metadatalanguage
+             * @description Language from metadata
+             */
+            metadataLanguage?: string | null;
+            /**
+             * Metadatarights
+             * @description Rights information from metadata
+             */
+            metadataRights?: string | null;
+            /**
+             * Metadatamodifieddate
+             * @description Modified date from metadata
+             */
+            metadataModifiedDate?: string | null;
+            /**
+             * Metadatalayout
+             * @description Layout setting from metadata
+             */
+            metadataLayout?: string | null;
+            /**
+             * Metadataorientation
+             * @description Orientation setting from metadata
+             */
+            metadataOrientation?: string | null;
+            /**
+             * Metadataflow
+             * @description Flow setting from metadata
+             */
+            metadataFlow?: string | null;
+            /**
+             * Metadataviewport
+             * @description Viewport setting from metadata
+             */
+            metadataViewport?: string | null;
+            /**
+             * Metadataspread
+             * @description Spread setting from metadata
+             */
+            metadataSpread?: string | null;
+        };
+        /** BooksResponse */
+        BooksResponse: {
+            /** Books */
+            books: components["schemas"]["BookDetail"][];
+            /** Count */
+            count: number;
+        };
+        /** BulkDeleteRequestBody */
+        BulkDeleteRequestBody: {
+            /** Bookids */
+            bookIds: string[];
+        };
+        /** BulkDeleteResponse */
+        BulkDeleteResponse: {
+            /** Deletedids */
+            deletedIds: string[];
+            /** Count */
+            count: number;
+        };
+        /** ChatCreateRequest */
+        ChatCreateRequest: {
+            /**
+             * Userid
+             * @description ユーザーID
+             */
+            userId: string;
+            /**
+             * Title
+             * @description チャットのタイトル
+             */
+            title?: string | null;
+            /**
+             * Bookid
+             * @description 関連する本のID
+             */
+            bookId?: string | null;
+        };
+        /** ChatResponse */
+        ChatResponse: {
+            /**
+             * Id
+             * @description チャットID
+             */
+            id: string;
+            /**
+             * Userid
+             * @description ユーザーID
+             */
+            userId: string;
+            /**
+             * Title
+             * @description チャットのタイトル
+             */
+            title: string;
+            /**
+             * Bookid
+             * @description 関連する本のID
+             */
+            bookId?: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             * @description 作成日時
+             */
+            createdAt: string;
+            /**
+             * Updatedat
+             * Format: date-time
+             * @description 更新日時
+             */
+            updatedAt: string;
+        };
+        /** ChatUpdateTitleRequest */
+        ChatUpdateTitleRequest: {
+            /**
+             * Title
+             * @description 更新するチャットのタイトル
+             */
+            title: string;
+        };
+        /** ChatsResponse */
+        ChatsResponse: {
+            /**
+             * Chats
+             * @description チャットリスト
+             */
+            chats: components["schemas"]["ChatResponse"][];
+        };
+        /** CoverData */
+        CoverData: {
+            /** Bookid */
+            bookId: string;
+            /** Name */
+            name: string;
+            /** Coverurl */
+            coverUrl: string;
+        };
+        /** CoversResponse */
+        CoversResponse: {
+            /** Covers */
+            covers: components["schemas"]["CoverData"][];
+        };
+        /**
+         * CreatePodcastRequest
+         * @description Request schema for creating a podcast
+         */
+        CreatePodcastRequest: {
+            /**
+             * Book Id
+             * @description ID of the book to create podcast for
+             */
+            book_id: string;
+            /**
+             * Title
+             * @description Custom title for the podcast
+             */
+            title?: string | null;
+            /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+            language: components["schemas"]["PodcastLanguage"];
+        };
+        /**
+         * CreatePodcastResponse
+         * @description Response schema for podcast creation
+         */
+        CreatePodcastResponse: {
+            /**
+             * Id
+             * @description Created podcast ID
+             */
+            id: string;
+            /**
+             * Status
+             * @description Initial status
+             */
+            status: string;
+            /**
+             * Message
+             * @description Success message
+             */
+            message: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * MessageBulkDelete
+         * @description 複数メッセージ削除リクエストモデル.
+         */
+        MessageBulkDelete: {
+            /**
+             * Messageids
+             * @description 削除するメッセージIDのリスト
+             */
+            messageIds: string[];
+        };
+        /**
+         * MessageCreate
+         * @description メッセージ作成リクエストモデル.
+         */
+        MessageCreate: {
+            /**
+             * Content
+             * @description メッセージの内容
+             */
+            content: string;
+            /**
+             * Chatid
+             * @description メッセージが所属するチャットID
+             */
+            chatId: string;
+            /**
+             * Senderid
+             * @description 送信者ID
+             */
+            senderId: string;
+            /**
+             * Metadata
+             * @description メッセージの追加情報
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Bookid
+             * @description メッセージが所属するブックID
+             */
+            bookId?: string | null;
+        };
+        /**
+         * MessageListResponse
+         * @description メッセージリストレスポンスモデル.
+         */
+        MessageListResponse: {
+            /** Messages */
+            messages: components["schemas"]["MessageResponse"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * MessageResponse
+         * @description メッセージレスポンスモデル.
+         */
+        MessageResponse: {
+            /** Id */
+            id: string;
+            /** Content */
+            content: string;
+            /** Senderid */
+            senderId: string;
+            senderType: components["schemas"]["SenderTypeEnum"];
+            /** Chatid */
+            chatId: string;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Metadata */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * PodcastLanguage
+         * @enum {string}
+         */
+        PodcastLanguage: "en-US" | "ja-JP" | "cmn-CN";
+        /**
+         * PodcastListResponse
+         * @description Response schema for podcast list
+         */
+        PodcastListResponse: {
+            /**
+             * Podcasts
+             * @description List of podcasts
+             */
+            podcasts: components["schemas"]["PodcastResponse"][];
+            /**
+             * Total
+             * @description Total number of podcasts
+             */
+            total: number;
+        };
+        /**
+         * PodcastResponse
+         * @description Response schema for podcast details
+         */
+        PodcastResponse: {
+            /**
+             * Id
+             * @description Podcast ID
+             */
+            id: string;
+            /**
+             * Book Id
+             * @description Book ID
+             */
+            book_id: string;
+            /**
+             * User Id
+             * @description User ID
+             */
+            user_id: string;
+            /**
+             * Title
+             * @description Podcast title
+             */
+            title: string;
+            /**
+             * Status
+             * @description Generation status
+             */
+            status: string;
+            /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+            language: components["schemas"]["PodcastLanguage"];
+            /**
+             * Audio Url
+             * @description URL to the generated audio
+             */
+            audio_url?: string | null;
+            /**
+             * Error Message
+             * @description Error message if generation failed
+             */
+            error_message?: string | null;
+            /**
+             * Script
+             * @description Podcast script
+             */
+            script?: components["schemas"]["PodcastScriptTurn"][] | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updated_at: string;
+        };
+        /**
+         * PodcastScriptTurn
+         * @description Schema for a single script turn
+         */
+        PodcastScriptTurn: {
+            /**
+             * Speaker
+             * @description Speaker identifier (HOST or GUEST)
+             */
+            speaker: string;
+            /**
+             * Text
+             * @description What the speaker says
+             */
+            text: string;
+        };
+        /**
+         * PodcastStatusResponse
+         * @description Response schema for podcast status
+         */
+        PodcastStatusResponse: {
+            /**
+             * Id
+             * @description Podcast ID
+             */
+            id: string;
+            /**
+             * Status
+             * @description Generation status
+             */
+            status: string;
+            /**
+             * Title
+             * @description Podcast title
+             */
+            title: string;
+            /** @description Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN) */
+            language: components["schemas"]["PodcastLanguage"];
+            /**
+             * Audio Url
+             * @description URL to the generated audio if completed
+             */
+            audio_url?: string | null;
+            /**
+             * Error Message
+             * @description Error message if failed
+             */
+            error_message?: string | null;
+            /**
+             * Has Script
+             * @description Whether script has been generated
+             */
+            has_script: boolean;
+            /**
+             * Script Turn Count
+             * @description Number of script turns
+             */
+            script_turn_count?: number | null;
+            /**
+             * Script Character Count
+             * @description Total character count in script
+             */
+            script_character_count?: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             * @description Creation timestamp
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             * @description Last update timestamp
+             */
+            updated_at: string;
+        };
+        /** RagChunk */
+        RagChunk: {
+            /** Text */
+            text: string;
+            /**
+             * Metadata
+             * @default {}
+             */
+            metadata: {
+                [key: string]: unknown;
+            };
+        };
+        /** RagProcessRequest */
+        RagProcessRequest: {
+            /** Userid */
+            userId: string;
+            /** Bookid */
+            bookId: string;
+            /** Filedata */
+            fileData: string;
+            /** Filename */
+            fileName: string;
+        };
+        /** RagProcessResponse */
+        RagProcessResponse: {
+            /** Filename */
+            fileName: string;
+            /** Chunkcount */
+            chunkCount: number;
+            /** Userid */
+            userId?: string | null;
+            /** Indexname */
+            indexName?: string | null;
+            /** Chunks */
+            chunks?: components["schemas"]["RagChunk"][] | null;
+        };
+        /**
+         * SenderTypeEnum
+         * @enum {string}
+         */
+        SenderTypeEnum: "user" | "assistant";
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
-  stream_create_message_messages_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['MessageCreate']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_messages_by_chat_id_messages__chat_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        /** @description メッセージを検索するチャットID */
-        chat_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['MessageListResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  delete_message_messages__message_id__delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        /** @description 削除するメッセージID */
-        message_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': {
-            [key: string]: string
-          }
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  bulk_delete_messages_messages_bulk_delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['MessageBulkDelete']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': {
-            [key: string]: string[]
-          }
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  upload_and_process_rag_rag_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RagProcessRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['RagProcessResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_books_by_user_books_user__user_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        user_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BooksResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_covers_books_covers_get: {
-    parameters: {
-      query?: {
-        user_id?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['CoversResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_book_books__book_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BookResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  put_book_books__book_id__put: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BookUpdateRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  delete_book_books__book_id__delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': unknown
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_book_file_books__book_id__file_get: {
-    parameters: {
-      query: {
-        user_id: string
-      }
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BookFileResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  post_book_books_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BookCreateRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BookResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  bulk_delete_books_endpoint_books_bulk_delete_delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BulkDeleteRequestBody']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['BulkDeleteResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  update_annotation_books__book_id__annotations_put: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['BookUpdateRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  create_chat_chats_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChatCreateRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ChatResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_chat_by_id_chats__chat_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        chat_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ChatResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  delete_chat_chats__chat_id__delete: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        chat_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_chats_by_user_id_chats_user__user_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        user_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ChatsResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_chats_by_user_id_and_book_id_chats_user__user_id__book__book_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        user_id: string
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ChatResponse'][]
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  update_chat_title_chats__chat_id__title_patch: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        chat_id: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChatUpdateTitleRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ChatResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  create_podcast_podcasts_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreatePodcastRequest']
-      }
-    }
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['CreatePodcastResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_podcast_podcasts__podcast_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        podcast_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['PodcastResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_podcasts_by_book_podcasts_book__book_id__get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        book_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['PodcastListResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  get_podcast_status_podcasts__podcast_id__status_get: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        podcast_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['PodcastStatusResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
-  retry_podcast_podcasts__podcast_id__retry_post: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        podcast_id: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['CreatePodcastResponse']
-        }
-      }
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['HTTPValidationError']
-        }
-      }
-    }
-  }
+    stream_create_message_messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_messages_by_chat_id_messages__chat_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description メッセージを検索するチャットID */
+                chat_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_message_messages__message_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 削除するメッセージID */
+                message_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_delete_messages_messages_bulk_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageBulkDelete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string[];
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_and_process_rag_rag_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RagProcessRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RagProcessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_books_by_user_books_user__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BooksResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_covers_books_covers_get: {
+        parameters: {
+            query?: {
+                user_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoversResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_book_books__book_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_book_books__book_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_book_books__book_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_book_file_books__book_id__file_get: {
+        parameters: {
+            query: {
+                user_id: string;
+            };
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookFileResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_book_books_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_delete_books_endpoint_books_bulk_delete_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkDeleteRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkDeleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_annotation_books__book_id__annotations_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_chat_chats_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_chat_by_id_chats__chat_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chat_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_chat_chats__chat_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chat_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_chats_by_user_id_chats_user__user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_chats_by_user_id_and_book_id_chats_user__user_id__book__book_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_chat_title_chats__chat_id__title_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chat_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatUpdateTitleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_podcast_podcasts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePodcastRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatePodcastResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_podcast_podcasts__podcast_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                podcast_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PodcastResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_podcasts_by_book_podcasts_book__book_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PodcastListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_podcast_status_podcasts__podcast_id__status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                podcast_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PodcastStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_podcast_podcasts__podcast_id__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                podcast_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatePodcastResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }

@@ -1,5 +1,15 @@
 export default {
   /**
+   * Common
+   */
+  'common.loading': '加载中',
+  'common.retry': '重试',
+  'common.retrying': '重试中...',
+  'common.created_at': '创建时间',
+  'common.updated_at': '更新时间',
+  'common.cancel': '取消',
+
+  /**
    * Home
    */
   'home.title': '主页',
@@ -7,7 +17,7 @@ export default {
   'home.download': '下载',
   'home.download_sample_book': '下载样书',
   'home.select': '选择',
-  'home.cancel': '取消',
+  'home.cancel': '取消', // TODO: 使用 'common.cancel'
   'home.select_all': '选择所有',
   'home.deselect_all': '取消选择所有',
   'home.export': '导出',
@@ -178,14 +188,14 @@ export default {
   'podcast.status.unknown': '未知',
   'podcast.failed': '播客生成失败',
   'podcast.failed_description': '发生错误，请稍后再试。',
-  'podcast.retry': '重试',
-  'podcast.retrying': '重试中...',
+  'podcast.retry': '重试', // TODO: 使用 'common.retry'
+  'podcast.retrying': '重试中...', // TODO: 使用 'common.retrying'
 
   // AudioPlayer 相关
   'podcast.audio_player.playback_failed': '音频播放失败',
   'podcast.audio_player.skip_back': '后退10秒',
   'podcast.audio_player.skip_forward': '前进10秒',
-  'podcast.audio_player.loading': '加载中',
+  'podcast.audio_player.loading': '加载中', // TODO: 使用 'common.loading'
   'podcast.audio_player.current_time': '当前播放时间',
   'podcast.audio_player.total_time': '总播放时间',
   'podcast.audio_player.controls': '音频控制',
@@ -196,8 +206,8 @@ export default {
   // PodcastDetail 相关
   'podcast.detail.back': '返回',
   'podcast.detail.download_short': '下载',
-  'podcast.detail.created_at': '创建时间',
-  'podcast.detail.updated_at': '更新时间',
+  'podcast.detail.created_at': '创建时间', // TODO: 使用 'common.created_at'
+  'podcast.detail.updated_at': '更新时间', // TODO: 使用 'common.updated_at'
   'podcast.detail.status': '状态',
   'podcast.detail.error': '错误',
   'podcast.detail.author_unknown': '未知作者',
@@ -205,10 +215,10 @@ export default {
   // PodcastList 相关
   'podcast.list.empty': '暂无播客',
   'podcast.list.generating': '正在生成播客...',
-  'podcast.list.retry': '重试',
-  'podcast.list.retrying': '重新生成中...',
-  'podcast.list.created_date': '创建时间',
-  'podcast.list.updated_date': '更新时间',
+  'podcast.list.retry': '重试', // TODO: 使用 'common.retry'
+  'podcast.list.retrying': '重试中...', // TODO: 使用 'common.retrying'
+  'podcast.list.created_date': '创建时间', // TODO: 使用 'common.created_at'
+  'podcast.list.updated_date': '更新时间', // TODO: 使用 'common.updated_at'
   'podcast.list.refresh': '刷新',
   'podcast.list.refreshing_aria_label': '正在刷新播客列表',
   'podcast.list.refresh_aria_label': '刷新播客列表',
@@ -223,7 +233,7 @@ export default {
   'podcast.pane.generate_podcast': '生成播客',
   'podcast.pane.podcast_list': '播客列表',
   'podcast.pane.loading_failed': '播客加载失败',
-  'podcast.pane.loading': '加载中...',
+  'podcast.pane.loading': '加载中', // TODO: 使用 'common.loading'
   'podcast.pane.fetching_info': '正在获取播客信息',
   'podcast.pane.library': '图书馆',
   'podcast.pane.library_description': '选择一本书来生成和播放播客',
@@ -243,9 +253,9 @@ export default {
   /**
    * Global Loading Overlay
    */
-  'loading_overlay.loading': '加载中',
+  'loading_overlay.loading': '加载中', // TODO: 使用 'common.loading'
   'loading_overlay.importing_books': '正在导入 {completed}/{total} 本书',
-  'loading_overlay.cancel': '取消',
+  'loading_overlay.cancel': '取消', // TODO: 使用 'common.cancel'
   /**
    * Dropzone
    */

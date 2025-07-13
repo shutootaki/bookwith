@@ -1,27 +1,49 @@
 """Prompt templates for podcast generation"""
 
-CHAPTER_SUMMARY_PROMPT = """
+from src.domain.podcast.value_objects.language import PodcastLanguage
+
+
+def build_language_prompts(language: PodcastLanguage = PodcastLanguage.EN_US):
+    """言語ルールのみ返す"""
+    return f"""
+Important Rule:
+- Never generate sentences in the language of {language.value}.
+"""
+
+
+def _build_chapter_summary_prompt(language_rule: str) -> str:
+    """章の要約プロンプトを構築"""
+    return f"""{language_rule}
+
 Please provide a concise and informative summary of the following book chapter.
 Focus on the main ideas, key arguments, and important details.
 Keep the summary clear and well-structured.
 
-{chapter_content}
+{{chapter_content}}
 
 Summary:
 """
 
-BOOK_SUMMARY_PROMPT = """
-Based on the following chapter summaries, create a comprehensive overview of the book "{book_title}".
+
+def _build_book_summary_prompt(language_rule: str) -> str:
+    """本の要約プロンプトを構築"""
+    return f"""{language_rule}
+
+Based on the following chapter summaries, create a comprehensive overview of the book "{{book_title}}".
 Synthesize the key themes, main arguments, character development (if applicable), and important takeaways.
 Present the summary in a clear, engaging manner that captures the essence of the book.
 
 Chapter Summaries:
-{chapter_summaries}
+{{chapter_summaries}}
 
 Book Overview:
 """
 
-PODCAST_SCRIPT_SYSTEM_PROMPT = """
+
+def _build_system_prompt(language_rule: str) -> str:
+    """システムプロンプトを構築"""
+    return f"""{language_rule}
+
 You are an expert podcast scriptwriter creating engaging dialogues about books.
 Your task is to transform book summaries into natural, conversational podcasts between two hosts.
 
@@ -34,11 +56,15 @@ Guidelines:
 - Use conversational language and natural transitions
 """
 
-PODCAST_SCRIPT_PROMPT = """
-Create a podcast dialogue about "{book_title}" for approximately {target_words} words.
+
+def _build_script_prompt(language_rule: str) -> str:
+    """スクリプト生成プロンプトを構築"""
+    return f"""{language_rule}
+
+Create a podcast dialogue about "{{book_title}}" for approximately {{target_words}} words.
 
 Book Summary:
-{book_summary}
+{{book_summary}}
 
 Requirements:
 - Natural conversation flow between speakers HOST and GUEST
@@ -51,14 +77,23 @@ Requirements:
 Generate the dialogue in a structured format with speaker labels and their text.
 """
 
-PODCAST_OPENING_TEMPLATES = [
-    "Welcome to our book discussion podcast! Today we're diving into {book_title}.",
-    "Hello everyone! We have an exciting book to talk about today: {book_title}.",
-    "Welcome back to another episode! This time we're exploring {book_title}.",
-]
 
-PODCAST_CLOSING_TEMPLATES = [
-    "That's all for today's discussion of {book_title}. Thanks for listening!",
-    "We hope you enjoyed our conversation about {book_title}. Until next time!",
-    "Thank you for joining us as we explored {book_title}. Happy reading!",
-]
+def get_prompts_with_language(language: PodcastLanguage = PodcastLanguage.EN_US):
+    language_rule = build_language_prompts(language)
+
+    return {
+        "chapter_summary": _build_chapter_summary_prompt(language_rule),
+        "book_summary": _build_book_summary_prompt(language_rule),
+        "system": _build_system_prompt(language_rule),
+        "script": _build_script_prompt(language_rule),
+        "openings": [
+            "Welcome to our book discussion podcast! Today we're diving into {book_title}.",
+            "Hello everyone! We have an exciting book to talk about today: {book_title}.",
+            "Welcome back to another episode! This time we're exploring {book_title}.",
+        ],
+        "closings": [
+            "That's all for today's discussion of {book_title}. Thanks for listening!",
+            "We hope you enjoyed our conversation about {book_title}. Until next time!",
+            "Thank you for joining us as we explored {book_title}. Happy reading!",
+        ],
+    }

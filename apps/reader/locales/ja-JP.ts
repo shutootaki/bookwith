@@ -1,5 +1,15 @@
 export default {
   /**
+   * Common
+   */
+  'common.loading': '読み込み中',
+  'common.retry': 'リトライ',
+  'common.retrying': 'リトライ中...',
+  'common.created_at': '作成日',
+  'common.updated_at': '更新日',
+  'common.cancel': 'キャンセル',
+
+  /**
    * Home
    */
   'home.title': 'ホーム',
@@ -7,7 +17,7 @@ export default {
   'home.download': 'ダウンロード',
   'home.download_sample_book': 'サンプルブックをダウンロード',
   'home.select': '選択',
-  'home.cancel': 'キャンセル',
+  'home.cancel': 'キャンセル', // TODO: 'common.cancel'を使用
   'home.select_all': 'すべて選択',
   'home.deselect_all': 'すべて選択解除',
   'home.export': 'エクスポート',
@@ -172,23 +182,23 @@ export default {
   'podcast.pause': '一時停止',
   'podcast.download': 'ダウンロード',
   'podcast.share': '共有',
-  'podcast.script': '台本',
+  'podcast.script': 'トランスクリプト',
   'podcast.status.pending': '待機中',
   'podcast.status.processing': '生成中',
   'podcast.status.completed': '完了',
   'podcast.status.failed': '失敗',
   'podcast.status.unknown': '不明',
-  'podcast.failed': 'ポッドキャストの生成に失敗しました',
+  'podcast.failed': '生成に失敗しました',
   'podcast.failed_description':
     'エラーが発生しました。しばらくしてから再度お試しください。',
-  'podcast.retry': 'リトライ',
-  'podcast.retrying': 'リトライ中...',
+  'podcast.retry': 'リトライ', // TODO: 'common.retry'を使用
+  'podcast.retrying': 'リトライ中...', // TODO: 'common.retrying'を使用
 
   // AudioPlayer関連
   'podcast.audio_player.playback_failed': '音声の再生に失敗しました',
   'podcast.audio_player.skip_back': '10秒戻る',
   'podcast.audio_player.skip_forward': '10秒進む',
-  'podcast.audio_player.loading': '読み込み中',
+  'podcast.audio_player.loading': '読み込み中', // TODO: 'common.loading'を使用
   'podcast.audio_player.current_time': '現在の再生時間',
   'podcast.audio_player.total_time': '総再生時間',
   'podcast.audio_player.controls': '音声コントロール',
@@ -199,8 +209,8 @@ export default {
   // PodcastDetail関連
   'podcast.detail.back': '戻る',
   'podcast.detail.download_short': 'DL',
-  'podcast.detail.created_at': '作成日',
-  'podcast.detail.updated_at': '更新日',
+  'podcast.detail.created_at': '作成日', // TODO: 'common.created_at'を使用
+  'podcast.detail.updated_at': '更新日', // TODO: 'common.updated_at'を使用
   'podcast.detail.status': '状態',
   'podcast.detail.error': 'エラー',
   'podcast.detail.author_unknown': '作者不明',
@@ -208,10 +218,10 @@ export default {
   // PodcastList関連
   'podcast.list.empty': 'まだポッドキャストがありません',
   'podcast.list.generating': 'ポッドキャストを生成中...',
-  'podcast.list.retry': '再試行',
-  'podcast.list.retrying': '再生成中...',
-  'podcast.list.created_date': '作成日',
-  'podcast.list.updated_date': '更新日',
+  'podcast.list.retry': 'リトライ', // TODO: 'common.retry'を使用
+  'podcast.list.retrying': 'リトライ中...', // TODO: 'common.retrying'を使用
+  'podcast.list.created_date': '作成日', // TODO: 'common.created_at'を使用
+  'podcast.list.updated_date': '更新日', // TODO: 'common.updated_at'を使用
   'podcast.list.refresh': '更新',
   'podcast.list.refreshing_aria_label': 'ポッドキャスト一覧を更新中',
   'podcast.list.refresh_aria_label': 'ポッドキャスト一覧を更新',
@@ -219,14 +229,14 @@ export default {
 
   // PodcastPane関連
   'podcast.pane.generation_started': 'ポッドキャストの生成を開始しました',
-  'podcast.pane.generation_failed': 'ポッドキャストの生成に失敗しました',
+  'podcast.pane.generation_failed': '生成に失敗しました',
   'podcast.pane.regeneration_started': 'ポッドキャストの再生成を開始しました',
   'podcast.pane.regeneration_failed': 'ポッドキャストの再生成に失敗しました',
   'podcast.pane.generating': '生成中...',
   'podcast.pane.generate_podcast': 'ポッドキャスト生成',
   'podcast.pane.podcast_list': 'ポッドキャスト一覧',
   'podcast.pane.loading_failed': 'ポッドキャストの読み込みに失敗しました',
-  'podcast.pane.loading': '読み込み中...',
+  'podcast.pane.loading': '読み込み中', // TODO: 'common.loading'を使用
   'podcast.pane.fetching_info': 'ポッドキャスト情報を取得しています',
   'podcast.pane.library': 'ライブラリ',
   'podcast.pane.library_description':
@@ -250,9 +260,9 @@ export default {
   /**
    * Global Loading Overlay
    */
-  'loading_overlay.loading': '読み込み中',
+  'loading_overlay.loading': '読み込み中', // TODO: 'common.loading'を使用
   'loading_overlay.importing_books': '{completed}/{total}冊をインポート中',
-  'loading_overlay.cancel': 'キャンセル',
+  'loading_overlay.cancel': 'キャンセル', // TODO: 'common.cancel'を使用
 
   /**
    * Dropzone

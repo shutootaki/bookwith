@@ -8,6 +8,7 @@ from src.config.db import Base
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.chat.value_objects.user_id import UserId
 from src.domain.podcast.entities.podcast import Podcast
+from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_script import PodcastScript, ScriptTurnDict
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus, PodcastStatusEnum
@@ -25,6 +26,7 @@ class PodcastDTO(TimestampMixin, Base):
     book_id: Mapped[str] = mapped_column(String, ForeignKey("books.id"), nullable=False)
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    language: Mapped[str] = mapped_column(String(10), nullable=False, default=PodcastLanguage.EN_US.value)
     audio_url: Mapped[str | None] = mapped_column(String, nullable=True)
     status: Mapped[PodcastStatusEnum] = mapped_column(
         Enum(PodcastStatusEnum, name="podcast_status_enum"),
@@ -49,6 +51,7 @@ class PodcastDTO(TimestampMixin, Base):
             book_id=BookId(self.book_id),
             user_id=UserId(self.user_id),
             title=str(self.title),
+            language=PodcastLanguage(self.language),
             audio_url=str(self.audio_url) if self.audio_url else None,
             status=PodcastStatus.from_string(str(self.status.value)),
             script=script_obj,
@@ -69,6 +72,7 @@ class PodcastDTO(TimestampMixin, Base):
             book_id=podcast.book_id.value,
             user_id=podcast.user_id.value,
             title=podcast.title,
+            language=podcast.language.value,
             audio_url=podcast.audio_url,
             status=podcast.status.value,
             script=script_data,

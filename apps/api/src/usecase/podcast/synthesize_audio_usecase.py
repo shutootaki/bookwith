@@ -2,6 +2,7 @@ import logging
 
 from src.domain.podcast.exceptions.podcast_exceptions import PodcastAudioSynthesisError
 from src.domain.podcast.services.script_validator import ScriptValidator
+from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_script import PodcastScript
 from src.infrastructure.external.cloud_tts.markup_builder import script_to_dict_list
 from src.infrastructure.external.cloud_tts.tts_client import CloudTTSClient
@@ -17,12 +18,13 @@ class SynthesizeAudioUseCase:
         self.script_validator = ScriptValidator()
         self.max_chars_per_request = 5000
 
-    async def execute(self, script: PodcastScript, add_japanese_intro: bool = False) -> bytes:
+    async def execute(self, script: PodcastScript, add_japanese_intro: bool = False, language: PodcastLanguage = PodcastLanguage.EN_US) -> bytes:
         """Synthesize audio from a podcast script
 
         Args:
             script: PodcastScript to synthesize
             add_japanese_intro: Whether to add Japanese introduction
+            language: Language of the script
 
         Returns:
             Complete audio data in MP3 format
@@ -39,11 +41,11 @@ class SynthesizeAudioUseCase:
             if self.script_validator.should_use_chunking(script, self.max_chars_per_request):
                 # Need to split into multiple requests
                 logger.info(f"Splitting script into chunks (total: {script.get_total_length()} chars)")
-                audio_chunks = await self.tts_client.synthesize_with_chunks(dialogue_turns, self.max_chars_per_request)
+                audio_chunks = await self.tts_client.synthesize_with_chunks(dialogue_turns, self.max_chars_per_request, language.value)
             else:
                 # Single request is sufficient
                 logger.info("Synthesizing script in single request")
-                audio_chunks = [await self.tts_client.synthesize_multi_speaker(dialogue_turns)]
+                audio_chunks = [await self.tts_client.synthesize_multi_speaker(dialogue_turns, language.value)]
 
             # Add Japanese intro if requested
             if add_japanese_intro:
@@ -58,12 +60,15 @@ class SynthesizeAudioUseCase:
             logger.error(f"Error during audio synthesis: {str(e)}")
             raise PodcastAudioSynthesisError(str(e))
 
-    async def synthesize_in_batches(self, script: PodcastScript, batch_size: int = 10) -> list[bytes]:
+    async def synthesize_in_batches(
+        self, script: PodcastScript, batch_size: int = 10, language: PodcastLanguage = PodcastLanguage.EN_US
+    ) -> list[bytes]:
         """Synthesize script in batches of turns
 
         Args:
             script: PodcastScript to synthesize
             batch_size: Number of turns per batch
+            language: Language of the script
 
         Returns:
             List of audio chunks
@@ -77,7 +82,7 @@ class SynthesizeAudioUseCase:
             batch = turns[i : i + batch_size]
 
             try:
-                audio_chunk = await self.tts_client.synthesize_multi_speaker(batch)
+                audio_chunk = await self.tts_client.synthesize_multi_speaker(batch, language.value)
                 audio_chunks.append(audio_chunk)
             except Exception as e:
                 logger.error(f"Error synthesizing batch {i // batch_size}: {str(e)}")

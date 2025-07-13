@@ -37,6 +37,7 @@ class GetPodcastStatusUseCase:
                 "id": str(podcast.id),
                 "status": str(podcast.status),
                 "title": podcast.title,
+                "language": podcast.language,
                 "book_id": str(podcast.book_id),
                 "user_id": str(podcast.user_id),
                 "audio_url": podcast.audio_url,

@@ -2,13 +2,11 @@ import logging
 import random
 
 from src.domain.podcast.exceptions.podcast_exceptions import PodcastScriptGenerationError
+from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_script import PodcastScript, ScriptTurn
 from src.domain.podcast.value_objects.speaker_role import SpeakerRole
 from src.infrastructure.external.gemini import GeminiClient
-from src.infrastructure.external.gemini.prompts import (
-    PODCAST_CLOSING_TEMPLATES,
-    PODCAST_OPENING_TEMPLATES,
-)
+from src.infrastructure.external.gemini.prompts.podcast_prompts import get_prompts_with_language
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +19,14 @@ class GenerateScriptUseCase:
         self.min_turns = 6  # Minimum dialogue turns
         self.max_turns = 30  # Maximum dialogue turns
 
-    async def execute(self, book_summary: str, book_title: str, target_words: int = 1000, include_intro_outro: bool = True) -> PodcastScript:
+    async def execute(  # noqa: C901
+        self,
+        book_summary: str,
+        book_title: str,
+        target_words: int = 1000,
+        include_intro_outro: bool = True,
+        language: PodcastLanguage = PodcastLanguage.EN_US,
+    ) -> PodcastScript:
         """Generate a podcast script from book summary
 
         Args:
@@ -29,6 +34,7 @@ class GenerateScriptUseCase:
             book_title: Title of the book
             target_words: Target word count for the script
             include_intro_outro: Whether to add intro and outro
+            language: Language of the script
 
         Returns:
             PodcastScript domain object
@@ -43,7 +49,7 @@ class GenerateScriptUseCase:
                 # Generate dialogue using Gemini
                 logger.info(f"Generating podcast script for '{book_title}' (attempt {attempt + 1}/{max_retries})")
                 dialogue_turns = await self.gemini_client.generate_podcast_script(
-                    summary=book_summary, book_title=book_title, target_words=target_words, temperature=temperature
+                    summary=book_summary, book_title=book_title, target_words=target_words, temperature=temperature, language=language
                 )
 
                 # Validate generated dialogue
@@ -58,7 +64,7 @@ class GenerateScriptUseCase:
 
                 # Add intro if requested
                 if include_intro_outro:
-                    intro_turn = self._create_intro_turn(book_title)
+                    intro_turn = self._create_intro_turn(book_title, language)
                     script_turns.append(intro_turn)
 
                 # Add main dialogue
@@ -73,7 +79,7 @@ class GenerateScriptUseCase:
 
                 # Add outro if requested
                 if include_intro_outro:
-                    outro_turn = self._create_outro_turn(book_title)
+                    outro_turn = self._create_outro_turn(book_title, language)
                     script_turns.append(outro_turn)
 
                 # Validate final script
@@ -175,9 +181,10 @@ class GenerateScriptUseCase:
 
         return PodcastScript(turns=processed_turns)
 
-    def _create_intro_turn(self, book_title: str) -> ScriptTurn:
+    def _create_intro_turn(self, book_title: str, language: PodcastLanguage = PodcastLanguage.EN_US) -> ScriptTurn:
         """Create an introduction turn"""
-        template = random.choice(PODCAST_OPENING_TEMPLATES)
+        lang_prompts = get_prompts_with_language(language)
+        template = random.choice(lang_prompts["openings"])
         intro_text = template.format(book_title=book_title)
 
         return ScriptTurn(
@@ -185,9 +192,10 @@ class GenerateScriptUseCase:
             text=intro_text,
         )
 
-    def _create_outro_turn(self, book_title: str) -> ScriptTurn:
+    def _create_outro_turn(self, book_title: str, language: PodcastLanguage = PodcastLanguage.EN_US) -> ScriptTurn:
         """Create a closing turn"""
-        template = random.choice(PODCAST_CLOSING_TEMPLATES)
+        lang_prompts = get_prompts_with_language(language)
+        template = random.choice(lang_prompts["closings"])
         outro_text = template.format(book_title=book_title)
 
         return ScriptTurn(

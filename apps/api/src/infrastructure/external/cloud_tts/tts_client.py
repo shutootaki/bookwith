@@ -18,26 +18,44 @@ class CloudTTSClient:
         # ~/.config/gcloud/application_default_credentials.json will be used.
         self.client = tts.TextToSpeechClient()
 
-        # Configure voice settings (Multi-speaker voice requires allowlist)
-        # self.multi_speaker_voice = tts.VoiceSelectionParams(
-        #     language_code="en-US",
-        #     name="en-US-Studio-MultiSpeaker",
-        # )
+        # Configure voice settings by language
+        self.voices = {
+            "en-US": {
+                "HOST": tts.VoiceSelectionParams(
+                    language_code="en-US",
+                    name="en-US-Studio-O",
+                ),
+                "GUEST": tts.VoiceSelectionParams(
+                    language_code="en-US",
+                    name="en-US-Studio-Q",
+                ),
+            },
+            "ja-JP": {
+                "HOST": tts.VoiceSelectionParams(
+                    language_code="ja-JP",
+                    name="ja-JP-Neural2-B",  # Male voice
+                ),
+                "GUEST": tts.VoiceSelectionParams(
+                    language_code="ja-JP",
+                    name="ja-JP-Neural2-A",  # Female voice
+                ),
+            },
+            "cmn-CN": {
+                "HOST": tts.VoiceSelectionParams(
+                    language_code="cmn-CN",
+                    name="cmn-CN-Standard-C",  # Male voice
+                ),
+                "GUEST": tts.VoiceSelectionParams(
+                    language_code="cmn-CN",
+                    name="cmn-CN-Standard-A",  # Female voice
+                ),
+            },
+        }
 
-        # Fallback single-speaker voices (speaker HOST / speaker GUEST)
-        self.voice_R = tts.VoiceSelectionParams(
-            language_code="en-US",
-            name="en-US-Studio-O",
-        )
-        self.voice_S = tts.VoiceSelectionParams(
-            language_code="en-US",
-            name="en-US-Studio-Q",
-        )
-
-        self.japanese_voice = tts.VoiceSelectionParams(
-            language_code="ja-JP",
-            name="ja-JP-Neural2-B",  # Male voice for consistency
-        )
+        # Legacy voice settings for backward compatibility
+        self.voice_R = self.voices["en-US"]["HOST"]
+        self.voice_S = self.voices["en-US"]["GUEST"]
+        self.japanese_voice = self.voices["ja-JP"]["HOST"]
 
         # Configure audio settings
         self.audio_config = tts.AudioConfig(
@@ -45,12 +63,12 @@ class CloudTTSClient:
             sample_rate_hertz=24000,  # 24kHz for synthesis
         )
 
-    async def synthesize_multi_speaker(self, turns: list[dict]) -> bytes:
+    async def synthesize_multi_speaker(self, turns: list[dict], language: str = "en-US") -> bytes:
         """Synthesize multi-speaker dialogue using Studio MultiSpeaker voice
 
         Args:
             turns: List of dialogue turns with 'speaker' and 'text' keys
-
+            language: Language of the script
         Returns:
             Audio data in MP3 format
 
@@ -73,9 +91,14 @@ class CloudTTSClient:
 
             # --- Fallback implementation using two single-speaker voices ---
             audio_contents: list[bytes] = []
+
+            # Get language-specific voices, fallback to English if not found
+            language_voices = self.voices.get(language, self.voices["en-US"])
+
             for turn in turns:
                 synthesis_input = tts.SynthesisInput(text=turn["text"])
-                voice_params = self.voice_R if turn["speaker"] == "HOST" else self.voice_S
+                # Select voice based on speaker
+                voice_params = language_voices.get(turn["speaker"], language_voices["HOST"])
                 response = self.client.synthesize_speech(
                     input=synthesis_input,
                     voice=voice_params,
@@ -110,12 +133,13 @@ class CloudTTSClient:
             logger.error(f"Error synthesizing Japanese audio: {str(e)}")
             raise PodcastAudioSynthesisError(f"Japanese synthesis failed: {str(e)}")
 
-    async def synthesize_with_chunks(self, turns: list[dict], max_chars_per_request: int = 5000) -> list[bytes]:
+    async def synthesize_with_chunks(self, turns: list[dict], max_chars_per_request: int = 5000, language: str = "en-US") -> list[bytes]:
         """Synthesize dialogue in chunks if it exceeds the character limit
 
         Args:
             turns: List of dialogue turns
             max_chars_per_request: Maximum characters per synthesis request
+            language: Language of the script
 
         Returns:
             List of audio chunks in MP3 format
@@ -130,7 +154,7 @@ class CloudTTSClient:
 
             # If adding this turn exceeds the limit, synthesize current chunk
             if current_length + turn_length > max_chars_per_request and current_chunk:
-                audio_chunk = await self.synthesize_multi_speaker(current_chunk)
+                audio_chunk = await self.synthesize_multi_speaker(current_chunk, language)
                 chunks.append(audio_chunk)
                 current_chunk = []
                 current_length = 0
@@ -141,7 +165,7 @@ class CloudTTSClient:
 
         # Synthesize remaining turns
         if current_chunk:
-            audio_chunk = await self.synthesize_multi_speaker(current_chunk)
+            audio_chunk = await self.synthesize_multi_speaker(current_chunk, language)
             chunks.append(audio_chunk)
 
         return chunks

@@ -8,21 +8,25 @@ type CreatePodcastResponse = components['schemas']['CreatePodcastResponse']
 type PodcastResponse = components['schemas']['PodcastResponse']
 type PodcastListResponse = components['schemas']['PodcastListResponse']
 type PodcastStatusResponse = components['schemas']['PodcastStatusResponse']
+type PodcastLanguage = components['schemas']['PodcastLanguage']
 
 /**
  * Creates a new podcast for a book
  * @param bookId The ID of the book to create podcast for
  * @param title Custom title for the podcast (optional)
+ * @param language Language code for the podcast (optional, defaults to en-US)
  * @returns A promise that resolves to the created podcast response
  */
 export async function createPodcast(
   bookId: string,
+  language: string,
   title?: string,
 ): Promise<CreatePodcastResponse | null> {
   try {
     const requestBody: CreatePodcastRequest = {
       book_id: bookId,
       title,
+      language: language as PodcastLanguage,
     }
 
     const responseData = await apiClient<CreatePodcastResponse>('/podcasts', {

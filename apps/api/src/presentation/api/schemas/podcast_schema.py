@@ -2,12 +2,15 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.domain.podcast.value_objects.language import PodcastLanguage
+
 
 class CreatePodcastRequest(BaseModel):
     """Request schema for creating a podcast"""
 
     book_id: str = Field(..., description="ID of the book to create podcast for")
     title: str | None = Field(None, description="Custom title for the podcast")
+    language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
 
 
 class PodcastScriptTurn(BaseModel):
@@ -25,6 +28,7 @@ class PodcastResponse(BaseModel):
     user_id: str = Field(..., description="User ID")
     title: str = Field(..., description="Podcast title")
     status: str = Field(..., description="Generation status")
+    language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
     audio_url: str | None = Field(None, description="URL to the generated audio")
     error_message: str | None = Field(None, description="Error message if generation failed")
     script: list[PodcastScriptTurn] | None = Field(None, description="Podcast script")
@@ -40,6 +44,7 @@ class PodcastStatusResponse(BaseModel):
     id: str = Field(..., description="Podcast ID")
     status: str = Field(..., description="Generation status")
     title: str = Field(..., description="Podcast title")
+    language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
     audio_url: str | None = Field(None, description="URL to the generated audio if completed")
     error_message: str | None = Field(None, description="Error message if failed")
     has_script: bool = Field(..., description="Whether script has been generated")

@@ -10,6 +10,8 @@ from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from google.protobuf.json_format import MessageToDict
 
 from src.config.app_config import AppConfig
+from src.domain.podcast.value_objects.language import PodcastLanguage
+from src.infrastructure.external.gemini.prompts.podcast_prompts import get_prompts_with_language
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +44,8 @@ class GeminiClient:
 
     def __init__(self) -> None:
         self.config = AppConfig.get_config()
-        self.gemini_flash_model = "gemini-2.0-flash"
-        self.gemini_pro_model = "gemini-2.0-flash"
+        self.gemini_flash_model = "gemini-2.0-flash-lite"
+        self.gemini_pro_model = "gemini-2.0-flash-lite"
 
         genai.configure(api_key=self.config.gemini_api_key)
 
@@ -97,13 +99,14 @@ class GeminiClient:
             return self._extract_response_text(response)
 
         except Exception as e:
-            logger.error(f"Error summarizing text with Gemini Pro: {str(e)}")
             raise
+            logger.error(f"Error summarizing text with Gemini Pro: {str(e)}")
 
     async def generate_podcast_script(
         self,
         summary: str,
         book_title: str,
+        language: PodcastLanguage,
         target_words: int = 1000,
         temperature: float = 0.7,
     ) -> list[dict[str, str]]:
@@ -114,6 +117,7 @@ class GeminiClient:
             book_title: Title of the book
             target_words: Target word count for the script
             temperature: Sampling temperature (0.0 to 1.0)
+            language: Language of the script
 
         Returns:
             List of dialogue turns with speaker and text
@@ -172,7 +176,7 @@ class GeminiClient:
             ]
 
             # Create the prompt
-            prompt = self._create_podcast_prompt(summary, book_title, target_words)
+            prompt = self._create_podcast_prompt(summary, book_title, target_words, language)
 
             # Configure the model with tools
             model_with_tools = genai.GenerativeModel(
@@ -234,32 +238,31 @@ class GeminiClient:
             logger.error(f"Error generating podcast script with Gemini Flash: {str(e)}")
             raise
 
-    def _create_podcast_prompt(self, summary: str, book_title: str, target_words: int) -> str:
+    def _create_podcast_prompt(self, summary: str, book_title: str, target_words: int, language: PodcastLanguage) -> str:
         """Create the prompt for podcast script generation"""
-        return f"""
-You are tasked with creating an engaging podcast dialogue about the book "{book_title}".
+        lang_prompts = get_prompts_with_language(language)
+        system_prompt = lang_prompts["system"]
+        script_template = lang_prompts["script"]
 
-Book Summary:
-{summary}
+        # script_templateがリストやタプルの場合は先頭要素を使う
+        if isinstance(script_template, list | tuple):
+            script_template = script_template[0]
+        script_template = str(script_template)
 
-Create a natural, conversational dialogue between two podcast hosts (HOST and GUEST) discussing this book.
+        # Format the script prompt with the provided values
+        script_prompt = script_template.format(
+            book_title=book_title,
+            book_summary=summary,
+            target_words=target_words,
+        )
 
-IMPORTANT REQUIREMENTS:
-- The dialogue MUST have at least 10-15 turns (exchanges between speakers)
-- Each speaker should speak at least 5 times
-- Be approximately {target_words} words in total
-- Feel like a real podcast conversation with natural flow
-- Include interesting insights and analysis
-- Use only speakers HOST and GUEST
-- Maintain an engaging and informative tone
-- Start with an engaging introduction
-- Include specific examples from the book
-- End with thoughtful conclusions or recommendations
+        # Combine system and script prompts
+        return f"""{system_prompt}
+
+{script_prompt}
 
 Use the generate_podcast_dialogue function to structure your response as an array of dialogue turns.
-Each turn should have a "speaker" (either "HOST" or "GUEST") and "text" (what they say).
-Make sure to generate a substantial conversation, not just a brief exchange.
-"""
+Each turn should have a "speaker" (either "HOST" or "GUEST") and "text" (what they say)."""
 
     def _parse_dialogue_from_text(self, text: str) -> list[dict[str, str]]:
         """Fallback method to parse dialogue from raw text"""
@@ -279,7 +282,7 @@ Make sure to generate a substantial conversation, not just a brief exchange.
     async def generate_chapter_summary(
         self,
         chapter_text: str,
-        chapter_title: str | None = None,
+        language: PodcastLanguage,
         max_output_tokens: int = 400,
         temperature: float = 0.3,
     ) -> str:
@@ -290,15 +293,22 @@ Make sure to generate a substantial conversation, not just a brief exchange.
             chapter_title: Optional chapter title
             max_output_tokens: Maximum number of output tokens
             temperature: Sampling temperature
+            language: Language of the script
 
         Returns:
             Chapter summary
 
         """
-        prompt = "Please provide a concise summary of the following chapter"
-        if chapter_title:
-            prompt += f" titled '{chapter_title}'"
-        prompt += f":\n\n{chapter_text}"
+        # Get language-specific prompts
+        lang_prompts = get_prompts_with_language(language)
+        chapter_summary_template = lang_prompts["chapter_summary"]
+        # chapter_summary_templateがリストやタプルの場合は先頭要素を使う
+        if isinstance(chapter_summary_template, list | tuple):
+            chapter_summary_template = chapter_summary_template[0]
+        chapter_summary_template = str(chapter_summary_template)
+
+        # Format the prompt
+        prompt = chapter_summary_template.format(chapter_content=chapter_text)
 
         return await self.summarize_text(prompt, max_output_tokens, temperature)
 
@@ -389,6 +399,7 @@ Make sure to generate a substantial conversation, not just a brief exchange.
         self,
         summaries: list[str],
         book_title: str,
+        language: PodcastLanguage,
         max_output_tokens: int = 800,
         temperature: float = 0.3,
     ) -> str:
@@ -399,21 +410,28 @@ Make sure to generate a substantial conversation, not just a brief exchange.
             book_title: Title of the book
             max_output_tokens: Maximum number of output tokens
             temperature: Sampling temperature
+            language: Language of the script
 
         Returns:
             Combined book summary
 
         """
-        combined_text = "\n\n".join([f"Chapter {i + 1}:\n{summary}" for i, summary in enumerate(summaries)])
+        # Get language-specific prompts
+        lang_prompts = get_prompts_with_language(language)
+        book_summary_template = lang_prompts["book_summary"]
+        if isinstance(book_summary_template, list | tuple):
+            book_summary_template = book_summary_template[0]
+        book_summary_template = str(book_summary_template)
 
-        prompt = f"""
-Please create a comprehensive summary of the book "{book_title}" based on the following chapter summaries.
-Synthesize the key themes, main arguments, and important takeaways into a coherent overview.
-
-Chapter Summaries:
-{combined_text}
-"""
-
+        # Format chapter summaries based on language
+        if language == PodcastLanguage.JA_JP:
+            combined_text = "\n\n".join([f"第{i + 1}章:\n{summary}" for i, summary in enumerate(summaries)])
+        elif language == PodcastLanguage.CMN_CN:
+            combined_text = "\n\n".join([f"第{i + 1}章：\n{summary}" for i, summary in enumerate(summaries)])
+        else:
+            combined_text = "\n\n".join([f"Chapter {i + 1}:\n{summary}" for i, summary in enumerate(summaries)])
+        # Format the prompt
+        prompt = book_summary_template.format(book_title=book_title, chapter_summaries=combined_text)
         return await self.summarize_text(prompt, max_output_tokens, temperature)
 
     def _save_debug_info(self, stage: str, data: dict) -> None:

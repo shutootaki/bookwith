@@ -34,6 +34,7 @@ def convert_podcast_to_response(podcast: Podcast) -> PodcastResponse:
         user_id=podcast.user_id.value,
         title=podcast.title,
         status=podcast.status.value.value,
+        language=podcast.language,
         audio_url=podcast.audio_url,
         error_message=podcast.error_message,
         script=script_data,

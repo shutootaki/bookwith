@@ -276,8 +276,9 @@ def get_gcs_client() -> GCSClient:
 
 async def get_create_podcast_usecase(
     podcast_repository: PodcastRepository = Depends(get_podcast_repository),
+    book_repository: BookRepository = Depends(get_book_repository),
 ) -> CreatePodcastUseCase:
-    return CreatePodcastUseCase(podcast_repository)
+    return CreatePodcastUseCase(podcast_repository, book_repository)
 
 
 async def get_find_podcast_by_id_usecase(

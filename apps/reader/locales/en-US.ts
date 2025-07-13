@@ -1,5 +1,15 @@
 export default {
   /**
+   * Common
+   */
+  'common.loading': 'Loading',
+  'common.retry': 'Retry',
+  'common.retrying': 'Retrying...',
+  'common.created_at': 'Created',
+  'common.updated_at': 'Updated',
+  'common.cancel': 'Cancel',
+
+  /**
    * Home
    */
   'home.title': 'Home',
@@ -7,7 +17,7 @@ export default {
   'home.download': 'Download',
   'home.download_sample_book': 'Download sample book',
   'home.select': 'Select',
-  'home.cancel': 'Cancel',
+  'home.cancel': 'Cancel', // TODO: use 'common.cancel'
   'home.select_all': 'Select all',
   'home.deselect_all': 'Deselect all',
   'home.export': 'Export',
@@ -181,12 +191,16 @@ export default {
   'podcast.status.completed': 'Completed',
   'podcast.status.failed': 'Failed',
   'podcast.status.unknown': 'Unknown',
+  'podcast.failed': 'Podcast generation failed',
+  'podcast.failed_description': 'An error occurred. Please try again later.',
+  'podcast.retry': 'Retry', // TODO: use 'common.retry'
+  'podcast.retrying': 'Retrying...', // TODO: use 'common.retrying'
 
   // AudioPlayer related
   'podcast.audio_player.playback_failed': 'Audio playback failed',
   'podcast.audio_player.skip_back': 'Skip back 10 seconds',
   'podcast.audio_player.skip_forward': 'Skip forward 10 seconds',
-  'podcast.audio_player.loading': 'Loading',
+  'podcast.audio_player.loading': 'Loading', // TODO: use 'common.loading'
   'podcast.audio_player.current_time': 'Current playback time',
   'podcast.audio_player.total_time': 'Total playback time',
   'podcast.audio_player.controls': 'Audio controls',
@@ -197,8 +211,8 @@ export default {
   // PodcastDetail related
   'podcast.detail.back': 'Back',
   'podcast.detail.download_short': 'DL',
-  'podcast.detail.created_at': 'Created',
-  'podcast.detail.updated_at': 'Updated',
+  'podcast.detail.created_at': 'Created', // TODO: use 'common.created_at'
+  'podcast.detail.updated_at': 'Updated', // TODO: use 'common.updated_at'
   'podcast.detail.status': 'Status',
   'podcast.detail.error': 'Error',
   'podcast.detail.author_unknown': 'Unknown author',
@@ -206,10 +220,10 @@ export default {
   // PodcastList related
   'podcast.list.empty': 'No podcasts yet',
   'podcast.list.generating': 'Generating podcast...',
-  'podcast.list.retry': 'Retry',
-  'podcast.list.retrying': 'Retrying...',
-  'podcast.list.created_date': 'Created',
-  'podcast.list.updated_date': 'Updated',
+  'podcast.list.retry': 'Retry', // TODO: use 'common.retry'
+  'podcast.list.retrying': 'Retrying...', // TODO: use 'common.retrying'
+  'podcast.list.created_date': 'Created', // TODO: use 'common.created_at'
+  'podcast.list.updated_date': 'Updated', // TODO: use 'common.updated_at'
   'podcast.list.refresh': 'Refresh',
   'podcast.list.refreshing_aria_label': 'Refreshing podcast list',
   'podcast.list.refresh_aria_label': 'Refresh podcast list',
@@ -224,7 +238,7 @@ export default {
   'podcast.pane.generate_podcast': 'Generate Podcast',
   'podcast.pane.podcast_list': 'Podcast List',
   'podcast.pane.loading_failed': 'Failed to load podcasts',
-  'podcast.pane.loading': 'Loading...',
+  'podcast.pane.loading': 'Loading', // TODO: use 'common.loading'
   'podcast.pane.fetching_info': 'Fetching podcast information',
   'podcast.pane.library': 'Library',
   'podcast.pane.library_description':
@@ -247,9 +261,9 @@ export default {
   /**
    * Global Loading Overlay
    */
-  'loading_overlay.loading': 'Loading',
+  'loading_overlay.loading': 'Loading', // TODO: use 'common.loading'
   'loading_overlay.importing_books': 'Importing {completed}/{total} books',
-  'loading_overlay.cancel': 'Cancel',
+  'loading_overlay.cancel': 'Cancel', // TODO: use 'common.cancel'
 
   /**
    * Dropzone
@@ -260,10 +274,4 @@ export default {
    * Others
    */
   untitled: 'Untitled',
-  podcast: {
-    failed: 'Podcast generation failed',
-    failed_description: 'An error occurred. Please try again later.',
-    retry: 'Retry',
-    retrying: 'Retrying...',
-  },
 } as const

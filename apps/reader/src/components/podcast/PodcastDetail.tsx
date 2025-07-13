@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import {
   Download,
   MessageSquare,
@@ -8,21 +7,16 @@ import {
 } from 'lucide-react'
 import React, { useState } from 'react'
 
+import { usePodcastShare } from '../../hooks/podcast/usePodcastShare'
 import { useTranslation } from '../../hooks/useTranslation'
 import { reader } from '../../models'
 import { PodcastResponse } from '../../types/podcast'
-import {
-  isWebShareSupported,
-  isClipboardSupported,
-  generateAudioFilename,
-  isPodcastFailed,
-  isPodcastProcessing, // 追加
-} from '../../utils/podcast'
+import { ResponsiveToolTip } from '../ResponsiveToolTip'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
-import { ScrollArea } from '../ui/scroll-area'
 
 import { AudioPlayer } from './AudioPlayer'
+import { PodcastScript } from './PodcastScript'
 
 interface PodcastDetailProps {
   podcast: PodcastResponse
@@ -42,47 +36,11 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
 }) => {
   const t = useTranslation()
   const [showScript, setShowScript] = useState(false)
+  const { handleDownload, handleShare } = usePodcastShare()
 
-  const isFailed = isPodcastFailed(podcast.status)
-  const isProcessing = isPodcastProcessing(podcast.status) // 追加
+  const isFailed = podcast.status === 'FAILED'
+  const isProcessing = podcast.status === 'PROCESSING'
   const isRetrying = retryingPodcastId === podcast.id
-
-  const handleDownload = async () => {
-    if (!podcast.audio_url) return
-    try {
-      const response = await fetch(podcast.audio_url)
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = generateAudioFilename(podcast.title)
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Download failed:', error)
-    }
-  }
-
-  const handleShare = async () => {
-    if (!podcast.audio_url) return
-    if (isWebShareSupported()) {
-      try {
-        await navigator.share({
-          title: podcast.title,
-          text: t('podcast.pane.podcast_title', { name: podcast.title }),
-          url: podcast.audio_url,
-        })
-      } catch {
-        if (isClipboardSupported()) {
-          navigator.clipboard.writeText(podcast.audio_url)
-        }
-      }
-    } else if (isClipboardSupported()) {
-      navigator.clipboard.writeText(podcast.audio_url)
-    }
-  }
 
   const handleRetry = () => {
     if (onRetryPodcast) {
@@ -101,22 +59,27 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
         )}
         <div className="flex items-center space-x-1">
           {podcast.script && !isFailed && !isProcessing && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowScript(!showScript)}
-              className="h-8 w-8"
-              aria-label={t('podcast.script')}
-            >
-              <MessageSquare className="h-3 w-3" />
-            </Button>
+            <ResponsiveToolTip content={t('podcast.script')} align="center">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowScript(!showScript)}
+                className="h-8 w-8"
+                aria-label={t('podcast.script')}
+              >
+                <MessageSquare className="h-3 w-3" />
+              </Button>
+            </ResponsiveToolTip>
           )}
           {podcast.audio_url && !isFailed && !isProcessing && (
             <>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={handleDownload}
+                onClick={() =>
+                  podcast.audio_url &&
+                  handleDownload(podcast.audio_url, podcast.title)
+                }
                 className="h-8 w-8"
                 aria-label={t('podcast.detail.download_short')}
               >
@@ -125,7 +88,10 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={handleShare}
+                onClick={() =>
+                  podcast.audio_url &&
+                  handleShare(podcast.audio_url, podcast.title)
+                }
                 className="h-8 w-8"
                 aria-label={t('podcast.share')}
               >
@@ -202,36 +168,7 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = ({
       )}
       {/* Script */}
       {showScript && podcast.script && !isFailed && !isProcessing && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="p-6">
-            <h3 className="text-foreground mb-4 text-lg font-semibold">
-              {t('podcast.script')}
-            </h3>
-            <ScrollArea className="h-96">
-              <div className="space-y-4">
-                {podcast.script.map((turn, index) => (
-                  <div key={index} className="flex space-x-3">
-                    <div className="flex-shrink-0">
-                      <span className="bg-primary text-primary-foreground inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
-                        {turn.speaker}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-foreground text-sm leading-relaxed">
-                        {turn.text}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </Card>
-        </motion.div>
+        <PodcastScript script={podcast.script} />
       )}
     </div>
   )
