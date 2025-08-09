@@ -1,9 +1,11 @@
 # BookWith – A New Reading Experience with AI
 
-<p align="right">
-  <a href="README.md"><img src="https://img.shields.io/badge/English-EN-blue?style=flat-square" alt="English" /></a>
-  <a href="README_JA.md"><img src="https://img.shields.io/badge/日本語-JA-red?style=flat-square" alt="日本語" /></a>
-  <a href="README_ZH.md"><img src="https://img.shields.io/badge/简体中文-ZH-green?style=flat-square" alt="简体中文" /></a>
+# BookWith – A New Reading Experience with AI
+
+<hr />
+
+<p align="center">
+  <strong>English</strong> | <a href="README_JA.md">日本語</a> | <a href="README_ZH.md">简体中文</a>
 </p>
 
 > A next-generation conversational reading platform that goes beyond traditional e-book readers
