@@ -1,4 +1,5 @@
 # BookWith – A New Reading Experience with AI
+_[日本語](README_JA.md) | [简体中文](README_ZH.md)_
 
 > A next-generation conversational reading platform that goes beyond traditional e-book readers
 

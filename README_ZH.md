@@ -1,4 +1,5 @@
 # BookWith – 与 AI 一起阅读的新体验
+_[English](README.md) | [日本語](README_JA.md)_
 
 > 超越传统电子书阅读器的下一代「对话式阅读」平台
 
