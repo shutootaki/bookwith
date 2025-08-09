@@ -1,12 +1,8 @@
-# BookWith - AI と一緒に読む、新しい読書体験
-
-# BookWith - AI と一緒に読む、新しい読書体験
-
-<hr />
-
 <p align="center">
   <a href="README.md">English</a> | <strong>日本語</strong> | <a href="README_ZH.md">简体中文</a>
 </p>
+
+# BookWith - AI と一緒に読む、新しい読書体験
 
 > 従来の電子書籍リーダーを超えた、AI 対話型の次世代読書プラットフォーム
 
