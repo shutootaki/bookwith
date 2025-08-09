@@ -1,5 +1,10 @@
 # BookWith – 与 AI 一起阅读的新体验
-_[English](README.md) | [日本語](README_JA.md)_
+
+<p align="right">
+  <a href="README.md"><img src="https://img.shields.io/badge/English-EN-blue?style=flat-square" alt="English" /></a>
+  <a href="README_JA.md"><img src="https://img.shields.io/badge/日本語-JA-red?style=flat-square" alt="日本語" /></a>
+  <a href="README_ZH.md"><img src="https://img.shields.io/badge/简体中文-ZH-green?style=flat-square" alt="简体中文" /></a>
+</p>
 
 > 超越传统电子书阅读器的下一代「对话式阅读」平台
 
@@ -59,11 +64,13 @@ AI：「如果将第 3 章的创新理论应用到实际业务……」
 https://github.com/user-attachments/assets/c4288075-a83c-4b52-a5c0-55b1a79ee252
 
 - **自动生成脚本**：
+
   - 提取要点，转换为主持人与嘉宾的对话形式
   - 优化为 5–10 分钟的易听长度
   - 以通俗的对话方式解释复杂主题
 
 - **高质量语音合成**：
+
   - 利用 Google Cloud Text-to-Speech 的多说话人功能
   - 呈现自然的对话节奏与语调
   - 支持多语言（含中/日/英）
@@ -103,12 +110,14 @@ _例_：一周前阅读的经济学书籍内容，会自动关联到你现在阅
 **将你的思考可视化的高级高亮与笔记**
 
 - **颜色高亮（5 色）**
+
   - 🔴 红：关键要点
   - 🟡 黄：重要概念
   - 🟢 绿：可实践的想法
   - 🔵 蓝：疑问 / 待验证
 
 - **智能笔记**
+
   - 为高亮文本添加详细备注
   - 支持 Markdown 格式
 
@@ -127,6 +136,7 @@ _例_：一周前阅读的经济学书籍内容，会自动关联到你现在阅
 **以“意义”连接的信息发现方式**
 
 - **跨书搜索**
+
   - 支持跨多本书检索
   - 历史对话也纳入索引
   - 覆盖标注与笔记内容
