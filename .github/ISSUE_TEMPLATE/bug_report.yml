@@ -1,0 +1,38 @@
+name: 🐛 Bug Report
+description: Report an issue that should be fixed
+labels: [triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for submitting a bug report! It helps make BookWith better.
+
+        Please include as much information as possible.
+  - type: input
+    attributes:
+      label: What version of BookWith are you using?
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Which browser/platform are you running the app on? (with version if possible)
+      placeholder: Chrome 115, Safari 16, Firefox 118, etc.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What steps can reproduce the bug?
+      description: Describe the bug and provide steps or code that can reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What is the expected behavior?
+  - type: textarea
+    attributes:
+      label: What do you see instead?
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: Is there anything else you think we should know?
