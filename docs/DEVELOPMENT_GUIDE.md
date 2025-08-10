@@ -1,3 +1,7 @@
+<p align="center">
+   <strong>English</strong> | <a href="DEVELOPMENT_GUIDE_JA.md">日本語</a> | <a href="DEVELOPMENT_GUIDE_ZH.md">简体中文</a>
+</p>
+
 # BookWith Development Environment Setup Guide
 
 This guide provides detailed instructions on how to set up a development environment for contributors and developers of the BookWith project.

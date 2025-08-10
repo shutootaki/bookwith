@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="DEVELOPMENT_GUIDE.md">English</a> | <strong>日本語</strong> | <a href="DEVELOPMENT_GUIDE_ZH.md">简体中文</a>
+</p>
+
 # BookWith 開発環境構築ガイド
 
 このガイドでは、BookWith プロジェクトのコントリビューター・開発者向けに、開発環境の構築手順を詳しく説明します。
