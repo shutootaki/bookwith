@@ -10,12 +10,6 @@ body:
         Please include as much information as possible.
   - type: input
     attributes:
-      label: What version of BookWith are you using?
-      placeholder: v0.1.0
-    validations:
-      required: true
-  - type: input
-    attributes:
       label: Which browser/platform are you running the app on? (with version if possible)
       placeholder: Chrome 115, Safari 16, Firefox 118, etc.
     validations:
