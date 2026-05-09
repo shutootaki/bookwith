@@ -19,7 +19,8 @@ import { PaneContainer } from './PaneContainer'
 
 // F-1: ドラッグ&ドロップで `text/plain` 由来の id をパス引数として API に渡す前に
 // UUID 形式を強制する。`../admin/users` などのパス変造を阻止する。
-const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+const UUID_RE =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 interface ReaderGroupProps {
   index: number

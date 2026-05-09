@@ -35,8 +35,7 @@ const sentryWebpackPluginOptions = {
 // 将来的には CSP nonce + sandbox 強化（CR-5）で `'unsafe-inline'` を取り除くこと。
 const buildCsp = () => {
   const apiOrigin =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    'http://localhost:8000'
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
   const directives = [
     "default-src 'self'",
     "base-uri 'self'",

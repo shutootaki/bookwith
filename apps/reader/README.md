@@ -42,7 +42,9 @@ const supabase = createClient(
 // MyApp 内
 useEffect(() => {
   // 起動時に既存セッションを apiClient に伝える
-  supabase.auth.getSession().then(({ data }) => persistAuthSession(data.session))
+  supabase.auth
+    .getSession()
+    .then(({ data }) => persistAuthSession(data.session))
 
   // 状態変化（ログイン / ログアウト / refresh）を購読
   const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {

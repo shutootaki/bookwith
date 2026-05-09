@@ -1,11 +1,5 @@
 import { Loader, BookOpen } from 'lucide-react'
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { useTranslation } from '@flow/reader/hooks'
@@ -22,7 +16,8 @@ import { ChatMessage } from './ChatMessage'
 import { EmptyState } from './EmptyState'
 import { Message } from './types'
 
-const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+const UUID_REGEX =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 function isValidUuid(value: string | null | undefined): value is string {
   return typeof value === 'string' && UUID_REGEX.test(value)

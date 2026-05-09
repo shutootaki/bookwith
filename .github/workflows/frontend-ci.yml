@@ -76,4 +76,4 @@ jobs:
           pnpm -F @flow/reader run lint:prettier
 
       - name: Type check (TypeScript)
-        run: pnpm -F @flow/reader run ts:check
+        run: pnpm -F @flow/reader run lint:ts

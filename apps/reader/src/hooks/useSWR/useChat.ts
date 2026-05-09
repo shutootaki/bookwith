@@ -12,10 +12,7 @@ export const useGetUserChats = (userId: string | null) => {
   // CR-3: 認証 user_id でサーバー側が絞り込むため、userId が null の場合のみ fetch をスキップ。
   const { data, error, isValidating, mutate } = useSWR<
     components['schemas']['ChatsResponse']
-  >(
-    userId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/chats/me` : null,
-    fetcher,
-  )
+  >(userId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/chats/me` : null, fetcher)
 
   return {
     chats: data,

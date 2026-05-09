@@ -39,7 +39,9 @@ export default function Index() {
     }
     if (allowed.length === 0) return
 
-    const confirmMessage = `Import EPUB(s) from the following URL(s)?\n\n${allowed.join('\n')}`
+    const confirmMessage = `Import EPUB(s) from the following URL(s)?\n\n${allowed.join(
+      '\n',
+    )}`
     // window.confirm は同期確認。ユーザーが明示的に許可した URL のみ取り込む。
     if (!window.confirm(confirmMessage)) return
 

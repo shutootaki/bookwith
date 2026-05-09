@@ -12,7 +12,9 @@ interface ImportManagerProps {
 // レビュー文書の LOW 指摘（外部ホストの改竄時に CR-5 と合わせた 1-click XSS の入口になり得る）
 // を受けて削除済み。サンプル EPUB が必要な場合は自前ホスト（cdn.bookwith.app 等）の URL を
 // `RemoteImportManager` に渡す経路を使う（CR-7 の allow-list が適用される）。
-export const ImportManager: React.FC<ImportManagerProps> = ({ handleFileImport }) => {
+export const ImportManager: React.FC<ImportManagerProps> = ({
+  handleFileImport,
+}) => {
   const t = useTranslation('home')
 
   return (
