@@ -10,19 +10,20 @@ from src.domain.message.value_objects.message_id import MessageId
 
 class FindMessageByIdUseCase(ABC):
     @abstractmethod
-    def execute(self, message_id: str) -> Message:
-        """メッセージをIDで検索する"""
+    def execute(self, message_id: str, user_id: str) -> Message:
+        """メッセージをIDで検索する（所有者検証込み）"""
 
 
 class FindMessageByIdUseCaseImpl(FindMessageByIdUseCase):
     def __init__(self, message_repository: MessageRepository) -> None:
         self.message_repository = message_repository
 
-    def execute(self, message_id: str) -> Message:
-        """メッセージをIDで検索し、見つからない場合は例外をスローする"""
+    def execute(self, message_id: str, user_id: str) -> Message:
+        """メッセージをIDで検索し、見つからない・所有権不一致なら 404 として扱う."""
         message_id_obj = MessageId(message_id)
-        message = self.message_repository.find_by_id(message_id_obj)
 
+        # CR-3: chat の user_id と join したクエリで検索する。
+        message = self.message_repository.find_by_id_for_user(message_id_obj, user_id)
         if message is None:
             raise MessageNotFoundException(message_id)
 

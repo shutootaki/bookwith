@@ -97,6 +97,44 @@ Generate the dialogue in a structured format with speaker labels and their text.
 """
 
 
+# L-14: intro / outro を言語ごとに用意。英語固定だと JA_JP / CMN_CN でも英語が混入していた。
+_OPENINGS_BY_LANGUAGE: dict[PodcastLanguage, list[str]] = {
+    PodcastLanguage.EN_US: [
+        "Welcome to our book discussion podcast! Today we're diving into {book_title}.",
+        "Hello everyone! We have an exciting book to talk about today: {book_title}.",
+        "Welcome back to another episode! This time we're exploring {book_title}.",
+    ],
+    PodcastLanguage.JA_JP: [
+        "ようこそ、本の対話ポッドキャストへ！今日取り上げるのは『{book_title}』です。",
+        "皆さんこんにちは。今回ご紹介する本は『{book_title}』です。",
+        "今日のエピソードでは『{book_title}』について深掘りしていきます。",
+    ],
+    PodcastLanguage.CMN_CN: [
+        "欢迎收听本期读书播客！今天我们要聊的是《{book_title}》。",
+        "大家好，今天我们要聊一本很精彩的书：《{book_title}》。",
+        "本期节目，我们将一起探索《{book_title}》。",
+    ],
+}
+
+_CLOSINGS_BY_LANGUAGE: dict[PodcastLanguage, list[str]] = {
+    PodcastLanguage.EN_US: [
+        "That's all for today's discussion of {book_title}. Thanks for listening!",
+        "We hope you enjoyed our conversation about {book_title}. Until next time!",
+        "Thank you for joining us as we explored {book_title}. Happy reading!",
+    ],
+    PodcastLanguage.JA_JP: [
+        "今回の『{book_title}』のお話は以上です。最後までお聴きいただきありがとうございました。",
+        "『{book_title}』についての対話、お楽しみいただけたでしょうか。また次回お会いしましょう。",
+        "『{book_title}』を一緒に振り返ってくれてありがとうございました。素敵な読書時間を！",
+    ],
+    PodcastLanguage.CMN_CN: [
+        "今天关于《{book_title}》的讨论就到这里，感谢收听！",
+        "希望今天对《{book_title}》的对话对你有所启发，下次再见！",
+        "感谢一同探讨《{book_title}》，祝你阅读愉快！",
+    ],
+}
+
+
 def get_prompts_with_language(language: PodcastLanguage = PodcastLanguage.EN_US):
     language_rule = build_language_prompts(language)
 
@@ -105,14 +143,6 @@ def get_prompts_with_language(language: PodcastLanguage = PodcastLanguage.EN_US)
         "book_summary": _build_book_summary_prompt(language_rule),
         "system": _build_system_prompt(language_rule),
         "script": _build_script_prompt(language_rule),
-        "openings": [
-            "Welcome to our book discussion podcast! Today we're diving into {book_title}.",
-            "Hello everyone! We have an exciting book to talk about today: {book_title}.",
-            "Welcome back to another episode! This time we're exploring {book_title}.",
-        ],
-        "closings": [
-            "That's all for today's discussion of {book_title}. Thanks for listening!",
-            "We hope you enjoyed our conversation about {book_title}. Until next time!",
-            "Thank you for joining us as we explored {book_title}. Happy reading!",
-        ],
+        "openings": _OPENINGS_BY_LANGUAGE.get(language, _OPENINGS_BY_LANGUAGE[PodcastLanguage.EN_US]),
+        "closings": _CLOSINGS_BY_LANGUAGE.get(language, _CLOSINGS_BY_LANGUAGE[PodcastLanguage.EN_US]),
     }

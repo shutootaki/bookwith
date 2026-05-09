@@ -12,9 +12,15 @@ on:
       - 'apps/api/**'
       - '.github/workflows/backend-ci.yml'
 
+# 5.5: 最小権限。GITHUB_TOKEN の write-all を取らない（cache poisoning への防御層）。
+permissions:
+  contents: read
+
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: ./apps/api
@@ -31,7 +37,8 @@ jobs:
           python-version: '3.13'
 
       - name: Install Poetry
-        uses: snok/install-poetry@v1
+        # 5.1: third-party action は full commit SHA で pin する (タグ可変によるサプライチェーン攻撃を回避)。
+        uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
@@ -55,8 +62,10 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       - name: Setup environment file
+        # 5.4: 失敗を握り潰さない。.env.example が消えていれば即 fail させて構成漏れを早期検出する。
         run: |
-          cp src/config/.env.example src/config/.env || true
+          set -euo pipefail
+          cp src/config/.env.example src/config/.env
           echo "ENV=test" >> src/config/.env
 
       - name: Install dependencies

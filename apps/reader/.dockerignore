@@ -1,0 +1,21 @@
+# Build / dependency artifacts
+node_modules
+.next
+.turbo
+dist
+build
+out
+
+# Local secrets / env files (defense-in-depth で .env* を image に含めない)
+.env
+.env.*
+!.env.example
+
+# Test / IDE
+coverage
+.idea
+.vscode
+
+# Misc
+.DS_Store
+*.log

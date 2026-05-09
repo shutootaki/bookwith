@@ -102,9 +102,14 @@ class IframeView {
     this.iframe.style.border = 'none'
 
     // sandbox
-    this.iframe.sandbox = 'allow-same-origin'
+    // CR-5: 同一オリジン + allow-scripts の併用は HTML5 sandbox で「強く非推奨」。
+    // この組み合わせを使うと EPUB 内スクリプトが parent.localStorage / IndexedDB に到達できる。
+    // ここでは allowScriptedContent を有効にした場合のみ allow-scripts を付与し、
+    // 同時に allow-same-origin を外して別オリジン扱いにする。
     if (this.settings.allowScriptedContent) {
-      this.iframe.sandbox += ' allow-scripts'
+      this.iframe.sandbox = 'allow-scripts'
+    } else {
+      this.iframe.sandbox = 'allow-same-origin'
     }
     if (this.settings.allowPopups) {
       this.iframe.sandbox += ' allow-popups'

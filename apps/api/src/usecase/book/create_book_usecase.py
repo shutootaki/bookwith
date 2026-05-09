@@ -5,11 +5,29 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
+from src.config.app_config import AppConfig
 from src.domain.book.entities.book import Book
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
+from src.domain.shared.identifiers import is_strict_uuid
 from src.infrastructure.external.gcs import GCSClient
+
+
+def _looks_like_image(data: bytes) -> bool:
+    """M-01: バイト先頭のマジックナンバーで JPEG/PNG/WebP を識別する."""
+    if len(data) < 12:
+        return False
+    # JPEG: FF D8 FF
+    if data[:3] == b"\xff\xd8\xff":
+        return True
+    # PNG: 89 50 4E 47 0D 0A 1A 0A
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return True
+    # WebP: "RIFF....WEBP"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return True
+    return False
 
 
 class CreateBookUseCase(ABC):
@@ -42,7 +60,24 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
         book_metadata: str | None = None,
     ) -> Book:
         """新しいBookを作成して保存し、作成したBookエンティティを返す."""
-        decoded_file_data = base64.b64decode(file_data)
+        # H-4: GCS prefix 注入を防ぐため UUID 検証。
+        if not is_strict_uuid(user_id):
+            raise ValueError("user_id must be a valid UUID")
+
+        config = AppConfig.get_config()
+
+        try:
+            decoded_file_data = base64.b64decode(file_data, validate=True)
+        except Exception as e:
+            raise ValueError("file_data must be valid base64") from e
+
+        # H-1 / M-3: ファイルサイズ上限。
+        if len(decoded_file_data) > config.max_upload_bytes:
+            raise ValueError("Uploaded file is too large")
+
+        # H-2: EPUB は ZIP コンテナ。先頭 4 バイトの "PK\x03\x04" を最低限確認する。
+        if not decoded_file_data.startswith(b"PK\x03\x04"):
+            raise ValueError("Uploaded file is not a ZIP-based EPUB")
 
         metadata_dict: dict[str, Any] = {}
         if book_metadata:
@@ -63,10 +98,28 @@ class CreateBookUseCaseImpl(CreateBookUseCase):
             cover_path = None
             if cover_image and cover_image.startswith("data:image/"):
                 try:
-                    image_data = cover_image.split(",")[1]
-                    image_binary = base64.b64decode(image_data)
+                    # M-01: SVG / HTML を装って data: URI を投げ込まれると Stored XSS 経路になるため、
+                    # MIME プレフィックスを raster image だけに絞る。
+                    allowed_prefixes = (
+                        "data:image/jpeg",
+                        "data:image/jpg",
+                        "data:image/png",
+                        "data:image/webp",
+                    )
+                    if not cover_image.startswith(allowed_prefixes):
+                        raise ValueError("Unsupported cover image type")
+
+                    if "," not in cover_image:
+                        raise ValueError("Cover image data URL is malformed")
+                    image_data = cover_image.split(",", 1)[1]
+                    image_binary = base64.b64decode(image_data, validate=True)
+                    if len(image_binary) > config.max_upload_bytes:
+                        raise ValueError("Cover image is too large")
+                    if not _looks_like_image(image_binary):
+                        raise ValueError("Cover image bytes do not match supported image format")
 
                     cover_blob_name = f"{book_base_path}/cover.jpg"
+                    # H-13: content_type は使用箇所毎に固定値を渡す。
                     cover_path = self.gcs_client.upload_file(cover_blob_name, image_binary, "image/jpeg")
                     uploaded_files.append(cover_blob_name)
                 except Exception as e:

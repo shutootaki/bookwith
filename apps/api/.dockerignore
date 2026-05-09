@@ -1,0 +1,23 @@
+# Build / dependency artifacts
+__pycache__
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Local secrets / env files (defense-in-depth)
+src/config/.env
+src/config/.env.*
+!src/config/.env.example
+
+# Local fixtures / cache
+gcs
+gcs_fixtures
+*.log
+
+# IDE
+.idea
+.vscode
+
+# Misc
+.DS_Store

@@ -19,60 +19,43 @@ class MessageProcessor:
 
     def save_user_message(self, content: str, sender_id: str, chat_id: str, metadata: dict[str, Any] | None = None) -> Message:
         """ユーザーメッセージを保存してベクトル化する."""
-        meta = metadata or {}
-
-        user_message = Message.create(
-            content=MessageContent(content),
-            sender_id=sender_id,
-            sender_type=SenderType.user(),
-            chat_id=chat_id,
-            metadata=meta,
-        )
-
-        # メッセージを保存
-        self.message_repository.save(user_message)
-
-        # メッセージをベクトル化
-        self.memory_service.vectorize_message(user_message)
-
-        return user_message
+        return self._save_message(content, sender_id, chat_id, SenderType.user(), metadata)
 
     def save_ai_message(self, content: str, sender_id: str, chat_id: str, metadata: dict[str, Any] | None = None) -> Message:
         """AIメッセージを保存してベクトル化する."""
-        meta = metadata or {}
+        return self._save_message(content, sender_id, chat_id, SenderType.assistant(), metadata)
 
-        ai_message = Message.create(
+    def _save_message(
+        self,
+        content: str,
+        sender_id: str,
+        chat_id: str,
+        sender_type: SenderType,
+        metadata: dict[str, Any] | None,
+    ) -> Message:
+        message = Message.create(
             content=MessageContent(content),
             sender_id=sender_id,
-            sender_type=SenderType.assistant(),
+            sender_type=sender_type,
             chat_id=chat_id,
-            metadata=meta,
+            metadata=metadata or {},
         )
-
-        # メッセージを保存
-        self.message_repository.save(ai_message)
-
-        # AIのレスポンスもベクトル化
-        self.memory_service.vectorize_message(ai_message)
-
-        return ai_message
+        self.message_repository.save(message)
+        self.memory_service.vectorize_message(message)
+        return message
 
     def process_summarization(self, chat_id: str, sender_id: str) -> None:
         """必要に応じてチャットの要約を実行する."""
-        # チャットのメッセージ数を取得
         message_count = self.message_repository.count_by_chat_id(chat_id)
 
-        # 必要に応じて要約を実行
         self.memory_service.summarize_chat(
             chat_id=chat_id,
             user_id=sender_id,
             message_count=message_count,
         )
 
-    def get_latest_messages(self, chat_id: str) -> list[Message]:
-        """最新のメッセージを取得し、古い順にソートして返す."""
-        # 新しい順（降順）で必要な分だけ取得
-        latest_messages = self.message_repository.find_latest_by_chat_id(chat_id, limit=5)
-
-        # 古い順（昇順）に並べ直す
+    def get_latest_messages(self, chat_id: str, user_id: str) -> list[Message]:
+        """最新のメッセージを取得し、古い順にソートして返す（所有者検証込み）."""
+        # H-16: チャットの所有者検証を join で組み込んだ取得を使う。
+        latest_messages = self.message_repository.find_latest_by_chat_id_for_user(chat_id, limit=5, user_id=user_id)
         return sorted(latest_messages, key=lambda msg: msg.created_at)

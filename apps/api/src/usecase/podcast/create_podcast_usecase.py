@@ -1,6 +1,7 @@
 import logging
 from datetime import UTC, datetime
 
+from src.domain.book.exceptions.book_exceptions import BookNotFoundException, BookPermissionDeniedException
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.chat.value_objects.user_id import UserId
@@ -10,6 +11,7 @@ from src.domain.podcast.repositories.podcast_repository import PodcastRepository
 from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus
+from src.usecase.shared.access_control import resolve_owned_or_raise
 
 logger = logging.getLogger(__name__)
 
@@ -22,30 +24,20 @@ class CreatePodcastUseCase:
         self.book_repository = book_repository
 
     async def execute(self, book_id: BookId, user_id: UserId, title: str, language: PodcastLanguage) -> PodcastId:
-        """Create a new podcast for a book
+        """Create a new podcast for a book (with ownership verification)."""
 
-        Args:
-            book_id: ID of the book to create podcast for
-            user_id: ID of the user creating the podcast
-            title: Title for the podcast
-            language: PodcastLanguage enum (BCP-47)
+        resolve_owned_or_raise(
+            find_for_user=lambda: self.book_repository.find_by_id_for_user(book_id, user_id.value),
+            find_any=lambda: self.book_repository.find_by_id(book_id),
+            not_found_exc=BookNotFoundException(book_id.value),
+            forbidden_exc=BookPermissionDeniedException(),
+        )
 
-        Returns:
-            ID of the created podcast
-
-        Raises:
-            PodcastAlreadyExistsError: If podcast already exists for this book and user
-
-        """
         # Check if podcast already exists
         existing_podcast = await self.podcast_repository.find_by_book_id_and_user_id(book_id, user_id)
 
         if existing_podcast:
             raise PodcastAlreadyExistsError(str(book_id), str(user_id))
-
-        book = self.book_repository.find_by_id(book_id)
-        if not book:
-            raise ValueError(f"Book not found: {book_id}")
 
         # Create new podcast
         podcast_id = PodcastId.generate()
@@ -60,7 +52,6 @@ class CreatePodcastUseCase:
             updated_at=datetime.now(UTC),
         )
 
-        # Save to repository
         saved_podcast = await self.podcast_repository.save(podcast)
 
         logger.info(f"Created podcast {podcast_id} for book {book_id} with language {language}")

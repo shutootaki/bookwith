@@ -11,6 +11,11 @@ repos:
       - id: poetry-check
       - id: poetry-lock
         files: ^(pyproject\.toml|poetry\.lock)$
+  # H-18 / 1.2: コミット時にシークレット（OpenAI / Gemini / LangSmith / GitHub PAT 等）の混入を阻止する。
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
 default_language_version:
   python: python3
 minimum_pre_commit_version: 4.0.1

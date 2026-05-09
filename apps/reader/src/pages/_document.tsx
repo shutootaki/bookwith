@@ -31,7 +31,11 @@ function PWA() {
   )
 }
 
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
+// LOW: ビルド時環境変数だが、CI が untrusted 値を渡すケースに備えて GTM ID 形式に厳密マッチさせる。
+// 形式不正なら GTM スクリプトを描画しない。
+const _RAW_GTM_ID = process.env.NEXT_PUBLIC_GTM_ID
+const GTM_ID =
+  _RAW_GTM_ID && /^GTM-[A-Z0-9]+$/.test(_RAW_GTM_ID) ? _RAW_GTM_ID : undefined
 
 function GoogleTagManager() {
   if (!GTM_ID) return null

@@ -5,7 +5,12 @@ import React, { useEffect, useState } from 'react'
 import { ReaderGridView } from '../components'
 import { Library } from '../components/Library'
 import { useDisablePinchZooming } from '../hooks'
-import { fetchBook, handleFiles } from '../lib/apiHandler/importHandlers'
+import {
+  RemoteImportError,
+  fetchBook,
+  handleFiles,
+  isAllowedRemoteImportUrl,
+} from '../lib/apiHandler/importHandlers'
 import { reader, useReaderSnapshot } from '../models'
 
 const SOURCE = 'src'
@@ -13,21 +18,45 @@ const SOURCE = 'src'
 export default function Index() {
   const { focusedTab } = useReaderSnapshot()
   const router = useRouter()
-  const src = new URL(window.location.href).searchParams.get(SOURCE)
-  const [loading, setLoading] = useState(!!src)
+  const [loading, setLoading] = useState(false)
 
   useDisablePinchZooming()
 
   useEffect(() => {
+    // CR-7: クエリ `?src=` で渡された URL を確認なしに自動 fetch しない。
     let src = router.query[SOURCE]
     if (!src) return
     if (!Array.isArray(src)) src = [src]
 
+    const allowed = src.filter(isAllowedRemoteImportUrl)
+    const blocked = src.filter((u) => !isAllowedRemoteImportUrl(u))
+
+    if (blocked.length > 0) {
+      console.warn('Blocked untrusted remote import URLs:', blocked)
+      window.alert(
+        'Some import URLs are not on the trusted host list and were ignored.',
+      )
+    }
+    if (allowed.length === 0) return
+
+    const confirmMessage = `Import EPUB(s) from the following URL(s)?\n\n${allowed.join('\n')}`
+    // window.confirm は同期確認。ユーザーが明示的に許可した URL のみ取り込む。
+    if (!window.confirm(confirmMessage)) return
+
+    setLoading(true)
     Promise.all(
-      src.map((s) =>
-        fetchBook(s).then((b) => {
-          if (b) reader.addTab(b as any)
-        }),
+      allowed.map((s) =>
+        fetchBook(s)
+          .then((b) => {
+            if (b) reader.addTab(b)
+          })
+          .catch((err) => {
+            if (err instanceof RemoteImportError) {
+              window.alert(err.message)
+            } else {
+              console.error(err)
+            }
+          }),
       ),
     ).finally(() => setLoading(false))
   }, [router.query])
@@ -40,7 +69,7 @@ export default function Index() {
             .then((files) => handleFiles(files))
             .then((result) => {
               if (result && 'newBooks' in result) {
-                result.newBooks.forEach((b: any) => reader.addTab(b))
+                result.newBooks.forEach((b) => reader.addTab(b))
               }
             })
         }
@@ -60,7 +89,6 @@ export default function Index() {
   return (
     <>
       <Head>
-        {/* https://github.com/microsoft/vscode/blob/36fdf6b697cba431beb6e391b5a8c5f3606975a1/src/vs/code/browser/workbench/workbench.html#L16 */}
         {/* Disable pinch zooming */}
         <meta
           name="viewport"

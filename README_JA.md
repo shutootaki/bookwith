@@ -225,6 +225,26 @@ BookWith をご自分のパソコンで動かしてみませんか？
 
 ---
 
+## 🔒 セキュリティ
+
+- **脆弱性報告**: 公開 issue ではなく [GitHub Security Advisory](../../security/advisories/new) を使ってください。詳細は [`SECURITY.md`](./SECURITY.md) を参照
+- **アーキテクチャ**: [`apps/api/SECURITY.md`](./apps/api/SECURITY.md) — 必須環境変数 / 認証 4 段階モデル / 脅威モデル / デプロイチェックリスト
+- **変更履歴**: [`CHANGELOG.md`](./CHANGELOG.md) と [`.003_local_temp_docs/security-fixes/ROADMAP.md`](./.003_local_temp_docs/security-fixes/ROADMAP.md)
+
+## 🤝 コントリビュート
+
+PR を出す前に [`CONTRIBUTING.md`](./CONTRIBUTING.md) を一読してください。以下を集約：
+
+- 開発フロー & ローカルテストの実行手順
+- セキュリティ規約（認証 / 所有者検証 / スキーマの strict 化など）
+- PR チェックリスト
+- コミットメッセージ規約
+
+CI で gitleaks（週次フル履歴スキャン）、`pip-audit`、`pnpm audit` が走り、Dependabot が
+依存を自動更新します。ブランチ保護の推奨設定は [`SECURITY.md`](./SECURITY.md) を参照。
+
+---
+
 ## 謝辞
 
 このプロジェクトは [Flow](https://github.com/pacexy/flow) をフォークして開発されました。元のプロジェクトの優れた基盤に感謝します。

@@ -1,2 +1,26 @@
 # Sentry
 .sentryclirc
+
+# H-18 補完: ローカル `.env*` は defense-in-depth で apps/reader にも明示する。
+# ルート `.gitignore` でも除外しているが、サブディレクトリチェックアウト時の事故防止。
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+
+# Build artifacts
+.next
+.turbo
+out
+dist
+build
+coverage
+
+# IDE
+.idea
+.vscode
+
+# Misc
+.DS_Store
+*.log

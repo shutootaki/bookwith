@@ -1,19 +1,15 @@
 import uuid
 from dataclasses import dataclass
 
+from src.domain.shared.identifiers import normalize_strict_uuid
+
 
 @dataclass(frozen=True)
 class PodcastId:
     value: str
 
     def __post_init__(self) -> None:
-        if not self.value:
-            raise ValueError("PodcastId value cannot be empty")
-
-        try:
-            uuid.UUID(self.value)
-        except ValueError:
-            raise ValueError("PodcastId must be a valid UUID")
+        object.__setattr__(self, "value", normalize_strict_uuid(self.value, name="PodcastId"))
 
     @classmethod
     def generate(cls) -> "PodcastId":

@@ -24,12 +24,26 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
+# local env files (defense-in-depth: include nested paths)
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+**/.env
+**/.env.local
+
+# secrets (in case anything is mistakenly created)
+**/credentials.json
+**/service-account*.json
+**/*-key.json
+*.pem
+*.key
+*.crt
+.secrets
+.secrets/
 
 # turbo
 .turbo
@@ -59,3 +73,11 @@ launch.json
 
 # local
 *.local*
+*.tsbuildinfo
+.claude/*.lock
+
+# deepsec
+.deepsec
+
+# レビュー LOW: ランタイム状態ファイルはコミットしない（DB に持たせる）
+apps/api/index_tenant_mapping.json

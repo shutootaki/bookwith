@@ -5,6 +5,7 @@ import { RiBookLine } from 'react-icons/ri'
 import { useSnapshot } from 'valtio'
 
 import { useTranslation } from '../../hooks'
+import { apiClient } from '../../lib/apiHandler/apiClient'
 import { handleFiles } from '../../lib/apiHandler/importHandlers'
 import { BookTab, reader, useReaderSnapshot } from '../../models'
 import { isTouchScreen } from '../../utils/platform'
@@ -15,6 +16,10 @@ import * as pages from '../pages'
 
 import { BookPane } from './BookPane'
 import { PaneContainer } from './PaneContainer'
+
+// F-1: ドラッグ&ドロップで `text/plain` 由来の id をパス引数として API に渡す前に
+// UUID 形式を強制する。`../admin/users` などのパス変造を阻止する。
+const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
 
 interface ReaderGroupProps {
   index: number
@@ -100,26 +105,17 @@ export function ReaderGroup({ index }: ReaderGroupProps) {
               if (tab) tabs.push(tab)
             } else {
               const id = text
-              const tabParam =
-                Object.values(pages).find((p) => p.displayName === id) ??
-                (await fetch(
-                  `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${id}`,
+              const matchedPage = Object.values(pages).find(
+                (p) => p.displayName === id,
+              )
+              if (matchedPage) {
+                tabs.push(matchedPage)
+              } else if (UUID_RE.test(id)) {
+                const tabParam = await apiClient<any>(`/books/${id}`).catch(
+                  () => undefined,
                 )
-                  .then((response) => {
-                    if (!response.ok) {
-                      throw new Error(
-                        `本の取得に失敗しました: ${response.status}`,
-                      )
-                    }
-                    return response.json()
-                  })
-                  .then((data) => {
-                    if (data.success && data.data) {
-                      return data.data
-                    }
-                    throw new Error('APIレスポンスの形式が正しくありません')
-                  }))
-              if (tabParam) tabs.push(tabParam)
+                if (tabParam) tabs.push(tabParam)
+              }
             }
           }
 

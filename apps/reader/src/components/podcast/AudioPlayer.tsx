@@ -50,13 +50,24 @@ const AudioPlayerComponent: React.FC<AudioPlayerProps> = ({
     seekToTime,
   } = controls
 
-  // onSeekプロパティをseekToTimeに接続
+  // onSeekプロパティをseekToTimeに接続。
+  // M-17: window への global 露出は React Context で代替するのが理想だが、
+  // 既存呼出の互換のため `window.bookwithPodcastSeek` という名前空間に絞り、production では無効化する。
   React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return
+    if (typeof window === 'undefined') return
     if (onSeek && seekToTime) {
-      window.podcastSeekFunction = seekToTime
+      ;(window as any).bookwithPodcastSeek = seekToTime
+      // 互換目的の旧名も残すが production ではここに到達しない。
+      ;(window as any).podcastSeekFunction = seekToTime
     }
     return () => {
-      delete window.podcastSeekFunction
+      try {
+        delete (window as any).bookwithPodcastSeek
+        delete (window as any).podcastSeekFunction
+      } catch {
+        // strict モード等で削除できない場合は無視。
+      }
     }
   }, [onSeek, seekToTime])
 

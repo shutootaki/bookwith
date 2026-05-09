@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.chat.value_objects.user_id import UserId
+from src.domain.podcast.exceptions.podcast_exceptions import PodcastPermissionDeniedError
 from src.domain.podcast.value_objects.language import PodcastLanguage
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_script import PodcastScript
@@ -91,3 +92,8 @@ class Podcast(BaseModel):
     def is_failed(self) -> bool:
         """Check if podcast generation failed"""
         return self.status.is_failed()
+
+    def assert_owned_by(self, user_id: str) -> None:
+        """CR-3 補強: ドメインエンティティ自身で所有権を主張する."""
+        if str(self.user_id) != user_id:
+            raise PodcastPermissionDeniedError(str(self.id))

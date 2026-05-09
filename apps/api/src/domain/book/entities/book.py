@@ -4,6 +4,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.domain.annotation.entities.annotation import Annotation
+from src.domain.book.exceptions.book_exceptions import BookPermissionDeniedException
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
 from src.domain.book.value_objects.tennant_id import TenantId
@@ -116,6 +117,15 @@ class Book(BaseModel):
     @property
     def is_deleted(self) -> bool:
         return self.deleted_at is not None
+
+    def assert_owned_by(self, user_id: str) -> None:
+        """CR-3 補強: ドメインエンティティ自身で所有権を主張する.
+
+        UseCase 層の検証に加え、エンティティ取得後の二重防御として呼び出す。
+        所有者でなければ `BookPermissionDeniedException` を上げる。
+        """
+        if self.user_id != user_id:
+            raise BookPermissionDeniedException()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Book):

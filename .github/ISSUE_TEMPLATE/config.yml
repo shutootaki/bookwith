@@ -1,0 +1,13 @@
+# Issue テンプレートの設定.
+# セキュリティ報告は通常 issue ではなく Security Advisory に誘導する。
+
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability report
+    url: https://github.com/shutootaki/bookwith/security/advisories/new
+    about: |
+      脆弱性を発見した場合は公開 issue ではなく、GitHub Security Advisory を使って
+      非公開で報告してください。詳細は SECURITY.md を参照。
+  - name: Discussions / Questions
+    url: https://github.com/shutootaki/bookwith/discussions
+    about: 質問や議論はディスカッションへ。

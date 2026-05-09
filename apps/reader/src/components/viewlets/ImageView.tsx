@@ -58,8 +58,14 @@ const Block: React.FC<BlockProps> = ({ section }) => {
                 src={blob}
                 alt={asset.href}
                 onClick={() => {
+                  // M-18: CSS attribute selector に未エスケープで補間すると CSS 注入になり得るため、
+                  // CSS.escape で囲む。
+                  const escapedHref =
+                    typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+                      ? CSS.escape(asset.href)
+                      : asset.href.replace(/["\\\\]/g, '\\$&')
                   reader.focusedBookTab?.displayFromSelector(
-                    `img[src*="${asset.href}"]`,
+                    `img[src*="${escapedHref}"]`,
                     section,
                   )
                 }}

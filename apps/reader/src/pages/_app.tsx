@@ -11,8 +11,6 @@ import { useRouter } from 'next/router'
 import { Layout, Theme } from '../components'
 import { GlobalLoadingOverlay } from '../components/GlobalLoadingOverlay'
 
-export const TEST_USER_ID = '91527c9d-48aa-41d0-bb85-dc96f26556a0'
-
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter()
 

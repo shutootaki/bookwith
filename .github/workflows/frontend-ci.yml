@@ -18,9 +18,15 @@ on:
       - 'turbo.json'
       - '.github/workflows/frontend-ci.yml'
 
+# 5.5: 最小権限。GITHUB_TOKEN の write-all を取らない（cache poisoning への防御層）。
+permissions:
+  contents: read
+
 jobs:
   frontend-ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +34,8 @@ jobs:
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        # 5.1: third-party action は full commit SHA で pin する (タグ可変によるサプライチェーン攻撃を回避)。
+        uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -1,9 +1,15 @@
 # tmp
 tmp
 
-# dotenv environment variable files
+# dotenv environment variable files (defense-in-depth)
+.env
+.env.*
+!.env.example
 .env.*.local
 .env.local
+src/config/.env
+src/config/.env.*
+!src/config/.env.example
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,python,visualstudiocode
@@ -163,7 +169,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-# .env
+.env
 .venv
 env/
 venv/

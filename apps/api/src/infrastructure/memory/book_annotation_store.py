@@ -34,9 +34,13 @@ class BookAnnotationStore(BaseVectorStore):
         """ハイライト（BookAnnotationコレクション）をベクトル検索する."""
         collection = self.client.collections.get(self.BOOK_ANNOTATION_COLLECTION_NAME)
 
-        # テナントが存在しない場合は作成
-        if not collection.tenants.exists(user_id):
-            collection.tenants.create(user_id)
+        # C-04: 検索パスではテナントを「作らない」。存在しなければ空結果を返す。
+        try:
+            if not collection.tenants.exists(user_id):
+                return []
+        except Exception:
+            # tenants.exists が一部 Weaviate 構成で失敗するため、検索を続行する。
+            pass
 
         collection_with_tenant = collection.with_tenant(user_id)
         where_filter = Filter.by_property("book_id").equal(book_id)

@@ -1,5 +1,6 @@
 [build.environment]
-NODE_VERSION = "16"
+# M-13: Node 16 は EOL のため 22 に固定。
+NODE_VERSION = "22"
 # https://github.com/netlify/build/issues/1633#issuecomment-907246600
 NPM_FLAGS = "--version" # prevent Netlify npm install
 

@@ -1,11 +1,10 @@
 import { Loader, MessageSquare } from 'lucide-react'
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 
 import { useTranslation } from '@flow/reader/hooks'
 
 import { getUserChats } from '../../lib/apiHandler/chatApiHandler'
 import { components } from '../../lib/openapi-schema/schema'
-import { TEST_USER_ID } from '../../pages/_app'
 import {
   CommandDialog,
   CommandEmpty,
@@ -36,7 +35,7 @@ export const ChatHistoryCommandDialog: React.FC<
     setIsLoading(true)
     setError(null)
     try {
-      const chats = await getUserChats(TEST_USER_ID)
+      const chats = await getUserChats()
       setChatHistory(chats.chats)
     } catch {
       setError(t('chat.history_fetch_error'))
@@ -51,45 +50,57 @@ export const ChatHistoryCommandDialog: React.FC<
     }
   }, [open, fetchChatHistory])
 
+  // CommandInput 上のキーストロークごとに再 render されるため、Date 整形は memo 化する。
+  const decoratedHistory = useMemo(
+    () =>
+      chatHistory.map((chat) => ({
+        ...chat,
+        updatedAtLabel: new Date(chat.updatedAt).toLocaleString(),
+      })),
+    [chatHistory],
+  )
+
+  const renderItems = () => {
+    if (isLoading) {
+      return (
+        <CommandItem disabled>
+          <Loader className="mr-2 h-4 w-4 animate-spin" />
+          {t('chat.loading')}
+        </CommandItem>
+      )
+    }
+    if (error) return <CommandItem disabled>{error}</CommandItem>
+    if (decoratedHistory.length === 0) {
+      return <CommandItem disabled>{t('chat.no_history')}</CommandItem>
+    }
+    return decoratedHistory.map((chat) => (
+      <CommandItem
+        key={chat.id}
+        onSelect={() => {
+          onSelectChat?.(chat.id)
+        }}
+        className="flex flex-col items-start py-3 px-2"
+      >
+        <div className="flex w-full items-center">
+          <MessageSquare className="text-primary/70 mr-2 h-4 w-4 flex-shrink-0" />
+          <span>{chat.title || t('chat.untitled')}</span>
+        </div>
+        <div className="text-muted-foreground w-full text-xs">
+          <span>
+            {t('chat.created_at')}: {chat.updatedAtLabel}
+          </span>
+        </div>
+      </CommandItem>
+    ))
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <DialogTitle className="sr-only">{t('chat.history')}</DialogTitle>
       <CommandInput placeholder={t('chat.search_history')} />
       <CommandList className="max-h-96">
         <CommandEmpty>{t('chat.no_history')}</CommandEmpty>
-        <CommandGroup heading={t('chat.history')}>
-          {isLoading ? (
-            <CommandItem disabled>
-              <Loader className="mr-2 h-4 w-4 animate-spin" />
-              {t('chat.loading')}
-            </CommandItem>
-          ) : error ? (
-            <CommandItem disabled>{error}</CommandItem>
-          ) : chatHistory.length > 0 ? (
-            chatHistory.map((chat) => (
-              <CommandItem
-                key={chat.id}
-                onSelect={() => {
-                  onSelectChat?.(chat.id)
-                }}
-                className="flex flex-col items-start py-3 px-2"
-              >
-                <div className="flex w-full items-center">
-                  <MessageSquare className="text-primary/70 mr-2 h-4 w-4 flex-shrink-0" />
-                  <span>{chat.title || t('chat.untitled')}</span>
-                </div>
-                <div className="text-muted-foreground w-full text-xs">
-                  <span>
-                    {t('chat.created_at')}:{' '}
-                    {new Date(chat.updatedAt).toLocaleString()}
-                  </span>
-                </div>
-              </CommandItem>
-            ))
-          ) : (
-            <CommandItem disabled>{t('chat.no_history')}</CommandItem>
-          )}
-        </CommandGroup>
+        <CommandGroup heading={t('chat.history')}>{renderItems()}</CommandGroup>
       </CommandList>
     </CommandDialog>
   )

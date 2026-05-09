@@ -14,17 +14,21 @@ class BookRepository(ABC):
         pass
 
     @abstractmethod
-    def find_all(self) -> list[Book]:
-        pass
+    def find_by_id_for_user(self, book_id: BookId, user_id: str) -> Book | None:
+        """CR-3: 指定 user_id の所有する Book のみ返す."""
+
+    @abstractmethod
+    def find_by_ids_for_user(self, book_ids: list[BookId], user_id: str) -> list[Book]:
+        """CR-3: 指定 user_id 所有の book のみを単一クエリで返す（bulk 操作の N+1 防止）."""
 
     @abstractmethod
     def find_by_user_id(self, user_id: str) -> list[Book]:
         pass
 
     @abstractmethod
-    def delete(self, book_id: BookId) -> None:
-        pass
+    def delete_for_user(self, book_id: BookId, user_id: str) -> bool:
+        """CR-3: 指定 user_id 所有の book のみ論理削除。削除した場合 True."""
 
     @abstractmethod
-    def bulk_delete(self, book_ids: list[BookId]) -> list[BookId]:
-        pass
+    def bulk_delete_for_user(self, book_ids: list[BookId], user_id: str) -> list[BookId]:
+        """CR-3: 指定 user_id 所有のもののみ削除。"""

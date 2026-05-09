@@ -1,3 +1,4 @@
+import html
 import logging
 
 from src.domain.podcast.exceptions.podcast_exceptions import PodcastAudioSynthesisError
@@ -53,7 +54,21 @@ class SynthesizeAudioUseCase:
 
     def _script_to_dict_list(self, script: PodcastScript) -> list[dict[str, str]]:
         """Convert PodcastScript to list of dictionaries for TTS processing"""
-        return [{"speaker": str(turn.speaker), "text": turn.text} for turn in script.turns]
+        return [{"speaker": str(turn.speaker), "text": self._sanitize_for_tts(turn.text)} for turn in script.turns]
+
+    @staticmethod
+    def _sanitize_for_tts(text: str) -> str:
+        """M-9: SSML / プロンプトインジェクションをこの段で除去する.
+
+        Cloud TTS は SSML を解釈するため、`<break>` や `<prosody>` を仕込まれると
+        音声品質や課金が攻撃者に操作される。バックエンド由来でも書籍内容由来でも、
+        山括弧と `&` エンティティはエスケープしておく。
+        """
+        if not text:
+            return ""
+        sanitized = html.escape(text, quote=False)
+        # NUL 等を除去。
+        return "".join(ch for ch in sanitized if ord(ch) >= 0x20 or ch in ("\n", "\t"))
 
     def _should_use_chunking(self, script: PodcastScript, max_chars_per_request: int = 5000) -> bool:
         """Determine if script should be synthesized in chunks

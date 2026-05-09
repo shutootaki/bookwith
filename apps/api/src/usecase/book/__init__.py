@@ -19,8 +19,6 @@ from src.usecase.book.find_book_by_id_usecase import (
 from src.usecase.book.find_books_usecase import (
     FindBooksByUserIdUseCase,
     FindBooksByUserIdUseCaseImpl,
-    FindBooksUseCase,
-    FindBooksUseCaseImpl,
 )
 from src.usecase.book.update_book_usecase import (
     UpdateBookUseCase,
@@ -40,8 +38,6 @@ __all__ = [
     "FindBookByIdUseCaseImpl",
     "FindBooksByUserIdUseCase",
     "FindBooksByUserIdUseCaseImpl",
-    "FindBooksUseCase",
-    "FindBooksUseCaseImpl",
     "UpdateBookUseCase",
     "UpdateBookUseCaseImpl",
 ]

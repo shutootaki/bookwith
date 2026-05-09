@@ -8,9 +8,20 @@ from google.protobuf.json_format import MessageToDict
 
 from src.config.app_config import AppConfig
 from src.domain.podcast.value_objects.language import PodcastLanguage
+from src.domain.shared.text_sanitizer import safe_xml_block
 from src.infrastructure.external.gemini.prompts.podcast_prompts import get_prompts_with_language
 
 logger = logging.getLogger(__name__)
+
+
+# Gemini デフォルト相当の保守的な safety フィルタ。
+# プロセス全体で BLOCK_NONE を使い回さず、各 model 生成時に明示的に渡す。
+_DEFAULT_SAFETY_SETTINGS: dict[HarmCategory, HarmBlockThreshold] = {
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+}
 
 
 def _map_to_dict(obj: Any) -> Any:  # noqa: ANN401
@@ -39,32 +50,30 @@ def _map_to_dict(obj: Any) -> Any:  # noqa: ANN401
 class GeminiClient:
     """Google Gemini API client for text generation and summarization"""
 
+    # genai.configure() はプロセスグローバル。インスタンス毎に呼ぶと別 API キー設定の上書きが発生するため、
+    # 一度だけ走らせる。
+    _configured = False
+
     def __init__(self) -> None:
         self.config = AppConfig.get_config()
         self.gemini_flash_model = "gemini-2.5-flash"
         self.gemini_pro_model = "gemini-2.5-flash"
 
-        genai.configure(api_key=self.config.gemini_api_key)
+        if not GeminiClient._configured:
+            if not self.config.gemini_api_key:
+                raise RuntimeError("GEMINI_API_KEY is not configured")
+            genai.configure(api_key=self.config.gemini_api_key)
+            GeminiClient._configured = True
 
-        # Initialize models
+        # Initialize models with default safety filters (BLOCK_MEDIUM_AND_ABOVE).
         self.pro_model = genai.GenerativeModel(
             self.gemini_pro_model,
-            safety_settings={
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            },
+            safety_settings=_DEFAULT_SAFETY_SETTINGS,
         )
 
         self.flash_model = genai.GenerativeModel(
             self.gemini_flash_model,
-            safety_settings={
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            },
+            safety_settings=_DEFAULT_SAFETY_SETTINGS,
         )
 
     async def summarize_text(
@@ -95,9 +104,9 @@ class GeminiClient:
 
             return self._extract_response_text(response)
 
-        except Exception as e:
+        except Exception:
+            logger.exception("Error summarizing text with Gemini Pro")
             raise
-            logger.error(f"Error summarizing text with Gemini Pro: {str(e)}")
 
     async def generate_podcast_script(
         self,
@@ -162,16 +171,11 @@ class GeminiClient:
             # Create the prompt
             prompt = self._create_podcast_prompt(summary, book_title, target_words, language)
 
-            # Configure the model with tools
+            # Configure the model with tools (default safety filters).
             model_with_tools = genai.GenerativeModel(
                 self.gemini_flash_model,
                 tools=tools,
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                },
+                safety_settings=_DEFAULT_SAFETY_SETTINGS,
             )
 
             # Generate response with enhanced error handling
@@ -252,15 +256,10 @@ GUEST: [what the guest says]
 """
 
         try:
-            # Use gemini-1.5-pro with simple text generation
+            # Use gemini-1.5-pro with simple text generation and default safety filters.
             model = genai.GenerativeModel(
                 "gemini-1.5-pro",
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                },
+                safety_settings=_DEFAULT_SAFETY_SETTINGS,
             )
 
             response = await model.generate_content_async(
@@ -314,10 +313,13 @@ GUEST: [what the guest says]
             script_template = script_template[0]
         script_template = str(script_template)
 
-        # Format the script prompt with the provided values
+        # 書籍タイトルとサマリーは EPUB 由来の untrusted データのため XML タグで囲って渡す。
+        safe_title = safe_xml_block("book_title", book_title or "", max_chars=500)
+        safe_summary = safe_xml_block("book_summary", summary or "", max_chars=20_000)
+
         script_prompt = script_template.format(
-            book_title=book_title,
-            book_summary=summary,
+            book_title=safe_title,
+            book_summary=safe_summary,
             target_words=target_words,
         )
 
@@ -513,6 +515,8 @@ Ensure all content follows the safety guidelines above."""
             combined_text = "\n\n".join([f"第{i + 1}章：\n{summary}" for i, summary in enumerate(summaries)])
         else:
             combined_text = "\n\n".join([f"Chapter {i + 1}:\n{summary}" for i, summary in enumerate(summaries)])
-        # Format the prompt
-        prompt = book_summary_template.format(book_title=book_title, chapter_summaries=combined_text)
+        # book_title / chapter_summaries も untrusted。タグで包む。
+        safe_title = safe_xml_block("book_title", book_title or "", max_chars=500)
+        safe_chapters = safe_xml_block("chapter_summaries", combined_text, max_chars=24_000)
+        prompt = book_summary_template.format(book_title=safe_title, chapter_summaries=safe_chapters)
         return await self.summarize_text(prompt, max_output_tokens, temperature)

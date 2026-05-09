@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from src.domain.chat.exceptions.chat_exceptions import ChatPermissionDeniedError
 from src.domain.chat.value_objects.book_id import BookId
 from src.domain.chat.value_objects.chat_id import ChatId
 from src.domain.chat.value_objects.chat_title import ChatTitle
@@ -42,3 +43,12 @@ class Chat(BaseModel):
             title=title,
             book_id=book_id,
         )
+
+    def assert_owned_by(self, user_id: str) -> None:
+        """CR-3 補強: ドメインエンティティ自身で所有権を主張する.
+
+        UseCase 層の検証に加え、エンティティ取得後の二重防御として呼び出す。
+        所有者でなければ `ChatPermissionDeniedError` を上げる。
+        """
+        if self.user_id.value != user_id:
+            raise ChatPermissionDeniedError()

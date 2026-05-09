@@ -1,6 +1,7 @@
 """ベクトルストア基底クラス."""
 
 import logging
+import threading
 
 import weaviate
 from langchain_openai import OpenAIEmbeddings
@@ -30,28 +31,53 @@ class BaseVectorStore:
     # 共有シングルトンインスタンス
     _shared_client: weaviate.WeaviateClient | None = None
     _shared_embedding_model: OpenAIEmbeddings | None = None
+    # B-6: lazy init をスレッド安全にするため lock を導入。
+    _client_lock = threading.Lock()
+    _embedding_lock = threading.Lock()
 
     def __init__(self) -> None:
         """基底ベクトルストアの初期化."""
         self.config = AppConfig.get_config()
 
-        # Weaviate クライアントを共有インスタンスとして保持
+        # double-checked locking で 2 重生成を防ぐ。
         if BaseVectorStore._shared_client is None:
-            BaseVectorStore._shared_client = self._create_client()
-
+            with BaseVectorStore._client_lock:
+                if BaseVectorStore._shared_client is None:
+                    BaseVectorStore._shared_client = self._create_client()
         self.client = BaseVectorStore._shared_client
 
-        # Embedding モデルも共有インスタンスとして保持
         if BaseVectorStore._shared_embedding_model is None:
-            BaseVectorStore._shared_embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", max_retries=2)
-
+            with BaseVectorStore._embedding_lock:
+                if BaseVectorStore._shared_embedding_model is None:
+                    BaseVectorStore._shared_embedding_model = OpenAIEmbeddings(model="text-embedding-3-small", max_retries=2)
         self.embedding_model = BaseVectorStore._shared_embedding_model
 
     @retry_on_error(max_retries=5, initial_delay=2)
     def _create_client(self) -> weaviate.WeaviateClient:
-        """Weaviateクライアントを作成."""
+        """Weaviateクライアントを作成.
+
+        C-02: 環境変数で Weaviate URL / API キーが指定されていれば認証付きで接続する。
+        ローカル開発ではこれまで通り `connect_to_local` を使う。
+        """
+        timeout_config = AdditionalConfig(timeout=Timeout(init=30, query=60, insert=120))
         try:
-            return weaviate.connect_to_local(additional_config=AdditionalConfig(timeout=Timeout(init=30, query=60, insert=120)))
+            if self.config.weaviate_url and self.config.weaviate_api_key:
+                from weaviate.auth import AuthApiKey
+
+                http_host = self.config.weaviate_url.replace("https://", "").replace("http://", "")
+                grpc_host = self.config.weaviate_grpc_host or http_host
+                http_secure = self.config.weaviate_url.startswith("https://")
+                return weaviate.connect_to_custom(
+                    http_host=http_host,
+                    http_port=443 if http_secure else 80,
+                    http_secure=http_secure,
+                    grpc_host=grpc_host,
+                    grpc_port=self.config.weaviate_grpc_port,
+                    grpc_secure=http_secure,
+                    auth_credentials=AuthApiKey(self.config.weaviate_api_key),
+                    additional_config=timeout_config,
+                )
+            return weaviate.connect_to_local(additional_config=timeout_config)
         except Exception as e:
             logger.error(f"Weaviate接続エラー: {str(e)}")
             raise
@@ -65,7 +91,6 @@ class BaseVectorStore:
     def get_client(cls) -> weaviate.WeaviateClient:
         """共有の Weaviate クライアントを返す."""
         if cls._shared_client is None:
-            # インスタンス化時に _shared_client が作成されるため
             cls()
         return cls._shared_client  # type: ignore[return-value]
 

@@ -1,0 +1,27 @@
+# EditorConfig — https://editorconfig.org/
+# プロジェクト全体で改行・インデント・末尾空白を統一。
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Python は 4 spaces
+[*.py]
+indent_size = 4
+
+# Makefile はタブ必須
+[Makefile]
+indent_style = tab
+
+# Markdown は trailing whitespace を保持（行末スペース 2 個で改行を表す慣習があるため）
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML / JSON / TOML
+[*.{yml,yaml,json,toml}]
+indent_size = 2

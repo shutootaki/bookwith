@@ -99,8 +99,9 @@ class BookDTO(TimestampMixin, Base):
             name=book_title,
             user_id=str(self.user_id),
             file_path=str(self.file_path),
-            author=str(self.author),
-            cover_path=str(self.cover_path),
+            # B-1: None を `"None"` 文字列化していたバグを修正。
+            author=self.author if self.author is not None else None,
+            cover_path=self.cover_path if self.cover_path is not None else None,
             size=self.size,
             cfi=self.cfi,
             percentage=self.percentage,

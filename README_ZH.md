@@ -225,6 +225,26 @@ _例_：一周前阅读的经济学书籍内容，会自动关联到你现在阅
 
 ---
 
+## 🔒 安全
+
+- **漏洞报告**: 请使用 [GitHub Security Advisory](../../security/advisories/new) 私下报告，不要在公开 issue 中提交。详情见 [`SECURITY.md`](./SECURITY.md)
+- **架构详情**: [`apps/api/SECURITY.md`](./apps/api/SECURITY.md) — 必需环境变量、4 层授权模型、威胁模型、部署检查表
+- **近期加固**: 见 [`CHANGELOG.md`](./CHANGELOG.md) 和 [`.003_local_temp_docs/security-fixes/ROADMAP.md`](./.003_local_temp_docs/security-fixes/ROADMAP.md)
+
+## 🤝 贡献指南
+
+提交 PR 前请阅读 [`CONTRIBUTING.md`](./CONTRIBUTING.md)。其中包含：
+
+- 开发流程与本地测试命令
+- 必须遵守的安全规则（认证 / 所有权验证 / Schema 严格模式 等）
+- PR 检查表
+- Commit message 规范
+
+CI 会运行 gitleaks（每周完整历史扫描）、`pip-audit`、`pnpm audit`，Dependabot 会自动更新依赖。
+分支保护推荐设置见 [`SECURITY.md`](./SECURITY.md)。
+
+---
+
 ## 致谢
 
 本项目基于 [Flow](https://github.com/pacexy/flow) 进行开发。感谢原项目提供的优秀基础。

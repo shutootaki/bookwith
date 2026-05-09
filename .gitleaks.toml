@@ -1,0 +1,41 @@
+# .gitleaks.toml - BookWith シークレット検出ルール
+title = "BookWith gitleaks config"
+
+[allowlist]
+description = "Allowlisted files"
+paths = [
+  '''\.gitleaks\.toml$''',
+  '''\.example$''',
+  '''docs?/''',
+  '''\.003_local_temp_docs/''',
+]
+
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API key"
+regex = '''sk-(proj-)?[A-Za-z0-9_-]{20,}'''
+tags = ["key", "openai"]
+
+[[rules]]
+id = "google-api-key"
+description = "Google API key"
+regex = '''AIza[0-9A-Za-z_-]{35}'''
+tags = ["key", "google"]
+
+[[rules]]
+id = "langsmith-pat"
+description = "LangSmith Personal Access Token"
+regex = '''lsv2_(pt|sk)_[A-Za-z0-9]{32,}'''
+tags = ["key", "langsmith"]
+
+[[rules]]
+id = "supabase-service-role"
+description = "Supabase service role JWT (service_role)"
+regex = '''eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'''
+tags = ["jwt", "supabase"]
+
+[[rules]]
+id = "private-key-block"
+description = "PEM private key"
+regex = '''-----BEGIN [A-Z ]*PRIVATE KEY-----'''
+tags = ["key", "pem"]

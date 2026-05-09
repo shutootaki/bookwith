@@ -1,24 +1,29 @@
-type SWRError = {
-  status: number
-} & Error
+import {
+  throwApiError,
+  unwrapApiResponse,
+} from '../../lib/apiHandler/responseParser'
+import { buildAuthHeaders } from '../../lib/auth/token'
 
 export async function fetcher<JSON = never>(
   input: RequestInfo,
   init?: RequestInit,
 ): Promise<JSON> {
+  const headers = new Headers(init?.headers)
+  // CR-1: SWR 経由の fetch も Bearer Token を付与する (呼出側が指定済みなら尊重)。
+  if (!headers.has('Authorization')) {
+    const auth = buildAuthHeaders()
+    if (auth.Authorization) headers.set('Authorization', auth.Authorization)
+  }
+
   const res = await fetch(input, {
     ...init,
-    headers: {
-      ...init?.headers,
-    },
+    headers,
+    credentials: 'omit',
   })
 
   if (!res.ok) {
-    const error = await res.text()
-    const err = new Error(error) as SWRError
-    err.status = res.status
-    throw err
+    await throwApiError(res)
   }
 
-  return await res.json()
+  return unwrapApiResponse<JSON>(res)
 }

@@ -17,7 +17,7 @@ import { RemoteImportManager } from './RemoteImportManager'
 import { SelectionManager } from './SelectionManager'
 
 export const LibraryContainer: React.FC = () => {
-  const { books, error, mutate: booksMutate } = useLibrary()
+  const { books, mutate: booksMutate } = useLibrary()
   const { covers, mutate: coversMutate, isCoverLoading } = useBookCovers()
 
   const [select, toggleSelect] = useBoolean(false)
@@ -43,9 +43,6 @@ export const LibraryContainer: React.FC = () => {
   if (!books) return null
 
   const allSelected = selectedBookIds.size === books.length
-  if (!error) {
-    booksMutate()
-  }
 
   const handleImportComplete = () => {
     booksMutate()
@@ -157,16 +154,7 @@ export const LibraryContainer: React.FC = () => {
             onImportComplete={handleImportComplete}
             hasBooks={books.length > 0}
           />
-          {select || (
-            <ImportManager
-              updateProgress={updateProgress}
-              handleFileImport={handleFileImport}
-              setLoading={setLoading}
-              handleImportOperation={handleImportOperation}
-              hasBooks={books.length > 0}
-              onImportComplete={handleImportComplete}
-            />
-          )}
+          {select || <ImportManager handleFileImport={handleFileImport} />}
         </div>
       </div>
 

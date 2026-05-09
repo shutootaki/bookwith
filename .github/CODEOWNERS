@@ -1,0 +1,69 @@
+# GitHub CODEOWNERS
+# https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+#
+# セキュリティに直結するファイルの変更には必ずレビューを指定する。
+# `@shutootaki` は仮 owner。チーム / 組織が確定したら `@bookwith/security-team` 等に置換。
+
+# ----------------------------------------
+# Default
+# ----------------------------------------
+* @shutootaki
+
+# ----------------------------------------
+# 認証・認可（CR-1 / CR-3）
+# ----------------------------------------
+/apps/api/src/presentation/api/auth/                    @shutootaki
+/apps/api/src/presentation/api/routes.py                @shutootaki
+/apps/api/src/domain/*/entities/*.py                    @shutootaki
+/apps/api/src/usecase/                                  @shutootaki
+
+# ----------------------------------------
+# ミドルウェア（H-1 / L-04）
+# ----------------------------------------
+/apps/api/src/presentation/api/middleware/              @shutootaki
+
+# ----------------------------------------
+# 設定（CR-2 / H-6 / 本番ガード）
+# ----------------------------------------
+/apps/api/src/config/                                   @shutootaki
+/apps/api/src/main.py                                   @shutootaki
+
+# ----------------------------------------
+# Supabase RLS（H-21）
+# ----------------------------------------
+/supabase/                                              @shutootaki
+
+# ----------------------------------------
+# CI / セキュリティスキャン
+# ----------------------------------------
+/.github/workflows/                                     @shutootaki
+/.github/dependabot.yml                                 @shutootaki
+/.gitleaks.toml                                         @shutootaki
+/.pre-commit-config.yaml                                @shutootaki
+/scripts/                                               @shutootaki
+
+# ----------------------------------------
+# セキュリティドキュメント
+# ----------------------------------------
+/SECURITY.md                                            @shutootaki
+/apps/api/SECURITY.md                                   @shutootaki
+/CONTRIBUTING.md                                        @shutootaki
+/CHANGELOG.md                                           @shutootaki
+
+# ----------------------------------------
+# Docker / インフラ
+# ----------------------------------------
+/apps/api/Dockerfile                                    @shutootaki
+/apps/api/docker-compose.yml                            @shutootaki
+/apps/reader/Dockerfile                                 @shutootaki
+
+# ----------------------------------------
+# Frontend 認証関連（CR-1 / CR-7 / H-19 / H-20）
+# ----------------------------------------
+/apps/reader/src/lib/auth/                              @shutootaki
+/apps/reader/src/lib/apiHandler/apiClient.ts            @shutootaki
+/apps/reader/src/lib/apiHandler/importHandlers.ts       @shutootaki
+/apps/reader/src/hooks/useSWR/fetcher.ts                @shutootaki
+/apps/reader/next.config.js                             @shutootaki
+/apps/reader/sentry.*.config.js                         @shutootaki
+/packages/epubjs/src/managers/views/iframe.js           @shutootaki

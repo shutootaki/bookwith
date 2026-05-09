@@ -2,3 +2,36 @@
 **/dist
 **/.next
 **/.turbo
+
+# 04_infra_supply_chain.md 3.5: image に焼かれて欲しくないファイルを明示除外する。
+# secret 系（実 API キーが含まれ得る）
+**/.env
+**/.env.*
+!**/.env.example
+**/.envrc
+
+# git / CI / 開発ツール（image に同梱する必要なし）
+.git
+.gitignore
+.github
+.husky
+.cursor
+.claude
+.ruff_cache
+.mypy_cache
+.pytest_cache
+.deepsec
+
+# 内部リソース
+**/repomix-output.xml
+**/.venv
+**/__pycache__
+**/.coverage
+**/coverage.xml
+
+# テスト・ドキュメント（本番イメージ不要）
+**/tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+.003_local_temp_docs

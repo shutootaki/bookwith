@@ -18,6 +18,10 @@ class ChatRepository(ABC):
         """IDでChatを検索する"""
 
     @abstractmethod
+    def find_by_id_for_user(self, chat_id: ChatId, user_id: UserId) -> Chat | None:
+        """CR-3: 指定 user_id 所有の Chat のみ返す"""
+
+    @abstractmethod
     def find_by_user_id(self, user_id: UserId) -> list[Chat]:
         """ユーザーIDに紐づくChatをすべて取得する"""
 
@@ -30,5 +34,5 @@ class ChatRepository(ABC):
         """ユーザーIDと本IDに紐づくChatを検索する"""
 
     @abstractmethod
-    def delete(self, chat_id: ChatId) -> None:
-        """IDでChatを削除する"""
+    def delete_for_user(self, chat_id: ChatId, user_id: UserId) -> bool:
+        """CR-3: 指定 user_id 所有の Chat のみ削除する。削除した場合 True"""

@@ -4,7 +4,13 @@ import { useSnapshot } from 'valtio'
 import { useSetAction } from '../hooks'
 import { components } from '../lib/openapi-schema/schema'
 import { BookTab, compareHref } from '../models'
-import { colorMap } from '../utils/annotation'
+import { AnnotationType, colorMap, typeMap } from '../utils/annotation'
+
+// F-5: API 由来の `annotation.type` を rendition.annotations の動的プロパティとして
+// 引いているため、allow-list（フロント側 enum）に含まれない値は安全な fallback に倒す。
+function safeAnnotationType(value: string): AnnotationType {
+  return value in typeMap ? (value as AnnotationType) : 'highlight'
+}
 
 // avoid click penetration
 let clickedAnnotation = false
@@ -114,7 +120,8 @@ const Annotation: React.FC<AnnotationProps> = ({ tab, annotation }) => {
   const { rendition } = useSnapshot(tab)
 
   useEffect(() => {
-    const h = rendition?.annotations[annotation.type](
+    const safeType = safeAnnotationType(annotation.type)
+    const h = rendition?.annotations[safeType](
       annotation.cfi,
       undefined,
       undefined,
@@ -134,7 +141,7 @@ const Annotation: React.FC<AnnotationProps> = ({ tab, annotation }) => {
     })
 
     return () => {
-      rendition?.annotations.remove(annotation.cfi, annotation.type)
+      rendition?.annotations.remove(annotation.cfi, safeType)
     }
   }, [
     annotation.cfi,

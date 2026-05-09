@@ -1,6 +1,7 @@
 """統合記憶管理サービス."""
 
 import logging
+from functools import lru_cache
 from typing import Any
 
 from src.config.app_config import AppConfig
@@ -16,6 +17,17 @@ from src.infrastructure.memory.vectorization_service import VectorizationService
 logger = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=1)
+def get_shared_memory_service() -> "MemoryService":
+    """M-02: プロセス内でシングルトンの MemoryService を返す.
+
+    BaseVectorStore は内部でクライアントを共有しているが、`MemoryService.__init__` 自体を
+    リクエスト毎に new すると `MemoryRetrievalService` 等が逐次インスタンス化され、
+    余計なメモリ使用と CPU を生む。
+    """
+    return MemoryService()
+
+
 class MemoryService:
     """統合記憶管理サービス.
 
@@ -28,7 +40,6 @@ class MemoryService:
         self.config = AppConfig.get_config()
         self.memory_store = MemoryVectorStore()
 
-        # 各機能サービスを初期化
         self.memory_retrieval = MemoryRetrievalService(self.memory_store)
         self.vectorization = VectorizationService(self.memory_store)
         self.summarization = SummarizationService(self.memory_store)
@@ -42,11 +53,6 @@ class MemoryService:
         """メッセージを同期的にベクトル化."""
         self.vectorization.vectorize_message(message)
 
-    def vectorize_text_background(self, message: Message, memory_store: MemoryVectorStore, config: AppConfig | None = None) -> None:
-        """メッセージをベクトル化して保存する非同期タスク（後方互換性のため）."""
-        # 後方互換性のため、既存の呼び出しをサポート
-        self.vectorization.vectorize_message(message)
-
     def summarize_chat(self, chat_id: str, user_id: str, message_count: int) -> None:
         """チャットの要約を同期的に生成（条件を満たす場合）."""
         self.summarization.summarize_chat(chat_id, user_id, message_count)
@@ -55,14 +61,6 @@ class MemoryService:
         """記憶に基づくプロンプトを構築."""
         return self.prompt_builder.build_memory_prompt(buffer, user_query, user_id, chat_id)
 
-    def summarize_and_vectorize_background(
-        self, chat_id: str, user_id: str, memory_store: MemoryVectorStore, config: AppConfig | None = None
-    ) -> None:
-        """チャットメッセージを要約してベクトル化する非同期タスク（後方互換性のため）."""
-        # 後方互換性のため、既存の呼び出しをサポート
-        self.summarization._summarize_and_vectorize_background(chat_id, user_id)
-
-    # アノテーション関連メソッド（ベクトル化サービスに委譲）
     def add_book_annotations(self, book: Book, annotations: list[Annotation]) -> None:
         """ブックのアノテーションをベクトル化して保存."""
         self.vectorization.add_book_annotations(book, annotations)
@@ -78,30 +76,3 @@ class MemoryService:
     def delete_book_memories(self, user_id: str, book_id: str) -> None:
         """本に関連するすべての記憶を削除."""
         self.vectorization.delete_book_memories(user_id, book_id)
-
-    # ユーティリティメソッド（プロンプトビルダーサービスに委譲）
-    def estimate_tokens(self, text: str) -> int:
-        """テキストのトークン数を推定."""
-        return self.prompt_builder._estimate_tokens(text)
-
-    def format_memory_item(self, memory: dict[str, Any], prefix: str = "") -> str:
-        """記憶アイテムをフォーマット."""
-        return self.memory_retrieval.format_memory_item(memory, prefix)
-
-    def truncate_text_to_tokens(self, text: str, max_tokens: int) -> str:
-        """トークン数制限に基づいてテキストを切り詰める."""
-        return self.prompt_builder._truncate_text_to_tokens(text, max_tokens)
-
-    def create_memory_prompt(
-        self,
-        buffer: list[Message],
-        chat_memories: list[dict[str, Any]],
-        user_query: str,
-        config: AppConfig | None = None,
-    ) -> str:
-        """記憶とバッファからプロンプトを作成（後方互換性のため）."""
-        return self.prompt_builder._create_memory_prompt(buffer, chat_memories, user_query)
-
-    def get_llm_summary(self, text_to_summarize: str) -> str | None:
-        """LLMを使用して要約を取得する（後方互換性のため）."""
-        return self.summarization._get_llm_summary(text_to_summarize)

@@ -44,9 +44,39 @@ export const Settings: React.FC = () => {
           <Button
             variant="secondary"
             onClick={() => {
-              window.localStorage.clear()
+              // M-16: 確認ダイアログ + bookwith 名前空間に限定して削除する。
+              if (
+                !window.confirm(
+                  'Clear BookWith local cache? This removes downloaded books and chats stored on this device.',
+                )
+              ) {
+                return
+              }
+              try {
+                // localStorage は bookwith.* / flow-* を対象にする（他アプリの値を巻き込まない）
+                const keysToDelete: string[] = []
+                for (let i = 0; i < window.localStorage.length; i++) {
+                  const k = window.localStorage.key(i)
+                  if (!k) continue
+                  if (
+                    k.startsWith('bookwith.') ||
+                    k.startsWith('flow-') ||
+                    k === 'reader' ||
+                    k === 'sw-cache-version'
+                  ) {
+                    keysToDelete.push(k)
+                  }
+                }
+                keysToDelete.forEach((k) => window.localStorage.removeItem(k))
+              } catch (e) {
+                console.warn('Failed to clear local storage subset:', e)
+              }
               Dexie.getDatabaseNames().then((names) => {
-                names.forEach((n) => Dexie.delete(n))
+                names
+                  .filter(
+                    (n) => n.startsWith('bookwith') || n.startsWith('flow'),
+                  )
+                  .forEach((n) => Dexie.delete(n))
               })
             }}
           >

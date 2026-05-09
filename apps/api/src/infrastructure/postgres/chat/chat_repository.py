@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from src.domain.chat.entities.chat import Chat
@@ -14,45 +16,98 @@ class ChatRepositoryImpl(ChatRepository):
 
     def save(self, chat: Chat) -> None:
         try:
-            existing_chat = self._session.query(ChatDTO).filter(ChatDTO.id == chat.id.value).first()
+            # 論理削除済みのレコードも含めて検索し、ID 衝突による IntegrityError を回避する。
+            existing_chat = (
+                self._session.query(ChatDTO)
+                .filter(ChatDTO.id == chat.id.value)
+                .first()
+            )
 
             if existing_chat:
+                # B-15: 部分更新では title のみ確実に更新する。book_id は値が None でも上書きしない。
                 existing_chat.title = chat.title.value
-                existing_chat.book_id = chat.book_id.value if chat.book_id else None
+                if chat.book_id is not None:
+                    existing_chat.book_id = chat.book_id.value
             else:
                 chat_dto = ChatDTO.from_entity(chat)
                 self._session.add(chat_dto)
 
             self._session.commit()
-        except Exception as e:
+        except Exception:
             self._session.rollback()
-            raise e
+            raise
 
     def find_by_id(self, chat_id: ChatId) -> Chat | None:
-        chat_dto = self._session.query(ChatDTO).filter(ChatDTO.id == chat_id.value).first()
+        chat_dto = (
+            self._session.query(ChatDTO)
+            .filter(ChatDTO.id == chat_id.value, ChatDTO.deleted_at == None)
+            .first()
+        )
         if chat_dto is None:
             return None
 
         return chat_dto.to_entity()
 
+    def find_by_id_for_user(self, chat_id: ChatId, user_id: UserId) -> Chat | None:
+        # CR-3: user_id を WHERE 句に必ず含める。
+        chat_dto = (
+            self._session.query(ChatDTO)
+            .filter(
+                ChatDTO.id == chat_id.value,
+                ChatDTO.user_id == user_id.value,
+                ChatDTO.deleted_at == None,
+            )
+            .first()
+        )
+        if chat_dto is None:
+            return None
+        return chat_dto.to_entity()
+
     def find_by_user_id(self, user_id: UserId) -> list[Chat]:
-        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value).order_by(ChatDTO.updated_at.desc()).all()
+        chat_dtos = (
+            self._session.query(ChatDTO)
+            .filter(ChatDTO.user_id == user_id.value, ChatDTO.deleted_at == None)
+            .order_by(ChatDTO.updated_at.desc())
+            .all()
+        )
         return [dto.to_entity() for dto in chat_dtos]
 
     def find_by_book_id(self, book_id: BookId) -> list[Chat]:
-        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.book_id == book_id.value).all()
+        chat_dtos = (
+            self._session.query(ChatDTO)
+            .filter(ChatDTO.book_id == book_id.value, ChatDTO.deleted_at == None)
+            .all()
+        )
         return [dto.to_entity() for dto in chat_dtos]
 
     def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> list[Chat]:
-        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.user_id == user_id.value, ChatDTO.book_id == book_id.value).all()
+        chat_dtos = (
+            self._session.query(ChatDTO)
+            .filter(
+                ChatDTO.user_id == user_id.value,
+                ChatDTO.book_id == book_id.value,
+                ChatDTO.deleted_at == None,
+            )
+            .all()
+        )
         return [dto.to_entity() for dto in chat_dtos]
 
-    def delete(self, chat_id: ChatId) -> None:
+    def delete_for_user(self, chat_id: ChatId, user_id: UserId) -> bool:
         try:
-            chat_dto = self._session.query(ChatDTO).filter(ChatDTO.id == chat_id.value).first()
-            if chat_dto:
-                self._session.delete(chat_dto)
+            now = datetime.now()
+            result = (
+                self._session.query(ChatDTO)
+                .filter(
+                    ChatDTO.id == chat_id.value,
+                    ChatDTO.user_id == user_id.value,
+                    ChatDTO.deleted_at == None,
+                )
+                .update({"deleted_at": now, "updated_at": now})
+            )
+            if result > 0:
                 self._session.commit()
-        except Exception as e:
+                return True
+            return False
+        except Exception:
             self._session.rollback()
-            raise e
+            raise

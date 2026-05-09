@@ -3,13 +3,18 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.domain.podcast.value_objects.language import PodcastLanguage
+from src.domain.podcast.value_objects.podcast_status import PodcastStatusEnum
 
 
 class CreatePodcastRequest(BaseModel):
     """Request schema for creating a podcast"""
 
-    book_id: str = Field(..., description="ID of the book to create podcast for")
-    title: str | None = Field(None, description="Custom title for the podcast")
+    # CR-4 補強: extra='forbid' で予期しないフィールドを 422 で拒否する。
+    # 値オブジェクトの user_id / book.user_id 詐称を防止する設計の最終層。
+    model_config = ConfigDict(extra="forbid")
+
+    book_id: str = Field(..., description="ID of the book to create podcast for", max_length=64)
+    title: str | None = Field(None, description="Custom title for the podcast", max_length=255)
     language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
 
 
@@ -27,7 +32,7 @@ class PodcastResponse(BaseModel):
     book_id: str = Field(..., description="Book ID")
     user_id: str = Field(..., description="User ID")
     title: str = Field(..., description="Podcast title")
-    status: str = Field(..., description="Generation status")
+    status: PodcastStatusEnum = Field(..., description="Generation status")
     language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
     audio_url: str | None = Field(None, description="URL to the generated audio")
     error_message: str | None = Field(None, description="Error message if generation failed")
@@ -42,7 +47,7 @@ class PodcastStatusResponse(BaseModel):
     """Response schema for podcast status"""
 
     id: str = Field(..., description="Podcast ID")
-    status: str = Field(..., description="Generation status")
+    status: PodcastStatusEnum = Field(..., description="Generation status")
     title: str = Field(..., description="Podcast title")
     language: PodcastLanguage = Field(..., description="Language code (BCP-47, e.g. en-US, ja-JP, cmn-CN)")
     audio_url: str | None = Field(None, description="URL to the generated audio if completed")
@@ -58,7 +63,7 @@ class CreatePodcastResponse(BaseModel):
     """Response schema for podcast creation"""
 
     id: str = Field(..., description="Created podcast ID")
-    status: str = Field(..., description="Initial status")
+    status: PodcastStatusEnum = Field(..., description="Initial status")
     message: str = Field(..., description="Success message")
 
 

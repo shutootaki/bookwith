@@ -49,16 +49,45 @@ configure: ## Installs packages using poetry
 	poetry install --no-root
 
 docker.up: ## Starts the backend API within the shared network (see infra repository)
-	docker compose up --build --pull always
+	# Weaviate 匿名アクセスは dev のみ。本番派生時に変数を引きずらないよう Makefile 側で局所付与する。
+	WEAVIATE_ANON_ACCESS=true docker compose up --build --pull always
 
 lint: configure ## Runs linter
 	poetry run mypy src --explicit-package-bases
 	poetry run pre-commit run --all-files --show-diff-on-failure
 
-run: configure ## Runs the backend API locally
-	@echo "Running run in $(ENV) environment on port $(PORT)."
+lint.fix: configure ## Auto-fix lint errors (ruff)
+	poetry run ruff check --fix --unsafe-fixes src tests
+	poetry run ruff format src tests
+
+## レビュー文書 04_infra_supply_chain.md の 4.4 に従い、既定は loopback バインド。
+## 公衆 Wi-Fi で意図せず LAN 公開される事故（CORS は別防御で塞がれているが多層防御）を防ぐ。
+HOST ?= 127.0.0.1
+
+run: configure ## Runs the backend API locally (loopback only)
+	@echo "Running run in $(ENV) environment on port $(PORT) (host=$(HOST))."
+	poetry run uvicorn src.main:app --reload --host $(HOST) --port ${PORT}
+
+run.lan: configure ## Runs the backend API on all interfaces (LAN). Use with care on trusted networks only.
+	@echo "[warn] Binding to 0.0.0.0 — only use on trusted networks."
 	poetry run uvicorn src.main:app --reload --host 0.0.0.0 --port ${PORT}
 
 update: ## Updates poetry packages
 	poetry show --outdated
 	poetry update
+
+test: configure ## Runs pytest
+	poetry run pytest $(TEST_PATH)
+
+migrate: configure ## Apply Alembic migrations
+	poetry run alembic upgrade head
+
+migrate.gen: configure ## Generate a new Alembic migration (use MSG="describe change")
+	poetry run alembic revision --autogenerate -m "$(MSG)"
+
+secret-scan: ## Scan git history for leaked secrets (gitleaks + grep)
+	bash $(CURDIR)/../../scripts/check-history-leaks.sh
+
+audit: configure ## Run pip-audit for known CVEs
+	poetry run pip-audit --strict --vulnerability-service osv || \
+		echo "::warning::pip-audit reported vulnerabilities. Review the output above."

@@ -1,6 +1,6 @@
 import { createBook, fetchAllBooks } from '../lib/apiHandler/bookApiHandler'
+import { assertImportableEpubFile } from '../lib/apiHandler/importHandlers'
 import { components } from '../lib/openapi-schema/schema'
-import { TEST_USER_ID } from '../pages/_app'
 import { fileToEpub, indexEpub } from '../utils/epub'
 import { fileToBase64, toDataUrl } from '../utils/fileUtils'
 import { mapExtToMimes } from '../utils/mime'
@@ -11,6 +11,9 @@ type BookDetail = components['schemas']['BookDetail']
 async function addBookToAPI(file: File): Promise<BookDetail | null> {
   // Notify main thread about progress
   postMessage({ type: 'progress', payload: { name: file.name, progress: 10 } })
+
+  // base64 化前に sanity check (サイズ DoS / ファイル偽装防御)。
+  await assertImportableEpubFile(file)
 
   const epub = await fileToEpub(file)
   const metadata = await epub.loaded.metadata
@@ -34,14 +37,14 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
       payload: { name: file.name, progress: 30 },
     })
 
-    const bookRequest: components['schemas']['BookCreateRequest'] = {
+    // user_id はバックエンドが認証 principal から導出するため、リクエストには含めない。
+    const bookRequest = {
       fileData: await fileToBase64(file),
       fileName: file.name,
-      userId: TEST_USER_ID,
       bookName: file.name || `${metadata.title}.epub`,
       bookMetadata: JSON.stringify(metadata),
       coverImage: coverDataUrl || null,
-    }
+    } as components['schemas']['BookCreateRequest']
     postMessage({
       type: 'progress',
       payload: { name: file.name, progress: 50 },
@@ -60,7 +63,7 @@ async function addBookToAPI(file: File): Promise<BookDetail | null> {
 
     // Indexing might be heavy, ensure indexEpub is worker-compatible
     // or consider moving indexing to the server-side triggered by createBook.
-    await indexEpub(file, TEST_USER_ID, bookData.id)
+    await indexEpub(file, bookData.id)
     postMessage({
       type: 'progress',
       payload: { name: file.name, progress: 90 },
@@ -202,18 +205,25 @@ async function handleFilesWorker(files: File[]) {
   }) // Sending newBooks back might be large
 }
 
-// Listen for messages from the main thread
-self.onmessage = (event: MessageEvent<{ files: File[] }>) => {
-  if (event.data && event.data.files) {
-    handleFilesWorker(event.data.files).catch((err) => {
-      console.error('Worker: Uncaught error during execution:', err)
-      // Notify main thread about a fatal worker error
-      postMessage({
-        type: 'fatalError',
-        payload: { message: err instanceof Error ? err.message : String(err) },
-      })
+// Listen for messages from the main thread.
+// F-12: dedicated worker は同一オリジンの作成元のみ送信可能だが、CR-6 の iframe 経由で
+// worker 参照が漏れた場合の defense-in-depth として、メッセージ形式を厳格に検証する。
+self.onmessage = (event: MessageEvent<unknown>) => {
+  const data = event.data
+  if (!data || typeof data !== 'object') return
+  const files = (data as { files?: unknown }).files
+  if (!Array.isArray(files)) return
+  const validFiles = files.filter((f): f is File => f instanceof File)
+  if (validFiles.length === 0) return
+
+  handleFilesWorker(validFiles).catch((err) => {
+    console.error('Worker: Uncaught error during execution:', err)
+    // Notify main thread about a fatal worker error
+    postMessage({
+      type: 'fatalError',
+      payload: { message: err instanceof Error ? err.message : String(err) },
     })
-  }
+  })
 }
 
 // Initial message to confirm worker is ready (optional)

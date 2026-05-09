@@ -224,6 +224,27 @@ The setup guide includes:
 
 ---
 
+## 🔒 Security
+
+- **Vulnerability reports**: please use [GitHub Security Advisory](../../security/advisories/new). See [`SECURITY.md`](./SECURITY.md) for the disclosure policy.
+- **Architecture details**: [`apps/api/SECURITY.md`](./apps/api/SECURITY.md) covers required env vars, the 4-layer authorization model, threat model, and deployment checklist.
+- **Recent hardening**: see [`CHANGELOG.md`](./CHANGELOG.md) and [`.003_local_temp_docs/security-fixes/ROADMAP.md`](./.003_local_temp_docs/security-fixes/ROADMAP.md).
+
+## 🤝 Contributing
+
+Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a PR. It covers:
+
+- Development workflow & local test commands
+- Mandatory security rules (auth, ownership checks, schema strictness, etc.)
+- PR checklist
+- Commit message conventions
+
+CI runs gitleaks (weekly full history scan), `pip-audit`, `pnpm audit`, and Dependabot
+keeps dependencies up to date. Branch protection settings are recommended in
+[`SECURITY.md`](./SECURITY.md).
+
+---
+
 ## Acknowledgements
 
 This project is developed as a fork of [Flow](https://github.com/pacexy/flow). We are grateful for the excellent foundation provided by the original project.

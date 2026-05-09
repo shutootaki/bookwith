@@ -1,6 +1,8 @@
 """要約生成サービス."""
 
 import logging
+import threading
+import weakref
 from datetime import datetime
 
 from langchain_core.output_parsers import StrOutputParser
@@ -13,6 +15,21 @@ from src.infrastructure.memory.memory_vector_store import MemoryVectorStore
 logger = logging.getLogger(__name__)
 
 
+# 同じ chat_id への重複要約を防ぐ chat-scoped lock。
+# WeakValueDictionary で保持し、参照中の chat_id だけメモリに残るようにしてリークを防ぐ。
+_chat_summary_locks: weakref.WeakValueDictionary[str, threading.Lock] = weakref.WeakValueDictionary()
+_chat_summary_locks_guard = threading.Lock()
+
+
+def _get_chat_lock(chat_id: str) -> threading.Lock:
+    with _chat_summary_locks_guard:
+        lock = _chat_summary_locks.get(chat_id)
+        if lock is None:
+            lock = threading.Lock()
+            _chat_summary_locks[chat_id] = lock
+        return lock
+
+
 class SummarizationService:
     """チャット要約に特化したサービス."""
 
@@ -23,13 +40,25 @@ class SummarizationService:
         self.memory_summarize_threshold = 20
 
     def summarize_chat(self, chat_id: str, user_id: str, message_count: int) -> None:
-        """チャットの要約を同期的に生成（条件を満たす場合）."""
-        # メッセージ数が閾値の倍数に達した場合に要約を実行
-        if message_count > 0 and message_count % self.memory_summarize_threshold == 0:
-            self._summarize_and_vectorize_background(chat_id=chat_id, user_id=user_id)
+        """チャットの要約を同期的に生成（条件を満たす場合）.
+
+        threshold (20) 到達後は threshold/2 (10) 刻みで発火。19 で停止しても 30 で
+        catch up でき、毎メッセージごとの空打ち (Weaviate `get_unsummarized_messages`
+        の往復) も発生しない。実行中の重複は `_get_chat_lock` のロックで弾く。
+        """
+        if message_count < self.memory_summarize_threshold:
+            return
+        if message_count % (self.memory_summarize_threshold // 2) != 0:
+            return
+        self._summarize_and_vectorize_background(chat_id=chat_id, user_id=user_id)
 
     def _summarize_and_vectorize_background(self, chat_id: str, user_id: str) -> None:
         """チャットメッセージを要約してベクトル化する処理."""
+        # B-10: chat_id 単位の排他制御。lock を取れなかったら直近の同 chat 要約に任せる。
+        lock = _get_chat_lock(chat_id)
+        if not lock.acquire(blocking=False):
+            logger.info("Skip duplicate summarization for chat_id=%s", chat_id)
+            return
         try:
             # 要約されていないメッセージを取得
             unsummarized_messages = self.memory_store.get_unsummarized_messages(
@@ -81,6 +110,12 @@ class SummarizationService:
 
         except Exception as e:
             logger.error(f"チャット要約中にエラーが発生: {str(e)}", exc_info=True)
+        finally:
+            try:
+                lock.release()
+            except RuntimeError:  # pragma: no cover
+                # 既に release 済みの場合は無視。
+                pass
 
     def _convert_sender_to_japanese(self, sender: str) -> str:
         """送信者を日本語に変換."""
@@ -95,9 +130,11 @@ class SummarizationService:
         # 要約テキストをベクトル化
         vector = self.memory_store.encode_text(summary)
 
-        # 要約メタデータを準備
+        # M-5: 秒精度のタイムスタンプではコリジョンが起きるため UUID を使う。
+        from uuid import uuid4
+
         timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        summary_id = f"summary_{chat_id}_{timestamp}"
+        summary_id = f"summary_{chat_id}_{uuid4()}"
 
         metadata = {
             "chat_id": chat_id,

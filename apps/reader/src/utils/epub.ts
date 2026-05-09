@@ -1,5 +1,7 @@
 import ePub from '@flow/epubjs'
 
+import { apiClient } from '../lib/apiHandler/apiClient'
+
 import { fileToBase64 } from './fileUtils'
 
 export async function fileToEpub(file: File) {
@@ -7,19 +9,15 @@ export async function fileToEpub(file: File) {
   return ePub(data)
 }
 
-export const indexEpub = async (file: File, userId: string, bookId: string) => {
+export const indexEpub = async (file: File, bookId: string) => {
   try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/rag`, {
+    await apiClient('/rag', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
+      body: {
         bookId,
         fileData: await fileToBase64(file),
         fileName: file.name,
-      }),
+      },
     })
   } catch (error) {
     console.error('アップロード中のエラー:', error)

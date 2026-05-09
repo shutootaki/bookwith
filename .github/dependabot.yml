@@ -1,0 +1,74 @@
+# Dependabot 設定 — 依存ライブラリの脆弱性アップデートを自動化する.
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+#
+# H-18 補強: 既知 CVE への追従を半自動化し、定期 PR でレビュー → マージのフローを回す。
+
+version: 2
+updates:
+  # ----------------------------------------
+  # GitHub Actions（workflow ファイル）
+  # ----------------------------------------
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Tokyo
+    labels:
+      - dependencies
+      - github-actions
+    open-pull-requests-limit: 5
+
+  # ----------------------------------------
+  # Backend Python (Poetry)
+  # ----------------------------------------
+  - package-ecosystem: pip
+    directory: /apps/api
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:30'
+      timezone: Asia/Tokyo
+    labels:
+      - dependencies
+      - python
+    open-pull-requests-limit: 10
+    groups:
+      # 関連する langchain / openai 系をまとめて 1 PR にする
+      langchain:
+        patterns:
+          - 'langchain*'
+          - 'langchain-*'
+      # 観測ライブラリも一括
+      observability:
+        patterns:
+          - 'sentry-*'
+
+  # ----------------------------------------
+  # Frontend (pnpm workspace)
+  # ----------------------------------------
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+      timezone: Asia/Tokyo
+    labels:
+      - dependencies
+      - frontend
+    open-pull-requests-limit: 10
+    groups:
+      sentry:
+        patterns:
+          - '@sentry/*'
+      next:
+        patterns:
+          - 'next'
+          - 'next-*'
+          - '@next/*'
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@types/*'

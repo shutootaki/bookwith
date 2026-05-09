@@ -3,11 +3,12 @@ from typing import Any
 
 from src.domain.annotation.entities.annotation import Annotation
 from src.domain.book.entities.book import Book
-from src.domain.book.exceptions.book_exceptions import BookNotFoundException
+from src.domain.book.exceptions.book_exceptions import BookNotFoundException, BookPermissionDeniedException
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.book.value_objects.book_id import BookId
 from src.domain.book.value_objects.book_title import BookTitle
 from src.presentation.api.schemas.annotation_schema import AnnotationSchema
+from src.usecase.shared.access_control import resolve_owned_or_raise
 
 
 class UpdateBookUseCase(ABC):
@@ -15,6 +16,7 @@ class UpdateBookUseCase(ABC):
     def execute(
         self,
         book_id: str,
+        user_id: str,
         name: str | None = None,
         author: str | None = None,
         cfi: str | None = None,
@@ -34,6 +36,7 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
     def execute(
         self,
         book_id: str,
+        user_id: str,
         name: str | None = None,
         author: str | None = None,
         cfi: str | None = None,
@@ -44,10 +47,13 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
         configuration: dict[str, Any] | None = None,
     ) -> Book:
         book_id_obj = BookId(book_id)
-        book = self.book_repository.find_by_id(book_id_obj)
-
-        if book is None:
-            raise BookNotFoundException(book_id)
+        book = resolve_owned_or_raise(
+            find_for_user=lambda: self.book_repository.find_by_id_for_user(book_id_obj, user_id),
+            find_any=lambda: self.book_repository.find_by_id(book_id_obj),
+            not_found_exc=BookNotFoundException(book_id),
+            forbidden_exc=BookPermissionDeniedException(),
+        )
+        book.assert_owned_by(user_id)
 
         if name is not None and name != book.name.value:
             book_title = BookTitle(name)
@@ -57,28 +63,20 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
             book.author = author
 
         if cfi is not None or percentage is not None:
-            current_cfi = "" if book.cfi is None and cfi is None else cfi if cfi is not None else book.cfi
-
+            current_cfi = cfi if cfi is not None else book.cfi
             current_percentage = percentage if percentage is not None else book.percentage
             if current_cfi is not None:
                 book.update_reading_progress(current_cfi, current_percentage)
 
         if book_metadata is not None:
-            # Update individual metadata fields
-            book.metadata_title = book_metadata.get("title", book.metadata_title)
-            book.metadata_creator = book_metadata.get("creator", book.metadata_creator)
-            book.metadata_description = book_metadata.get("description", book.metadata_description)
-            book.metadata_pubdate = book_metadata.get("pubdate", book.metadata_pubdate)
-            book.metadata_publisher = book_metadata.get("publisher", book.metadata_publisher)
-            book.metadata_identifier = book_metadata.get("identifier", book.metadata_identifier)
-            book.metadata_language = book_metadata.get("language", book.metadata_language)
-            book.metadata_rights = book_metadata.get("rights", book.metadata_rights)
-            book.metadata_modified_date = book_metadata.get("modified_date", book.metadata_modified_date)
-            book.metadata_layout = book_metadata.get("layout", book.metadata_layout)
-            book.metadata_orientation = book_metadata.get("orientation", book.metadata_orientation)
-            book.metadata_flow = book_metadata.get("flow", book.metadata_flow)
-            book.metadata_viewport = book_metadata.get("viewport", book.metadata_viewport)
-            book.metadata_spread = book_metadata.get("spread", book.metadata_spread)
+            metadata_keys = (
+                "title", "creator", "description", "pubdate", "publisher",
+                "identifier", "language", "rights", "modified_date",
+                "layout", "orientation", "flow", "viewport", "spread",
+            )
+            for key in metadata_keys:
+                attr = f"metadata_{key}"
+                setattr(book, attr, book_metadata.get(key, getattr(book, attr)))
 
         if definitions is not None:
             book.definitions = definitions
@@ -87,7 +85,13 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
             book.configuration = configuration
 
         if annotations is not None:
-            book.annotations = [Annotation(**annotation.model_dump(mode="json")) for annotation in annotations]
+            # Annotation の book_id をパス引数で強制的に上書きする (権限境界の防御)。
+            normalized: list[Annotation] = []
+            for annotation in annotations:
+                payload = annotation.model_dump(mode="json")
+                payload["book_id"] = book_id
+                normalized.append(Annotation(**payload))
+            book.annotations = normalized
 
         self.book_repository.save(book)
 

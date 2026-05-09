@@ -27,25 +27,60 @@ const IS_DOCKER = process.env.DOCKER
  * @type {import('@sentry/nextjs').SentryWebpackPluginOptions}
  **/
 const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry Webpack plugin. Keep in mind that
-  // the following options are set automatically, and overriding them is not
-  // recommended:
-  //   release, url, org, project, authToken, configFile, stripPrefix,
-  //   urlPrefix, include, ignore
-
-  silent: true, // Suppresses all logs
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options.
+  silent: true,
 }
+
+// H-20: ベースの Content Security Policy。
+// ePub 描画時に iframe 内 inline script を許容しているため `script-src 'self' 'unsafe-inline'` だが、
+// 将来的には CSP nonce + sandbox 強化（CR-5）で `'unsafe-inline'` を取り除くこと。
+const buildCsp = () => {
+  const apiOrigin =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    'http://localhost:8000'
+  const directives = [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "form-action 'self'",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "font-src 'self' data: https:",
+    "style-src 'self' 'unsafe-inline'",
+    `connect-src 'self' ${apiOrigin} https: wss:`,
+    "worker-src 'self' blob:",
+    // Sentry / Next.js dev で必要な inline / eval は dev 限定で許容。
+    IS_DEV
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+      : "script-src 'self' 'unsafe-inline'",
+  ]
+  return directives.join('; ')
+}
+
+const securityHeaders = [
+  // H-20: 主要セキュリティヘッダー
+  { key: 'Content-Security-Policy', value: buildCsp() },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload',
+  },
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'X-DNS-Prefetch-Control', value: 'off' },
+]
 
 /**
  * @type {import('next').NextConfig}
  **/
-// Base Next.js config object remains the same structure
 const config = {
   pageExtensions: ['ts', 'tsx'],
   webpack(config) {
-    // Webpack function usually doesn't need changes for ESM vs CJS
     return config
   },
   i18n: {
@@ -58,6 +93,14 @@ const config = {
     '@material/material-color-utilities',
   ],
   poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ]
+  },
   ...(IS_DOCKER && {
     output: 'standalone',
     experimental: {
@@ -70,13 +113,7 @@ const config = {
 const baseConfig = withPWA(withBundleAnalyzer(config))
 
 const dev = baseConfig
-const docker = baseConfig // Note: Sentry is not applied in the docker case here
-const prod = withSentryConfig(
-  baseConfig,
-  // Make sure adding Sentry options is the last code to run before exporting, to
-  // ensure that your source maps include changes from all other Webpack plugins
-  sentryWebpackPluginOptions,
-)
+const docker = baseConfig
+const prod = withSentryConfig(baseConfig, sentryWebpackPluginOptions)
 
-// Use export default instead of module.exports
 export default IS_DEV ? dev : IS_DOCKER ? docker : prod

@@ -1,17 +1,13 @@
 import useSWR from 'swr'
 
 import { components } from '../../lib/openapi-schema/schema'
-import { TEST_USER_ID } from '../../pages/_app'
 
 import { fetcher } from './fetcher'
 
 export function useLibrary() {
   const { data, error, mutate } = useSWR<
     components['schemas']['BooksResponse']
-  >(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/user/${TEST_USER_ID}`,
-    fetcher,
-  )
+  >(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/me`, fetcher)
 
   return {
     books: data?.books || [],

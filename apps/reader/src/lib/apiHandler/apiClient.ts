@@ -1,19 +1,41 @@
-import { TEST_USER_ID } from '../../pages/_app'
+import { getAccessToken } from '../auth/token'
+
+import { throwApiError, unwrapApiResponse } from './responseParser'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
 interface ApiClientOptions extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | number | boolean>
-  body?: any
+  body?: unknown
+}
+
+// CR-1: 認証トークンの取得経路。
+// 1) `getAuthToken` が登録されていればそれを優先（Supabase Auth クライアントから登録する想定）
+// 2) `lib/auth/token.ts` 経由の localStorage 値
+// 3) 取得できなければ未認証のまま送信（バックエンドが `auth_dev_bypass` 設定でテストユーザーを返す）
+type AuthTokenProvider = () => string | null | Promise<string | null>
+
+let authTokenProvider: AuthTokenProvider | null = null
+
+export function setAuthTokenProvider(provider: AuthTokenProvider | null) {
+  authTokenProvider = provider
+}
+
+async function resolveAuthToken(): Promise<string | null> {
+  if (authTokenProvider) {
+    try {
+      const token = await authTokenProvider()
+      if (token) return token
+    } catch (error) {
+      console.warn('Auth token provider threw:', error)
+    }
+  }
+  return getAccessToken()
 }
 
 /**
  * A generic API client function to handle requests to the backend.
- * Automatically adds base URL, common headers, user ID param, and handles JSON responses/errors.
- * @param endpoint The API endpoint path (e.g., '/books').
- * @param options Request options including method, body, params, headers, etc.
- * @returns The 'data' field from the API response.
- * @throws Throws an error if the request fails or the API returns an error.
+ * Automatically adds base URL, common headers, Bearer token, and handles JSON responses/errors.
  */
 export async function apiClient<T>(
   endpoint: string,
@@ -27,9 +49,8 @@ export async function apiClient<T>(
 
   const url = new URL(`${API_BASE_URL}${endpoint}`)
 
-  const defaultParams: Record<string, string> = { user_id: TEST_USER_ID }
-  const queryParams = { ...defaultParams, ...(options.params || {}) }
-  Object.entries(queryParams).forEach(([key, value]) => {
+  // CR-4 後: クエリに固定 user_id を付与しない。
+  Object.entries(options.params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       url.searchParams.append(key, String(value))
     }
@@ -38,6 +59,15 @@ export async function apiClient<T>(
   const { params, body, headers: customHeaders, ...fetchOptions } = options
 
   const headers = new Headers(customHeaders)
+
+  // CR-1: Bearer Token を Authorization ヘッダで送る。
+  // 呼出側が渡した Authorization は set() でこちらの値に上書きされる。
+  const token = await resolveAuthToken()
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  } else {
+    headers.delete('Authorization')
+  }
 
   let requestBody: BodyInit | null = null
   if (body !== undefined && body !== null) {
@@ -57,64 +87,21 @@ export async function apiClient<T>(
     }
   }
 
+  const response = await fetch(url.toString(), {
+    ...fetchOptions,
+    headers,
+    body: requestBody,
+    credentials: 'omit',
+  })
+
+  if (!response.ok) {
+    await throwApiError(response)
+  }
+
   try {
-    const response = await fetch(url.toString(), {
-      ...fetchOptions,
-      headers,
-      body: requestBody,
-    })
-
-    if (!response.ok) {
-      let errorData: any = {
-        message: `Request failed with status ${response.status} ${response.statusText}`,
-      }
-      try {
-        const errorJson = await response.json()
-        errorData = errorJson?.error || errorJson?.message || errorJson
-      } catch {
-        errorData.responseBody = await response.text()
-      }
-      console.error(`API Error (${response.status}): ${endpoint}`, errorData)
-
-      throw new Error(
-        typeof errorData === 'string'
-          ? errorData
-          : errorData.message || JSON.stringify(errorData),
-      )
-    }
-
-    if (
-      response.status === 204 ||
-      response.headers.get('content-length') === '0'
-    ) {
-      return undefined as T
-    }
-
-    const responseData = await response.json()
-
-    if (responseData && typeof responseData.success === 'boolean') {
-      if (responseData.success) {
-        return responseData.data as T
-      } else {
-        const errorMessage =
-          responseData.error || 'API returned an unspecified error'
-        console.error(`API Logic Error: ${endpoint}`, errorMessage)
-        throw new Error(errorMessage)
-      }
-    }
-
-    console.warn(
-      `API response for ${endpoint} did not match standard wrapper format.`,
-      responseData,
-    )
-    return responseData as T
-  } catch (error) {
-    console.error(`API Request Failed: ${endpoint}`, error)
-
-    if (error instanceof Error) {
-      throw error
-    } else {
-      throw new Error('An unknown error occurred during the API request.')
-    }
+    return await unwrapApiResponse<T>(response)
+  } catch (err) {
+    console.error(`API Logic Error: ${endpoint}`, err)
+    throw err
   }
 }

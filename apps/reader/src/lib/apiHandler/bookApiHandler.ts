@@ -1,4 +1,3 @@
-import { TEST_USER_ID } from '../../pages/_app'
 import { components } from '../openapi-schema/schema'
 
 import { apiClient } from './apiClient'
@@ -17,12 +16,10 @@ type BookDetail = components['schemas']['BookDetail']
  */
 export async function fetchAllBooks(): Promise<BookDetail[]> {
   try {
-    const responseData = await apiClient<BooksResponse>(
-      `/books/user/${TEST_USER_ID}`,
-      {
-        method: 'GET',
-      },
-    )
+    // CR-1 後: 認証 user_id で自動絞り込みされる /books/me を使う。
+    const responseData = await apiClient<BooksResponse>(`/books/me`, {
+      method: 'GET',
+    })
     return responseData?.books || []
   } catch (error) {
     console.error('Error fetching all books:', error)
@@ -55,15 +52,30 @@ export const getBookFile = async (
       throw new Error('Book file URL not found in API response.')
     }
 
-    const fileResponse = await fetch(fileUrl)
+    // サーバ由来 URL ではあるが、想定外のホストへ繋がないよう protocol だけ最低限検証する。
+    let parsed: URL
+    try {
+      parsed = new URL(fileUrl)
+    } catch {
+      throw new Error('Book file URL is not a valid absolute URL')
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new Error(`Unsupported book file URL scheme: ${parsed.protocol}`)
+    }
+
+    const fileResponse = await fetch(fileUrl, {
+      credentials: 'omit',
+    })
     if (!fileResponse.ok) {
       throw new Error(
-        `Failed to download file from ${fileUrl}: ${fileResponse.status} ${fileResponse.statusText}`,
+        `Failed to download file: ${fileResponse.status} ${fileResponse.statusText}`,
       )
     }
 
     const blob = await fileResponse.blob()
-    const fileName = fileUrl.split('/').pop() || `book_${bookId}.epub`
+    const fileName =
+      decodeURIComponent(parsed.pathname.split('/').pop() || '') ||
+      `book_${bookId}.epub`
     const file = new File([blob], fileName, { type: 'application/epub+zip' })
 
     return { id: bookId, file }

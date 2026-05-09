@@ -1,16 +1,19 @@
 import uuid
 from dataclasses import dataclass
 
+from src.domain.shared.identifiers import normalize_strict_uuid
+
 
 @dataclass(frozen=True)
 class AnnotationId:
     value: str
 
     def __post_init__(self) -> None:
-        if not self.value:
-            object.__setattr__(self, "value", str(uuid.uuid4()))
-        elif not isinstance(self.value, str):
-            raise ValueError("AnnotationId must be a string")
+        object.__setattr__(
+            self,
+            "value",
+            normalize_strict_uuid(self.value, name="AnnotationId", generate_if_empty=True),
+        )
 
     @classmethod
     def new(cls) -> "AnnotationId":

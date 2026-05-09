@@ -1,13 +1,14 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from src.config.app_config import AppConfig
 from src.config.db import get_db
 from src.domain.annotation.repositories.annotation_repository import AnnotationRepository
 from src.domain.book.repositories.book_repository import BookRepository
 from src.domain.chat.repositories.chat_repository import ChatRepository
 from src.domain.message.repositories.message_repository import MessageRepository
 from src.domain.podcast.repositories.podcast_repository import PodcastRepository
-from src.infrastructure.memory.memory_service import MemoryService
+from src.infrastructure.memory.memory_service import get_shared_memory_service
 from src.infrastructure.postgres.annotation.annotation_repository import AnnotationRepositoryImpl
 from src.infrastructure.postgres.book.book_repository import BookRepositoryImpl
 from src.infrastructure.postgres.chat.chat_repository import ChatRepositoryImpl
@@ -35,8 +36,6 @@ from src.usecase.book.find_book_by_id_usecase import (
 from src.usecase.book.find_books_usecase import (
     FindBooksByUserIdUseCase,
     FindBooksByUserIdUseCaseImpl,
-    FindBooksUseCase,
-    FindBooksUseCaseImpl,
 )
 from src.usecase.book.update_book_usecase import (
     UpdateBookUseCase,
@@ -94,19 +93,14 @@ from src.usecase.podcast.get_podcast_status_usecase import GetPodcastStatusUseCa
 
 
 def get_book_repository(db: Session = Depends(get_db)) -> BookRepository:
-    return BookRepositoryImpl(session=db, memory_service=MemoryService())
+    # M-02: MemoryService をシングルトンで共有し、Weaviate / OpenAI クライアント生成のオーバーヘッドを排除。
+    return BookRepositoryImpl(session=db, memory_service=get_shared_memory_service())
 
 
 def get_create_book_usecase(
     book_repository: BookRepositoryImpl = Depends(get_book_repository),
 ) -> CreateBookUseCase:
     return CreateBookUseCaseImpl(book_repository)
-
-
-def get_find_books_usecase(
-    book_repository: BookRepositoryImpl = Depends(get_book_repository),
-) -> FindBooksUseCase:
-    return FindBooksUseCaseImpl(book_repository)
 
 
 def get_find_books_by_user_id_usecase(
@@ -130,13 +124,13 @@ def get_update_book_usecase(
 def get_delete_book_usecase(
     book_repository: BookRepository = Depends(get_book_repository),
 ) -> DeleteBookUseCase:
-    return DeleteBookUseCaseImpl(book_repository, memory_service=MemoryService())
+    return DeleteBookUseCaseImpl(book_repository, memory_service=get_shared_memory_service())
 
 
 def get_bulk_delete_books_usecase(
     book_repository: BookRepository = Depends(get_book_repository),
 ) -> BulkDeleteBooksUseCase:
-    return BulkDeleteBooksUseCaseImpl(book_repository, memory_service=MemoryService())
+    return BulkDeleteBooksUseCaseImpl(book_repository, memory_service=get_shared_memory_service())
 
 
 # ==============================================================================
@@ -218,10 +212,12 @@ def get_create_message_usecase(
     message_repository: MessageRepository = Depends(get_message_repository),
     chat_repository: ChatRepository = Depends(get_chat_repository),
 ) -> CreateMessageUseCase:
+    config = AppConfig.get_config()
     return CreateMessageUseCaseImpl(
         message_repository=message_repository,
         chat_repository=chat_repository,
-        memory_service=MemoryService(),
+        memory_service=get_shared_memory_service(),
+        stream_timeout_seconds=config.sse_stream_timeout_seconds,
     )
 
 
@@ -237,7 +233,7 @@ def get_delete_message_usecase(
 
 
 def get_annotation_repository(db: Session = Depends(get_db)) -> AnnotationRepository:
-    return AnnotationRepositoryImpl(session=db, memory_service=MemoryService())
+    return AnnotationRepositoryImpl(session=db, memory_service=get_shared_memory_service())
 
 
 def get_sync_annotations_usecase(

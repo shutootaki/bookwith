@@ -1,6 +1,7 @@
 """書籍コンテンツストア."""
 
 import logging
+import os
 import tempfile
 from pathlib import Path
 
@@ -10,8 +11,18 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate.classes.query import Filter
 
+from src.config.app_config import AppConfig
+from src.infrastructure.external.epub import assert_epub_is_safe
 from src.infrastructure.memory.base_vector_store import BaseVectorStore
 from src.infrastructure.memory.retry_decorator import retry_on_error
+
+# CR-6: defusedxml を import するだけに留める。`defuse_stdlib()` のグローバル副作用は
+# 他ライブラリの内部 XML 利用に影響を与えるため、ここでは `xml.etree` 系のみ参照を上書きしない。
+# 代わりに、本ファイル内で XML を扱う場合は `defusedxml.ElementTree` を直接使う。
+try:
+    import defusedxml.ElementTree as _DEFUSED_ET  # noqa: F401  pyright: ignore[reportMissingImports]
+except Exception:  # pragma: no cover
+    _DEFUSED_ET = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -23,17 +34,29 @@ class BookContentStore(BaseVectorStore):
         """書籍コンテンツストアの初期化."""
         super().__init__()
 
-    @retry_on_error(max_retries=3)
+    # H-09: EPUB 全体の Embedding 計算は OpenAI 課金が走る非冪等処理。
+    # 部分失敗で全 batch 再実行すると重複登録 + 二重課金の温床になるため retry しない。
+    @retry_on_error(max_retries=0, idempotent=False)
     async def create_book_vector_index(self, file: UploadFile, user_id: str, book_id: str) -> dict:
         """EPUBファイルを処理してBookContentコレクションにベクトルインデックス化する."""
+        config = AppConfig.get_config()
         try:
-            # 一時ファイルとしてEPUBファイルを保存
-            with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as temp_file:
-                file_content = await file.read()
-                temp_file.write(file_content)
-                temp_path = temp_file.name
+            file_content = await file.read()
+            if len(file_content) > config.max_upload_bytes:
+                raise ValueError("EPUB file too large")
 
+            # `mkstemp` で fd を直接取得することで、ファイル生成と書き込みのあいだに
+            # 第三者プロセスが掴み込む TOCTOU を防ぐ。
+            fd, temp_path = tempfile.mkstemp(suffix=".epub")
             try:
+                with os.fdopen(fd, "wb") as tmp:
+                    tmp.write(file_content)
+
+                # ZIP 構造と XML ヒューリスティックで静的検査。
+                # ebooklib / unstructured が内部の lxml ハードニング設定を露出しないので、
+                # 攻撃面を入口で削減する目的の多層防御。
+                assert_epub_is_safe(temp_path)
+
                 # EPUBファイルを読み込み
                 docs = UnstructuredEPubLoader(temp_path).load()
 
@@ -45,11 +68,8 @@ class BookContentStore(BaseVectorStore):
                 for doc in split_docs:
                     doc.metadata["book_id"] = book_id
 
-                # ログ出力
-                logger.info(f"Creating book vector index with book_id: {book_id} for user: {user_id}")
-                logger.info(f"Number of document chunks: {len(split_docs)}")
-                if split_docs:
-                    logger.info(f"Sample document metadata: {split_docs[0].metadata}")
+                # 著作権物の本文や PII をログに残さないよう、件数 / ID のみ INFO で出す。
+                logger.info("Creating book vector index for book_id=%s user=%s chunks=%d", book_id, user_id, len(split_docs))
 
                 # バッチ処理でベクトルストアにドキュメントを保存
                 BATCH_SIZE = 100  # バッチサイズを定義  # noqa: N806
@@ -83,7 +103,6 @@ class BookContentStore(BaseVectorStore):
                     "success": True,
                 }
             finally:
-                # 一時ファイルを削除
                 Path(temp_path).unlink(missing_ok=True)
 
         except Exception as e:
@@ -99,10 +118,9 @@ class BookContentStore(BaseVectorStore):
             )
 
             if test_results.objects:
-                logger.info(f"✓ Book content saved successfully with book_id: {book_id}")
-                logger.info(f"  Sample properties: {test_results.objects[0].properties}")
+                logger.info("Book content saved successfully for book_id=%s", book_id)
             else:
-                logger.warning(f"⚠ No content found with book_id: {book_id} after saving")
+                logger.warning("No content found with book_id=%s after saving", book_id)
         except Exception as e:
             logger.error(f"Error verifying saved content: {str(e)}")
 

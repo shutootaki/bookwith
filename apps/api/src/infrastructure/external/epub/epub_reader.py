@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from functools import cached_property
 
 from bs4 import BeautifulSoup
 
@@ -14,17 +15,16 @@ class Chapter:
     title: str | None
     content: str
 
-    def get_text_content(self) -> str:
-        """Get plain text content from HTML"""
+    @cached_property
+    def text_content(self) -> str:
+        """Plain text extracted from HTML, computed once per instance."""
         soup = BeautifulSoup(self.content, "html.parser")
-        # Remove script and style elements
         for script in soup(["script", "style"]):
             script.decompose()
-        # Get text
         text = soup.get_text()
-        # Break into lines and remove leading and trailing space on each
         lines = (line.strip() for line in text.splitlines())
-        # Break multi-headlines into a line each
         chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-        # Drop blank lines
         return "\n".join(chunk for chunk in chunks if chunk)
+
+    def get_text_content(self) -> str:
+        return self.text_content

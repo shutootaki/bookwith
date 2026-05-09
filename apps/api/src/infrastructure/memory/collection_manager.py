@@ -29,16 +29,20 @@ class CollectionManager(BaseVectorStore):
             logger.error(f"コレクション作成エラー: {str(e)}")
             raise
 
+    def _multi_tenancy_config(self) -> Configure:
+        # C-04: 認証導入後は明示的にテナントを作成し、未知 user_id への自動作成は禁止する。
+        return Configure.multi_tenancy(
+            enabled=True,
+            auto_tenant_activation=True,
+            auto_tenant_creation=self.config.weaviate_auto_tenant_creation,
+        )
+
     def _create_chat_memory_collection(self) -> None:
         """ChatMemoryコレクションを作成."""
         if not self.client.collections.exists(self.CHAT_MEMORY_COLLECTION_NAME):
             self.client.collections.create(
                 name=self.CHAT_MEMORY_COLLECTION_NAME,
-                multi_tenancy_config=Configure.multi_tenancy(
-                    enabled=True,
-                    auto_tenant_activation=True,
-                    auto_tenant_creation=True,
-                ),
+                multi_tenancy_config=self._multi_tenancy_config(),
                 vectorizer_config=None,
                 properties=[
                     Property(
@@ -98,11 +102,7 @@ class CollectionManager(BaseVectorStore):
                     Property(name="content", data_type=DataType.TEXT),
                     Property(name="book_id", data_type=DataType.TEXT, index_searchable=True, description="書籍ID"),
                 ],
-                multi_tenancy_config=Configure.multi_tenancy(
-                    enabled=True,
-                    auto_tenant_activation=True,
-                    auto_tenant_creation=True,
-                ),
+                multi_tenancy_config=self._multi_tenancy_config(),
             )
 
     def _create_book_annotation_collection(self) -> None:
@@ -111,11 +111,7 @@ class CollectionManager(BaseVectorStore):
             self.client.collections.create(
                 name=self.BOOK_ANNOTATION_COLLECTION_NAME,
                 vectorizer_config=None,
-                multi_tenancy_config=Configure.multi_tenancy(
-                    enabled=True,
-                    auto_tenant_activation=True,
-                    auto_tenant_creation=True,
-                ),
+                multi_tenancy_config=self._multi_tenancy_config(),
                 properties=[
                     Property(
                         name="annotation_id",

@@ -114,3 +114,15 @@ class Annotation(BaseModel):
             type=AnnotationType.from_string(type),
             spine=spine,
         )
+
+    def assert_belongs_to_book(self, book_id: str) -> None:
+        """CR-4 / H-17 補強: Annotation の `book_id` がパス引数と一致することを保証する.
+
+        UseCase 層で `payload['book_id'] = book_id` で強制上書きする実装と併せて、
+        ドメインエンティティ自身でも整合チェックを行う。Mass Assignment 経由で
+        他の book に注釈を寄生させる経路に対する二重防御。
+        """
+        if self.book_id != book_id:
+            raise ValueError(
+                "Annotation.book_id does not match the requested book_id"
+            )

@@ -1,5 +1,7 @@
 import io
 import logging
+from collections.abc import Iterable
+from functools import lru_cache
 from pathlib import Path
 
 from pydub import AudioSegment
@@ -7,6 +9,66 @@ from pydub import AudioSegment
 from src.config.app_config import AppConfig
 
 logger = logging.getLogger(__name__)
+
+
+# 任意パス IO の窓口になり得るため、AudioSegment で受け付けるパスを allow-list する。
+# AUDIO_BGM_DIRS が未設定なら下記のデフォルトに fallback（本番では明示設定推奨）。
+_DEFAULT_BGM_DIRS: tuple[str, ...] = (
+    "/app/assets/bgm",
+    str(Path(__file__).resolve().parents[3] / "assets" / "bgm"),
+)
+_FFMPEG_PROTOCOL_PREFIXES = ("concat:", "pipe:", "http://", "https://", "rtmp://", "data:")
+
+
+@lru_cache(maxsize=8)
+def _resolve_roots(candidates: tuple[str, ...]) -> tuple[Path, ...]:
+    resolved: list[Path] = []
+    for c in candidates:
+        try:
+            resolved.append(Path(c).resolve(strict=False))
+        except OSError:
+            continue
+    return tuple(resolved)
+
+
+def _path_in_any_root(target: Path, roots: Iterable[Path]) -> bool:
+    for root in roots:
+        try:
+            target.relative_to(root)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def _allowed_bgm_paths() -> tuple[Path, ...]:
+    candidates = tuple(AppConfig.get_config().audio_bgm_dirs_list) or _DEFAULT_BGM_DIRS
+    return _resolve_roots(candidates)
+
+
+def _is_safe_bgm_path(music_path: str) -> bool:
+    """`music_path` が allow-list に含まれる通常ファイルか確認する."""
+    if music_path.lower().startswith(_FFMPEG_PROTOCOL_PREFIXES):
+        return False
+    try:
+        resolved = Path(music_path).resolve(strict=True)
+    except (OSError, RuntimeError):
+        return False
+    if not resolved.is_file():
+        return False
+    return _path_in_any_root(resolved, _allowed_bgm_paths())
+
+
+def _is_safe_output_path(file_path: str) -> bool:
+    """`save_to_file` 用。書き込み先は AUDIO_OUTPUT_DIRS 配下に限定する."""
+    candidates = AppConfig.get_config().audio_output_dirs_list
+    if not candidates:
+        return False
+    try:
+        resolved = Path(file_path).resolve(strict=False)
+    except OSError:
+        return False
+    return _path_in_any_root(resolved, _resolve_roots(tuple(candidates)))
 
 
 class AudioProcessor:
@@ -125,6 +187,11 @@ class AudioProcessor:
         if not music_path:
             return voice_audio
 
+        # 信頼境界外から `music_path` が来た場合の ffmpeg 任意ファイル読取・プロトコル悪用を防ぐ allow-list 検証。
+        if not _is_safe_bgm_path(music_path):
+            logger.warning("Refusing to load background music from disallowed path")
+            return voice_audio
+
         try:
             # Load voice audio
             voice = AudioSegment.from_mp3(io.BytesIO(voice_audio))
@@ -157,16 +224,12 @@ class AudioProcessor:
             return voice_audio
 
     async def save_to_file(self, audio_data: bytes, file_path: str) -> str:
-        """Save audio data to a file
+        """Save audio data to a file (出力先は AUDIO_OUTPUT_DIRS 配下に限定)."""
 
-        Args:
-            audio_data: Audio data to save
-            file_path: Path where to save the file
+        # 任意パス書き込み防止。AUDIO_OUTPUT_DIRS 配下のみ許可。
+        if not _is_safe_output_path(file_path):
+            raise PermissionError("Refusing to write outside of AUDIO_OUTPUT_DIRS")
 
-        Returns:
-            Path to saved file
-
-        """
         try:
             Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 

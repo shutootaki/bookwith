@@ -1,12 +1,13 @@
 import { debounce } from '@github/mini-throttle/decorators'
 import React from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { proxy, ref, snapshot, subscribe, useSnapshot } from 'valtio'
+import { proxy, ref, snapshot, useSnapshot } from 'valtio'
 
 import type { Rendition, Location, Book } from '@flow/epubjs'
 import Navigation, { NavItem } from '@flow/epubjs/types/navigation'
 import Section from '@flow/epubjs/types/section'
 
+import { apiClient } from '../lib/apiHandler/apiClient'
 import { getBookFile } from '../lib/apiHandler/bookApiHandler'
 import { components } from '../lib/openapi-schema/schema'
 import { AnnotationColor, AnnotationType } from '../utils/annotation'
@@ -137,12 +138,9 @@ export class BookTab extends BaseTab {
   updateBook(changes: Partial<components['schemas']['BookDetail']>) {
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}`, {
+    apiClient(`/books/${this.book.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(changes),
+      body: changes,
     }).catch((error) => {
       console.error('書籍の更新に失敗しました:', error)
     })
@@ -151,16 +149,10 @@ export class BookTab extends BaseTab {
   syncAnnotations(changes: Partial<components['schemas']['BookDetail']>) {
     // don't wait promise resolve to make valtio batch updates
     this.book = { ...this.book, ...changes }
-    fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/books/${this.book.id}/annotations`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(changes),
-      },
-    ).catch((error) => {
+    apiClient(`/books/${this.book.id}/annotations`, {
+      method: 'PUT',
+      body: changes,
+    }).catch((error) => {
       console.error('書籍の更新に失敗しました:', error)
     })
   }
@@ -392,7 +384,6 @@ export class BookTab extends BaseTab {
     this.epub.loaded.navigation.then((nav) => {
       this.nav = nav
     })
-    console.log(this.epub)
     this.epub.loaded.spine.then((spine: any) => {
       const sections = spine.spineItems as ISection[]
       // https://github.com/futurepress/epub.js/issues/887#issuecomment-700736486
@@ -415,23 +406,21 @@ export class BookTab extends BaseTab {
       this.epub.renderTo(el, {
         width: '100%',
         height: '100%',
-        allowScriptedContent: true,
+        // CR-5: 同一オリジン iframe 内で `allow-scripts` を有効にすると EPUB から
+        // localStorage / IndexedDB / parent 経由で API を叩かれて完全乗っ取りに繋がるため、
+        // EPUB 内スクリプトの実行は許可しない。
+        allowScriptedContent: false,
       }),
     )
-    console.log('rendition', this.rendition)
-    console.log('location', this.location)
-    console.log('book.cfi', this.book.cfi)
     this.rendition.display(
       this.location?.start.cfi ?? this.book.cfi ?? undefined,
     )
     this.rendition.themes.default(defaultStyle)
-    this.rendition.hooks.render.register((view: any) => {
-      console.log('hooks.render', view)
+    this.rendition.hooks.render.register(() => {
       this.onRender?.()
     })
 
     this.rendition.on('relocated', (loc: Location) => {
-      console.log('relocated', loc)
       this.rendered = true
       this.timeline.unshift({
         location: loc,
@@ -459,25 +448,9 @@ export class BookTab extends BaseTab {
       }
     })
 
-    this.rendition.on('attached', (...args: any[]) => {
-      console.log('attached', args)
-    })
-    this.rendition.on('started', (...args: any[]) => {
-      console.log('started', args)
-    })
-    this.rendition.on('displayed', (...args: any[]) => {
-      console.log('displayed', args)
-    })
     this.rendition.on('rendered', (section: ISection, view: any) => {
-      console.log('rendered', [section, view])
       this.section = ref(section)
       this.iframe = ref(view.window as Window)
-    })
-    this.rendition.on('selected', (...args: any[]) => {
-      console.log('selected', args)
-    })
-    this.rendition.on('removed', (...args: any[]) => {
-      console.log('removed', args)
     })
   }
 
@@ -679,9 +652,7 @@ export class Reader {
   }
 
   setPodcastVolume(volume: number) {
-    console.log('setPodcastVolume called with:', volume)
     this.podcast.volume = Math.max(0, Math.min(1, volume))
-    console.log('podcast.volume is now:', this.podcast.volume)
   }
 
   setPodcastPlaybackRate(rate: number) {
@@ -696,10 +667,6 @@ export class Reader {
 
 export const reader = proxy(new Reader())
 
-subscribe(reader, () => {
-  console.log(snapshot(reader))
-})
-
 export function useReaderSnapshot() {
   return useSnapshot(reader)
 }
@@ -710,6 +677,7 @@ declare global {
   }
 }
 
-if (!IS_SERVER) {
+// M-17: window への global 露出は dev 時のみ。production では reader を露出しない。
+if (!IS_SERVER && process.env.NODE_ENV !== 'production') {
   window.reader = reader
 }

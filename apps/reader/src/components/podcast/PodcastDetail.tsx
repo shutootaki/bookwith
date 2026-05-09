@@ -173,9 +173,11 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = memo(
                 onEnd={() => {}}
                 onTimeUpdate={setCurrentTime}
                 onSeek={(time) => {
-                  if (window.podcastSeekFunction) {
-                    window.podcastSeekFunction(time)
-                  }
+                  // M-17: production 後は window 経由ではなく内部 state 経由にする。
+                  const fn =
+                    (window as any).bookwithPodcastSeek ||
+                    (window as any).podcastSeekFunction
+                  if (typeof fn === 'function') fn(time)
                 }}
               />
             </Card>
@@ -185,9 +187,10 @@ export const PodcastDetail: React.FC<PodcastDetailProps> = memo(
               script={podcast.script}
               currentTime={currentTime}
               onTimeSeek={(time) => {
-                if (window.podcastSeekFunction) {
-                  window.podcastSeekFunction(time)
-                }
+                const fn =
+                  (window as any).bookwithPodcastSeek ||
+                  (window as any).podcastSeekFunction
+                if (typeof fn === 'function') fn(time)
               }}
             />
           )}

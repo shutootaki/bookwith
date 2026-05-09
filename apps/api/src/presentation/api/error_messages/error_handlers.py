@@ -81,7 +81,12 @@ class ServiceUnavailableException(AppException):
 
 
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
-    logger.error(f"Application error: {exc.detail}", exc_info=True)
+    # 4xx は warning + 詳細のみ。stack trace を残すと未認証 probe 等で大量にノイズが出る。
+    # 5xx 系のみ exc_info=True で完全なトレースを残す。
+    if exc.status_code >= 500:
+        logger.error("Application error: %s", exc.detail, exc_info=True)
+    else:
+        logger.warning("Application error %s: %s", exc.status_code, exc.detail)
     return JSONResponse(
         status_code=exc.status_code,
         content=ErrorResponse(
@@ -120,8 +125,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 async def internal_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    # H-5: 想定外例外は固定文言のみ返す。スタックトレースとメッセージはサーバ側ログのみ。
     detail = "Internal server error"
-    logger.error(f"Unexpected error: {str(exc)}", exc_info=True)
+    logger.exception("Unexpected error: %s", type(exc).__name__)
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -139,4 +145,5 @@ def setup_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(RequestValidationError, cast("HTTPExceptionHandler", validation_exception_handler))
     app.add_exception_handler(ValidationError, cast("HTTPExceptionHandler", validation_exception_handler))
 
+    # 残りの全 Exception は最後の壁。
     app.add_exception_handler(Exception, internal_exception_handler)

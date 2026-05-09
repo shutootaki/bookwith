@@ -4,16 +4,23 @@
 
 import * as Sentry from '@sentry/nextjs'
 
+// H-19: 上流フォークの DSN を fallback で指していたため削除。
 const SENTRY_DSN = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN
 
-Sentry.init({
-  dsn:
-    SENTRY_DSN ||
-    'https://911830b959464866b3820e27379f4d38@o955619.ingest.sentry.io/6537954',
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: 1.0,
-  // ...
-  // Note: if you want to override the automatic release value, do not set a
-  // `release` value here - use the environment variable `SENTRY_RELEASE`, so
-  // that it will also get attached to your source maps
-})
+const TRACES_SAMPLE_RATE = (() => {
+  const raw =
+    process.env.SENTRY_TRACES_SAMPLE_RATE ||
+    process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
+  const parsed = raw ? Number.parseFloat(raw) : NaN
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    return process.env.NODE_ENV === 'production' ? 0.1 : 1.0
+  }
+  return parsed
+})()
+
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    tracesSampleRate: TRACES_SAMPLE_RATE,
+  })
+}

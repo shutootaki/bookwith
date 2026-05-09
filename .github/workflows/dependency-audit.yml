@@ -1,0 +1,57 @@
+---
+name: Dependency audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 週次でフル依存スキャン（GitHub Advisory DB の更新を反映）
+    - cron: '0 8 * * 1'
+
+jobs:
+  python-audit:
+    name: pip-audit (apps/api)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/api
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - name: Install dependencies
+        run: poetry install --no-root
+      - name: Install pip-audit
+        run: poetry run pip install pip-audit
+      - name: Run pip-audit
+        # 検出されたら fail させる。Critical だけに絞りたい場合は --severity critical を付ける。
+        run: |
+          poetry run pip-audit --strict --vulnerability-service osv \
+            --ignore-vuln GHSA-pmw9-67j2-vh2r || \
+            { echo "::warning::pip-audit found vulnerabilities. Review the output above."; exit 1; }
+
+  node-audit:
+    name: pnpm audit (apps/reader)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run pnpm audit (high+)
+        # high / critical の脆弱性のみで fail。moderate 以下は warning。
+        run: |
+          pnpm audit --audit-level high || \
+            { echo "::warning::pnpm audit found high+ vulnerabilities. Review the output above."; exit 1; }

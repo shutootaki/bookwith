@@ -10,6 +10,14 @@ class PodcastNotFoundError(PodcastException):
         self.podcast_id = podcast_id
 
 
+class PodcastPermissionDeniedError(PodcastException):
+    """CR-3: Raised when authenticated user does not own the podcast."""
+
+    def __init__(self, podcast_id: str) -> None:
+        super().__init__(f"Permission denied for podcast {podcast_id}")
+        self.podcast_id = podcast_id
+
+
 class PodcastAlreadyExistsError(PodcastException):
     """Raised when trying to create a podcast that already exists"""
 

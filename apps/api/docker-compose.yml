@@ -2,13 +2,17 @@ version: '3.4'
 services:
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:latest
+    # H-14: ポートを 127.0.0.1 のみにバインドして LAN からの読書/書き込みを防ぐ。
     ports:
-      - '8080:8080'
-      - '50051:50051'
+      - '127.0.0.1:8080:8080'
+      - '127.0.0.1:50051:50051'
     restart: on-failure:0
     environment:
       QUERY_DEFAULTS_LIMIT: 20
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      # デフォルトは匿名アクセス無効。dev で有効化したい場合のみ
+      # `WEAVIATE_ANON_ACCESS=true` を export してから `make docker.up` を呼ぶ。
+      # 本番派生での誤露出を防ぐため、明示 opt-in にする。
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: ${WEAVIATE_ANON_ACCESS:-false}
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
       DEFAULT_VECTORIZER_MODULE: 'none'
       CLUSTER_HOSTNAME: 'node1'
@@ -17,8 +21,9 @@ services:
 
   gcloud-storage-emulator:
     image: fsouza/fake-gcs-server:latest
+    # ローカル限定にバインド。
     ports:
-      - 4443:4443
+      - '127.0.0.1:4443:4443'
     command: -scheme http -public-host ${URL:-localhost}:4443
     volumes:
       - ./gcs_fixtures:/data
