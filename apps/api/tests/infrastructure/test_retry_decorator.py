@@ -76,8 +76,7 @@ def test_returns_after_max_retries_raises():
         counter["calls"] += 1
         raise RuntimeError("never works")
 
-    with patch("src.infrastructure.memory.retry_decorator.time.sleep"):
-        with pytest.raises(RuntimeError):
-            always_fails()
+    with patch("src.infrastructure.memory.retry_decorator.time.sleep"), pytest.raises(RuntimeError):
+        always_fails()
     # 1 (初回) + 2 (再試行) = 3 回呼ばれる
     assert counter["calls"] == 3

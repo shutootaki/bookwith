@@ -104,7 +104,6 @@ class VectorCrudService(BaseVectorStore):
     @retry_on_error(max_retries=2)
     def delete_book_data(self, user_id: str, book_id: str) -> None:
         """本に紐づく全ベクターデータ（content + annotations）を削除する."""
-
         for collection in (_BOOK_CONTENT, _BOOK_ANNOTATION):
             try:
                 self._delete_by_property(user_id=user_id, collection_name=collection, target="book_id", key=book_id)
@@ -116,7 +115,7 @@ class VectorCrudService(BaseVectorStore):
     # 後方互換（既存呼び出し向けエイリアス）
     # ------------------------------------------------------------------
 
-    def add_memory(self, vector: list[float], metadata: dict, user_id: str, collection_name: str) -> str:  # noqa: D401
+    def add_memory(self, vector: list[float], metadata: dict, user_id: str, collection_name: str) -> str:
         """旧 API。`collection_name` は allow-list に含まれる場合のみ通す。"""
         return self._insert(vector=vector, metadata=metadata, user_id=user_id, collection_name=collection_name)
 

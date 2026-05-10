@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, cast
 
 import google.generativeai as genai
 from google.generativeai.types import HarmBlockThreshold, HarmCategory
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 # Gemini デフォルト相当の保守的な safety フィルタ。
 # プロセス全体で BLOCK_NONE を使い回さず、各 model 生成時に明示的に渡す。
 _DEFAULT_SAFETY_SETTINGS: dict[HarmCategory, HarmBlockThreshold] = {
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    cast("HarmCategory", HarmCategory.HARM_CATEGORY_HATE_SPEECH): cast("HarmBlockThreshold", HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+    cast("HarmCategory", HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT): cast("HarmBlockThreshold", HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+    cast("HarmCategory", HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT): cast("HarmBlockThreshold", HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+    cast("HarmCategory", HarmCategory.HARM_CATEGORY_HARASSMENT): cast("HarmBlockThreshold", HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
 }
 
 

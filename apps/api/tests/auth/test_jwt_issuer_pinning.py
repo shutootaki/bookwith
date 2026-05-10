@@ -71,7 +71,7 @@ def _build_app(monkeypatch, *, issuer: str | None = EXPECTED_ISSUER, leeway: int
     setup_exception_handlers(app)
 
     @app.get("/protected")
-    async def protected(user_id: str = Depends(auth_dep.require_user_id)):  # noqa: ANN001
+    async def protected(user_id: str = Depends(auth_dep.require_user_id)):
         return {"user_id": user_id}
 
     return app
@@ -127,7 +127,7 @@ def test_clock_skew_within_leeway_is_accepted(monkeypatch):
 
 
 def test_expired_beyond_leeway_is_rejected(monkeypatch):
-    """leeway を超える期限切れトークンは弾かれる."""
+    """Leeway を超える期限切れトークンは弾かれる."""
     from fastapi.testclient import TestClient
 
     app = _build_app(monkeypatch, issuer=EXPECTED_ISSUER, leeway=2)

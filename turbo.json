@@ -1,16 +1,64 @@
 {
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    "**/.env",
+    "**/.env.local",
+    "**/.env.development",
+    "**/.env.production",
+    "tsconfig*.json",
+    "pnpm-lock.yaml"
+  ],
+  "globalEnv": ["NODE_ENV", "CI", "VERCEL", "VERCEL_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "inputs": [
+        "src/**",
+        "public/**",
+        "next.config.*",
+        "tailwind.config.*",
+        "postcss.config.*",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "lib/**",
+        "build/**"
+      ],
+      "env": ["NEXT_PUBLIC_*", "ANALYZE"]
     },
     "lint": {
       "outputs": []
     },
-    "dev": {},
+    "lint:fix": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "clean": {
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
     "dev:services": {
       "cache": false,
       "persistent": true
+    },
+    "openapi:ts": {
+      "cache": false,
+      "outputs": ["src/lib/openapi-schema/schema.ts"]
     }
   }
 }

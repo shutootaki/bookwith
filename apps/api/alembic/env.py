@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from alembic import context
 from src.config.app_config import AppConfig
 from src.config.db import Base
 
@@ -25,7 +25,7 @@ _app_config = AppConfig.get_config()
 config.set_main_option("sqlalchemy.url", _app_config.database_url)
 
 # モデルメタデータをまとめて読み込むため、副作用 import を行う。
-# noqa: F401 を使い、未使用警告を抑止しながら register する。
+
 from src.infrastructure.postgres.annotation.annotation_dto import AnnotationDTO  # noqa: E402,F401
 from src.infrastructure.postgres.book.book_dto import BookDTO  # noqa: E402,F401
 from src.infrastructure.postgres.chat.chat_dto import ChatDTO  # noqa: E402,F401
@@ -38,7 +38,6 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -54,7 +53,6 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

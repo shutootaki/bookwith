@@ -17,11 +17,7 @@ class ChatRepositoryImpl(ChatRepository):
     def save(self, chat: Chat) -> None:
         try:
             # 論理削除済みのレコードも含めて検索し、ID 衝突による IntegrityError を回避する。
-            existing_chat = (
-                self._session.query(ChatDTO)
-                .filter(ChatDTO.id == chat.id.value)
-                .first()
-            )
+            existing_chat = self._session.query(ChatDTO).filter(ChatDTO.id == chat.id.value).first()
 
             if existing_chat:
                 # B-15: 部分更新では title のみ確実に更新する。book_id は値が None でも上書きしない。
@@ -38,11 +34,7 @@ class ChatRepositoryImpl(ChatRepository):
             raise
 
     def find_by_id(self, chat_id: ChatId) -> Chat | None:
-        chat_dto = (
-            self._session.query(ChatDTO)
-            .filter(ChatDTO.id == chat_id.value, ChatDTO.deleted_at == None)
-            .first()
-        )
+        chat_dto = self._session.query(ChatDTO).filter(ChatDTO.id == chat_id.value, ChatDTO.deleted_at == None).first()
         if chat_dto is None:
             return None
 
@@ -73,11 +65,7 @@ class ChatRepositoryImpl(ChatRepository):
         return [dto.to_entity() for dto in chat_dtos]
 
     def find_by_book_id(self, book_id: BookId) -> list[Chat]:
-        chat_dtos = (
-            self._session.query(ChatDTO)
-            .filter(ChatDTO.book_id == book_id.value, ChatDTO.deleted_at == None)
-            .all()
-        )
+        chat_dtos = self._session.query(ChatDTO).filter(ChatDTO.book_id == book_id.value, ChatDTO.deleted_at == None).all()
         return [dto.to_entity() for dto in chat_dtos]
 
     def find_by_user_id_and_book_id(self, user_id: UserId, book_id: BookId) -> list[Chat]:

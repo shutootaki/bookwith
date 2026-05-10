@@ -3,7 +3,6 @@ from google.cloud import storage  # type: ignore[attr-defined]
 
 from src.config.app_config import AppConfig
 
-
 # Google ホストでの HTML 配信を避けるため、text/html や image/svg+xml は許可しない。
 ALLOWED_UPLOAD_CONTENT_TYPES: frozenset[str] = frozenset(
     {
@@ -47,7 +46,7 @@ class GCSClient:
     def strip_public_url_prefix(self, public_url: str) -> str:
         """`get_gcs_url()/bucket/...` で始まる public URL からバケット相対パスを取り出す."""
         prefix = f"{self.get_gcs_url()}/{self.bucket_name}/"
-        return public_url[len(prefix):] if public_url.startswith(prefix) else public_url
+        return public_url[len(prefix) :] if public_url.startswith(prefix) else public_url
 
     def generate_signed_get_url(self, blob_path: str) -> str:
         """v4 GET 用の署名付き URL を生成する (有効期限は AppConfig で制御)."""

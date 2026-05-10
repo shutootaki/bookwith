@@ -9,22 +9,30 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
-from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends
+from fastapi.security import HTTPBearer
 
 from src.config.app_config import AppConfig
 from src.domain.shared.identifiers import is_strict_uuid
 from src.presentation.api.error_messages.error_handlers import UnauthorizedException
 
+if TYPE_CHECKING:
+    from fastapi import Request
+    from fastapi.security import HTTPAuthorizationCredentials
+
 logger = logging.getLogger(__name__)
 
 # PyJWT は module load 時に解決し、毎リクエストの import 試行を避ける。
 # 未インストール時は jwt=None としてアプリ起動は通し、リクエスト時に 401 を返す。
+_jwt: Any | None
 try:
-    import jwt as _jwt  # type: ignore[import-untyped]
+    import jwt
 except ImportError:  # pragma: no cover
-    _jwt = None  # type: ignore[assignment]
+    _jwt = None
+else:
+    _jwt = jwt
 
 
 @dataclass(frozen=True)
@@ -41,7 +49,6 @@ _bearer = HTTPBearer(auto_error=False, bearerFormat="JWT")
 
 def _decode_jwt(token: str, config: AppConfig) -> dict:
     """Supabase の HS256 JWT を検証する."""
-
     if not config.supabase_jwt_secret:
         # 本番なら設定漏れ。dev でも warn してバイパスを使うよう指示する。
         logger.error("SUPABASE_JWT_SECRET is not configured; cannot verify JWT")
@@ -62,9 +69,7 @@ def _decode_jwt(token: str, config: AppConfig) -> dict:
         decode_kwargs["issuer"] = config.supabase_jwt_issuer
 
     try:
-        payload: dict = _jwt.decode(  # type: ignore[no-untyped-call]
-            token, config.supabase_jwt_secret, **decode_kwargs
-        )
+        payload: dict = _jwt.decode(token, config.supabase_jwt_secret, **decode_kwargs)
     except _jwt.PyJWTError as e:
         # PyJWT の例外階層 (期限切れ・署名不一致・audience 不一致など) のみを 401 に折りたたむ。
         # それ以外 (kwargs ミス等の programmer error) は 500 として上位に伝える。
@@ -79,7 +84,6 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> AuthenticatedUser:
     """JWT を検証して認証済みユーザーを返す."""
-
     config: AppConfig = AppConfig.get_config()
 
     if config.auth_dev_bypass and not config.is_production:
@@ -112,5 +116,4 @@ async def get_current_user(
 
 async def require_user_id(user: AuthenticatedUser = Depends(get_current_user)) -> str:
     """認証済みユーザーの user_id（UUID 文字列）を返す."""
-
     return user.user_id

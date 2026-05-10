@@ -89,9 +89,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
         timed_out = False
         try:
             async with asyncio.timeout(self.stream_timeout_seconds):
-                async for chunk in self.ai_response_generator.stream_ai_response(
-                    question=memory_prompt, user_id=sender_id, book_id=book_id
-                ):
+                async for chunk in self.ai_response_generator.stream_ai_response(question=memory_prompt, user_id=sender_id, book_id=book_id):
                     ai_response_chunks.append(chunk)
                     yield chunk
         except TimeoutError:
@@ -110,9 +108,7 @@ class CreateMessageUseCaseImpl(CreateMessageUseCase):
             full_ai_response = "".join(ai_response_chunks)
             if full_ai_response:
                 try:
-                    self.message_processor.save_ai_message(
-                        full_ai_response, sender_id, chat_id, metadata
-                    )
+                    self.message_processor.save_ai_message(full_ai_response, sender_id, chat_id, metadata)
                 except Exception:
                     logger.exception(
                         "Failed to persist AI message (disconnected=%s, timeout=%s)",

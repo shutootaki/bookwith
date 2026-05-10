@@ -22,6 +22,7 @@ def register_api_middleware(app: FastAPI) -> None:
     register_body_size_limit(app)
     register_rate_limit(app)
 
+
 __all__ = [
     "EXPENSIVE_LIMIT",
     "GENERAL_LIMIT",

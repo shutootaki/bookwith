@@ -9,13 +9,13 @@ M-15 対応として導入された Alembic マイグレーション領域。
 export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
 # 2) 現在のスキーマと差分から migration を自動生成
-poetry run alembic revision --autogenerate -m "describe change"
+uv run alembic revision --autogenerate -m "describe change"
 
 # 3) 適用
-poetry run alembic upgrade head
+uv run alembic upgrade head
 
 # 4) ロールバック
-poetry run alembic downgrade -1
+uv run alembic downgrade -1
 ```
 
 ## 注意点

@@ -4,8 +4,13 @@
   "type": "module",
   "scripts": {
     "docker:up": "docker compose up --build --pull always",
+    "setup": "make configure",
     "dev": "make run",
     "dev:services": "make docker.up",
-    "lint": "make lint"
+    "lint": "make lint",
+    "lint:fix": "make lint.fix",
+    "typecheck": "make typecheck",
+    "test": "make test",
+    "clean": "make clean"
   }
 }

@@ -100,8 +100,8 @@
 - [ ] Supabase 側で auth.uid() ベースの RLS が有効か確認
 - [ ] `apps/api/src/config/.env` から OpenAI / Gemini / LangSmith のキーを削除し、Secret Manager 等で注入
 - [ ] `pre-commit install` 後、`pre-commit run --all-files` で gitleaks がクリーンか確認
-- [ ] `poetry run alembic upgrade head` を CI で必須化
-- [ ] `poetry run pytest tests/` で認可テストが通るか確認
+- [ ] `uv run alembic upgrade head` を CI で必須化
+- [ ] `uv run pytest tests/` で認可テストが通るか確認
 - [ ] フロントは `pnpm openapi:ts` でスキーマ再生成
 - [ ] フロント本番ビルドが Sentry DSN 設定済みか確認
 - [ ] CDN / Reverse proxy 側でも HTTPS / HSTS / CSP が機能しているか確認

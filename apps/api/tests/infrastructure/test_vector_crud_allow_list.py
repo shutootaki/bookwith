@@ -49,9 +49,7 @@ def test_insert_rejects_unknown_collection():
 def test_delete_rejects_unknown_collection():
     service = _build_service_without_init()
     with pytest.raises(ValueError, match="Disallowed collection"):
-        service._delete_by_property(
-            user_id="u", collection_name="EvilCollection", target="id", key="x"
-        )
+        service._delete_by_property(user_id="u", collection_name="EvilCollection", target="id", key="x")
 
 
 def test_update_rejects_unknown_collection():
@@ -85,6 +83,4 @@ def test_legacy_add_memory_validates_collection():
     """互換 API も allow-list 検証を経由する."""
     service = _build_service_without_init()
     with pytest.raises(ValueError, match="Disallowed collection"):
-        service.add_memory(
-            vector=[0.0], metadata={}, user_id="u", collection_name="UnknownCollection"
-        )
+        service.add_memory(vector=[0.0], metadata={}, user_id="u", collection_name="UnknownCollection")

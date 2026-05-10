@@ -23,7 +23,7 @@ from src.presentation.api.middleware import (
 
 
 def test_register_rate_limit_does_not_raise():
-    """slowapi が無くても登録は成功する（フォールバック動作）."""
+    """Slowapi が無くても登録は成功する（フォールバック動作）."""
     app = FastAPI()
     # 例外なく完了することを確認
     register_rate_limit(app)
@@ -39,7 +39,7 @@ def test_limit_constants_have_expected_format():
 
 
 def test_user_key_uses_user_id_when_available():
-    """key 関数が認証 user_id を優先することを確認."""
+    """Key 関数が認証 user_id を優先することを確認."""
     from starlette.requests import Request
 
     from src.presentation.api.middleware.rate_limit import _user_key

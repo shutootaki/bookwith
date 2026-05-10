@@ -51,4 +51,4 @@ class Chat(BaseModel):
         所有者でなければ `ChatPermissionDeniedError` を上げる。
         """
         if self.user_id.value != user_id:
-            raise ChatPermissionDeniedError()
+            raise ChatPermissionDeniedError

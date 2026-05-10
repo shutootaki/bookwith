@@ -70,9 +70,20 @@ class UpdateBookUseCaseImpl(UpdateBookUseCase):
 
         if book_metadata is not None:
             metadata_keys = (
-                "title", "creator", "description", "pubdate", "publisher",
-                "identifier", "language", "rights", "modified_date",
-                "layout", "orientation", "flow", "viewport", "spread",
+                "title",
+                "creator",
+                "description",
+                "pubdate",
+                "publisher",
+                "identifier",
+                "language",
+                "rights",
+                "modified_date",
+                "layout",
+                "orientation",
+                "flow",
+                "viewport",
+                "spread",
             )
             for key in metadata_keys:
                 attr = f"metadata_{key}"

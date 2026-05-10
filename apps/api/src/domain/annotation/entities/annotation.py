@@ -123,6 +123,4 @@ class Annotation(BaseModel):
         他の book に注釈を寄生させる経路に対する二重防御。
         """
         if self.book_id != book_id:
-            raise ValueError(
-                "Annotation.book_id does not match the requested book_id"
-            )
+            raise ValueError("Annotation.book_id does not match the requested book_id")

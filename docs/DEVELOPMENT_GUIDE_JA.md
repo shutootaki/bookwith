@@ -55,7 +55,7 @@ BookWith は、AI 駆動の次世代ブラウザベース ePub リーダーで�
 | Node.js        | 18.0.0 以上 | `node -v`                |
 | pnpm           | 9.15.4      | `pnpm -v`                |
 | Python         | 3.13 以上   | `python --version`       |
-| Poetry         | 最新版      | `poetry --version`       |
+| uv             | 最新版      | `uv --version`           |
 | Docker         | 最新版      | `docker --version`       |
 | Docker Compose | v2 以上     | `docker compose version` |
 
@@ -71,14 +71,14 @@ npm install -g pnpm@9.15.4
 brew install pnpm
 ```
 
-#### Poetry のインストール
+#### uv のインストール
 
 ```bash
 # 公式インストーラー
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # または Homebrew (macOS)
-brew install poetry
+brew install uv
 ```
 
 ## 🚀 クイックスタート
@@ -90,25 +90,30 @@ brew install poetry
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# 2. 依存関係のインストール
-pnpm i
+# 2. 依存関係のインストール（JS + Python を一括）
+pnpm setup
 
 # 3. 環境変数の設定
-cd apps/api
-cp src/config/.env.example src/config/.env
-# .envファイルを編集してAPIキーを設定
+cp apps/api/src/config/.env.example apps/api/src/config/.env
+# apps/api/src/config/.env を編集して API キーを設定
 
 # 4. Supabase の起動（別途インストールが必要）
 supabase start
 
-# 5. Docker サービスの起動
-cd apps/api
-make docker.up
-
-# 6. 開発サーバーの起動（ルートディレクトリに戻って）
-cd ../..
+# 5. ルートから一括起動（Docker services + FastAPI + Next.js を Turborepo で並列実行）
 pnpm dev
 ```
+
+#### 個別起動・セットアップ
+
+| コマンド | 起動・実行内容 |
+| --- | --- |
+| `pnpm setup` | JS + Python の依存を一括インストール（初回チェックアウト時に1回） |
+| `pnpm setup:api` | Python 依存のみ再インストール（`uv.lock` 変更時など） |
+| `pnpm dev` | Docker services + FastAPI + Next.js |
+| `pnpm dev:reader` | Next.js のみ |
+| `pnpm dev:api` | Docker services + FastAPI のみ |
+| `pnpm dev:services` | Docker services（Weaviate + GCS emulator）のみ |
 
 これで以下の URL でアクセスできます：
 
@@ -125,9 +130,12 @@ pnpm dev
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# 依存関係のインストール（モノリポ全体）
-pnpm i
+# 依存関係のインストール（JS via pnpm + Python via uv）
+pnpm setup
 ```
+
+> `pnpm setup` は内部的に `pnpm install && pnpm -F @flow/api run setup` を実行します。
+> プル後など `uv.lock` が更新されたタイミングでは `pnpm setup:api` で Python 依存だけ再同期できます。
 
 ### 2. 環境変数の設定
 
@@ -195,8 +203,11 @@ cp .env.example .env
 #### その他の Docker サービスの起動
 
 ```bash
-cd apps/api
-make docker.up
+# ルートから（推奨）
+pnpm dev:services
+
+# あるいは Make 直叩き
+cd apps/api && make docker.up
 ```
 
 これにより以下のサービスが起動します：
@@ -212,7 +223,7 @@ make docker.up
 cd apps/api
 
 # Pythonインタープリタで実行
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()
@@ -223,13 +234,11 @@ poetry run python
 ### 5. バックエンド（API）の起動
 
 ```bash
-cd apps/api
+# 依存はすでに `pnpm setup` でインストール済み。
+# `pnpm setup` をスキップした場合は `pnpm setup:api` で Python 依存をインストール。
 
-# 初回のみ: Poetry 依存関係のインストール
-make configure
-
-# 開発サーバーの起動
-make run
+# 開発サーバーを起動（Docker services + FastAPI）
+pnpm dev:api
 ```
 
 API ドキュメントの確認：
@@ -242,16 +251,14 @@ API ドキュメントの確認：
 新しいターミナルを開いて：
 
 ```bash
-cd apps/reader
-
-# OpenAPI スキーマから型定義を生成（初回または API 変更時）
-pnpm openapi:ts
-
-# 開発サーバーの起動
-pnpm dev
+# ルートから
+pnpm openapi        # OpenAPI 型定義を再生成（初回 / API 変更時）
+pnpm dev:reader     # Next.js 開発サーバーを起動
 ```
 
 フロントエンド: http://localhost:7127
+
+> ✨ もしくはルートで **`pnpm dev`** 1 回叩けば、Turborepo が Docker services / FastAPI / Next.js をまとめて並列起動します。
 
 ### 7. 動作確認
 
@@ -278,8 +285,12 @@ pnpm dev
 2. **型チェックとリント**
 
    ```bash
-   cd apps/api
-   make lint  # MyPy + pre-commit
+   # ルートから（api / reader を横断）
+   pnpm typecheck
+   pnpm lint
+   pnpm lint:fix     # 自動修正
+   # API 単独
+   cd apps/api && make lint  # MyPy + pre-commit
    ```
 
 3. **API の再起動**
@@ -300,8 +311,8 @@ pnpm dev
 2. **型チェック**
 
    ```bash
-   cd apps/reader
-   pnpm ts:check
+   pnpm typecheck                       # ワークスペース横断
+   pnpm -F @flow/reader run typecheck   # reader のみ
    ```
 
 3. **ホットリロード**
@@ -312,15 +323,18 @@ pnpm dev
 #### 全体のビルド
 
 ```bash
-# ルートディレクトリで
+# ルートディレクトリで（vendored の @flow/epubjs は除外）
 pnpm build
 ```
 
-#### リントの実行
+#### テスト・リントの実行
 
 ```bash
 # 全体
+pnpm test
 pnpm lint
+pnpm lint:fix
+pnpm typecheck
 
 # API のみ
 cd apps/api && make lint
@@ -329,14 +343,22 @@ cd apps/api && make lint
 cd apps/reader && pnpm lint
 ```
 
+#### キャッシュのクリーンアップ
+
+```bash
+pnpm clean   # .next / .turbo / __pycache__ / .mypy_cache などを削除
+```
+
 ### OpenAPI スキーマの更新
 
 API の型定義を変更した場合：
 
 ```bash
-# APIサーバーが起動している状態で
-cd apps/reader
-pnpm openapi:ts
+# 1) 別ターミナルで API を起動
+pnpm dev:api
+
+# 2) ルートから型定義を再生成
+pnpm openapi
 ```
 
 ## 🔧 トラブルシューティング
@@ -372,10 +394,10 @@ make docker.up
 #### 3. API が起動しない
 
 ```bash
-# Poetry の環境を再構築
+# uv の環境を再構築
 cd apps/api
-poetry env remove python
-poetry install --no-root
+rm -rf .venv
+uv sync --frozen
 
 # 環境変数の確認
 cat src/config/.env  # APIキーが設定されているか確認
@@ -422,7 +444,7 @@ supabase start
 ```bash
 # データベースの初期化を実行
 cd apps/api
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()

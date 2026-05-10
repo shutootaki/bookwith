@@ -20,19 +20,19 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          python-version: '3.13'
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+          enable-cache: true
+          cache-dependency-glob: apps/api/uv.lock
+      - name: Setup Python
+        run: uv python install 3.13
       - name: Install dependencies
-        run: poetry install --no-root
-      - name: Install pip-audit
-        run: poetry run pip install pip-audit
+        run: uv sync --frozen
       - name: Run pip-audit
         # 既存依存の監査結果は warning として出し、修正用の別 PR で段階的に収束させる。
         run: |
-          poetry run pip-audit --strict --vulnerability-service osv \
+          uv run --with pip-audit pip-audit --strict --vulnerability-service osv \
             --ignore-vuln GHSA-pmw9-67j2-vh2r || \
             echo "::warning::pip-audit found vulnerabilities. Review the output above."
 

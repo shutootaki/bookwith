@@ -28,7 +28,8 @@ class DeleteMessageUseCaseImpl(DeleteMessageUseCase):
 
     def execute_bulk(self, message_ids: list[str], user_id: str) -> list[str]:
         """複数のメッセージを一括削除する（所有者検証込み）。
-        削除に失敗した（=所有者でない、または存在しない）IDのリストを返す."""
+        削除に失敗した（=所有者でない、または存在しない）IDのリストを返す.
+        """
         message_id_objects = [MessageId(id_str) for id_str in message_ids]
 
         deleted_ids = self.message_repository.bulk_delete_for_user(message_id_objects, user_id)

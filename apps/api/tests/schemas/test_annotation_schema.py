@@ -16,7 +16,6 @@ from pydantic import ValidationError
 
 from src.presentation.api.schemas.annotation_schema import AnnotationSchema
 
-
 _BOOK_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 _ANN_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 

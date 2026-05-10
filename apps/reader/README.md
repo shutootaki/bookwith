@@ -5,7 +5,9 @@ Next.js 15 + TypeScript + Valtio。AI 対話付きの ePub リーダー。
 ## クイックスタート
 
 ```bash
-# 依存インストール（リポジトリルートで）
+# 依存インストール（リポジトリルートで JS + Python 一括）
+pnpm setup
+# JS のみ再インストールしたい場合
 pnpm install
 
 # 環境変数の用意（.env.local など）
@@ -14,13 +16,22 @@ pnpm install
 # - NEXT_PUBLIC_SUPABASE_ANON_KEY: anon キー
 # - NEXT_PUBLIC_GTM_ID（任意）: GTM-XXXXX 形式のみ受け付ける
 
-# 開発サーバー
+# 開発サーバー（リーダーのみ）
+pnpm dev:reader            # ルートから（推奨）
+# あるいは apps/reader 配下で
 pnpm dev
 
-# 型チェック
-pnpm -F @flow/reader run ts:check
+# 全部一括起動（Docker services + API + Reader）
+# ルートから
+pnpm dev
 
-# Lint
+# 型チェック / Lint（ルートから横断実行）
+pnpm typecheck             # 全 workspace（reader は tsc --noEmit）
+pnpm lint                  # 全 workspace
+pnpm lint:fix              # 自動修正
+
+# Reader 単独で実行する場合
+pnpm -F @flow/reader run typecheck
 pnpm -F @flow/reader run lint:eslint
 pnpm -F @flow/reader run lint:prettier
 ```
@@ -117,9 +128,11 @@ export default defineConfig({
 
 1. **ローカル開発**（推奨）
    ```bash
-   # 別ターミナルで API を起動
-   cd apps/api && make run
+   # 別ターミナルで API を起動（ルートから）
+   pnpm dev:api
    # フロント側で型生成（http://localhost:8000/openapi.json を読む）
+   pnpm openapi      # ルートから
+   # または個別に
    pnpm -F @flow/reader run openapi:ts
    ```
 2. **CI / staging**: `ENVIRONMENT=staging` でデプロイされたインスタンスから取得
@@ -146,8 +159,8 @@ src/
 ## ビルド
 
 ```bash
-pnpm build              # 全ワークスペース
-pnpm -F @flow/reader run build  # Reader のみ
+pnpm build                       # 全ワークスペース（@flow/epubjs を除く）
+pnpm -F @flow/reader run build   # Reader のみ
 ```
 
 Docker:

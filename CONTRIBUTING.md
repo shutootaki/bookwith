@@ -5,20 +5,25 @@
 ## 開発フロー
 
 ```bash
-# 依存インストール
-pnpm install
-cd apps/api && make configure && cd -
+# 依存インストール（JS + Python を一括）
+pnpm setup
 
 # pre-commit フック設定（必須）
 pre-commit install
 
-# 起動
-pnpm dev          # 並列で API + Reader
+# 起動（ルートから 1 コマンド：Docker services + FastAPI + Next.js を並列起動）
+pnpm dev
 
-# テスト
-cd apps/api && make test
-pnpm -F @flow/reader run ts:check
-pnpm -F @flow/reader run lint:eslint
+# 個別に起動したい場合
+pnpm dev:reader      # フロントのみ
+pnpm dev:api         # Docker services + API のみ
+pnpm dev:services    # Docker services のみ
+
+# テスト / 型チェック / Lint（ルートから横断実行）
+pnpm test            # 全 workspace
+pnpm typecheck       # mypy + tsc
+pnpm lint            # 全 workspace の lint
+pnpm lint:fix        # ruff / prettier / eslint の自動修正
 ```
 
 ### Local テスト確認手順
@@ -30,21 +35,26 @@ cp apps/api/src/config/.env.example apps/api/src/config/.env
 #    AUTH_DEV_BYPASS=true
 #    AUTH_DEV_BYPASS_USER_ID=11111111-1111-1111-1111-111111111111
 
-# 3) Docker で Weaviate / GCS emulator を起動
-cd apps/api && make docker.up
+# 3) ルートで一括起動（Docker services + API + Reader）
+pnpm dev
 
 # 4) 単体テスト
-make test
+pnpm test                 # ルートから全 workspace
+# または apps/api 配下で
+cd apps/api && make test
 
 # 5) lint / format
-make lint            # mypy + pre-commit
-make lint.fix        # ruff --fix + ruff format
+pnpm lint                 # ルートから全 workspace
+pnpm lint:fix             # 自動修正（ruff + prettier + eslint）
+# apps/api 単体なら：
+make lint                 # mypy + pre-commit
+make lint.fix             # ruff --fix + ruff format
 
 # 6) シークレットスキャン（任意）
-make secret-scan
+cd apps/api && make secret-scan
 
 # 7) 依存脆弱性スキャン（任意）
-make audit
+cd apps/api && make audit
 ```
 
 ### フロント側の OpenAPI 型再生成
@@ -52,11 +62,11 @@ make audit
 本番では `/openapi.json` を 404 にしているため、ローカル or staging 経由で：
 
 ```bash
-# API を別ターミナルで起動
-cd apps/api && make run
+# 1) API が起動していない場合はルートで起動
+pnpm dev:api
 
-# 別ターミナルでフロントの型再生成
-pnpm -F @flow/reader run openapi:ts
+# 2) 別ターミナルでフロントの型再生成（ルートから）
+pnpm openapi
 ```
 
 ## セキュリティ規約（必読）
@@ -92,9 +102,9 @@ pnpm -F @flow/reader run openapi:ts
 
 PR を出す前に以下を確認してください：
 
-- [ ] `pre-commit run --all-files` が通る（gitleaks / ruff / ruff-format / poetry-check）
-- [ ] `make test` が通る（バックエンドテスト）
-- [ ] `pnpm -F @flow/reader run ts:check` が通る（フロント型チェック）
+- [ ] `pre-commit run --all-files` が通る（gitleaks / ruff / ruff-format / uv-lock）
+- [ ] `pnpm test` が通る（全 workspace のテスト）
+- [ ] `pnpm typecheck` が通る（mypy + tsc）
 - [ ] 認可が必要なエンドポイントに `Depends(require_user_id)` が付いている
 - [ ] 新規 schema が `BaseRequestSchemaModel` を継承している
 - [ ] 新規エンドポイントの認可マトリクス（401 / 403 / 200）テストがある

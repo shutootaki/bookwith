@@ -5,18 +5,18 @@ from urllib.parse import urlparse
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
-
 _ALLOWED_ENVIRONMENTS = {"development", "staging", "production"}
 _LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0", "::1"}
 
 
 def _origin_is_loopback(origin: str) -> bool:
-    """origin (scheme://host[:port]) のホスト名が loopback / unspecified なら True."""
+    """Origin (scheme://host[:port]) のホスト名が loopback / unspecified なら True."""
     try:
         host = urlparse(origin).hostname or ""
     except ValueError:
         return False
     return host.lower() in _LOOPBACK_HOSTS
+
 
 # 互換性のため残置（テスト・seed のみ使用）。本番経路では認証から user_id を取得する。
 TEST_USER_ID = "91527c9d-48aa-41d0-bb85-dc96f26556a0"
@@ -125,9 +125,7 @@ class AppConfig(BaseSettings):
         """ENVIRONMENT 値を strict にバリデートし、大文字混在やタイポを弾く."""
         normalized = (v or "").strip().lower()
         if normalized not in _ALLOWED_ENVIRONMENTS:
-            raise ValueError(
-                f"ENVIRONMENT must be one of {sorted(_ALLOWED_ENVIRONMENTS)} (got {v!r})"
-            )
+            raise ValueError(f"ENVIRONMENT must be one of {sorted(_ALLOWED_ENVIRONMENTS)} (got {v!r})")
         return normalized
 
     @classmethod

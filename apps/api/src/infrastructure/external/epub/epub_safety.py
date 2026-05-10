@@ -1,4 +1,4 @@
-"""EPUB ファイルの事前安全性チェック.
+r"""EPUB ファイルの事前安全性チェック.
 
 `ebooklib` / `UnstructuredEPubLoader` が内部で使う `lxml` には XXE / Billion-Laughs 等の
 攻撃面が残るため、以下のような多層防御を呼出側で実施する:
@@ -80,9 +80,7 @@ def assert_epub_is_safe(epub_path: str | Path) -> None:
                     continue
                 for pattern in _DANGEROUS_XML_PATTERNS:
                     if pattern.search(head):
-                        raise UnsafeEpubError(
-                            f"Suspicious XML construct detected in EPUB entry {info.filename!r}"
-                        )
+                        raise UnsafeEpubError(f"Suspicious XML construct detected in EPUB entry {info.filename!r}")
     except UnsafeEpubError:
         raise
     except zipfile.BadZipFile as e:

@@ -42,9 +42,7 @@ def test_bulk_delete_request_max_count():
     BulkDeleteRequestBody(book_ids=[f"{i:08x}-0000-0000-0000-000000000000" for i in range(100)])
 
     with pytest.raises(ValidationError):
-        BulkDeleteRequestBody(
-            book_ids=[f"{i:08x}-0000-0000-0000-000000000000" for i in range(101)]
-        )
+        BulkDeleteRequestBody(book_ids=[f"{i:08x}-0000-0000-0000-000000000000" for i in range(101)])
 
     with pytest.raises(ValidationError):
         BulkDeleteRequestBody(book_ids=[])

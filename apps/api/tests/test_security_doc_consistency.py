@@ -51,10 +51,7 @@ def test_security_md_lists_all_required_env_vars() -> None:
 
     missing: list[str] = [name for name in _REQUIRED_DOCUMENTED_ENV_VARS if name not in text]
 
-    assert not missing, (
-        f"SECURITY.md is missing documentation for: {missing}. "
-        f"Add them to the env-vars table in apps/api/SECURITY.md."
-    )
+    assert not missing, f"SECURITY.md is missing documentation for: {missing}. Add them to the env-vars table in apps/api/SECURITY.md."
 
 
 def test_app_config_fields_match_documented_env_vars() -> None:

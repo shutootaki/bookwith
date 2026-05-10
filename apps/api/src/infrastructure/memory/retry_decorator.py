@@ -31,6 +31,7 @@ def retry_on_error(
         backoff_factor: 指数バックオフの倍率
         idempotent: False の場合、副作用を伴う処理として再試行しない
         non_retryable_exceptions: これらの例外は即座に伝播させる
+
     """
 
     def decorator(func: Callable) -> Callable:

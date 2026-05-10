@@ -55,7 +55,7 @@ BookWith is a next-generation browser-based ePub reader powered by AI. It offers
 | Node.js        | ≥ 18.0.0    | `node -v`                |
 | pnpm           | 9.15.4      | `pnpm -v`                |
 | Python         | ≥ 3.13      | `python --version`       |
-| Poetry         | Latest      | `poetry --version`       |
+| uv             | Latest      | `uv --version`           |
 | Docker         | Latest      | `docker --version`       |
 | Docker Compose | v2 or later | `docker compose version` |
 
@@ -70,13 +70,13 @@ yarn global add pnpm@9.15.4
 brew install pnpm
 ```
 
-#### Install Poetry
+#### Install uv
 
 ```bash
 # Official installer
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 # or using Homebrew (macOS)
-brew install poetry
+brew install uv
 ```
 
 ## 🚀 Quick Start
@@ -88,25 +88,31 @@ You can spin up the development environment quickly with the following commands:
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# 2. Install dependencies
-pnpm i
+# 2. Install all dependencies (JS via pnpm + Python via uv)
+pnpm setup
 
 # 3. Set environment variables
-cd apps/api
-cp src/config/.env.example src/config/.env
-# Edit .env and add your API keys
+cp apps/api/src/config/.env.example apps/api/src/config/.env
+# Edit apps/api/src/config/.env and add your API keys
 
 # 4. Start Supabase (needs to be installed separately)
 supabase start
 
-# 5. Start Docker services
-cd apps/api
-make docker.up
-
-# 6. Start the development servers (go back to repo root)
-cd ../..
+# 5. Start everything from the repo root in one command
+#    (Docker services + FastAPI + Next.js are launched in parallel via Turborepo)
 pnpm dev
 ```
+
+#### Selective startup
+
+| Command | Starts |
+| --- | --- |
+| `pnpm setup` | Install JS + Python dependencies (run once on first checkout) |
+| `pnpm setup:api` | Re-install Python dependencies only (when `uv.lock` changes) |
+| `pnpm dev` | Docker services + FastAPI + Next.js |
+| `pnpm dev:reader` | Next.js only |
+| `pnpm dev:api` | Docker services + FastAPI only |
+| `pnpm dev:services` | Docker services (Weaviate + GCS emulator) only |
 
 Accessible endpoints:
 
@@ -123,9 +129,12 @@ Accessible endpoints:
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# Install monorepo dependencies
-pnpm i
+# Install all dependencies (JS via pnpm + Python via uv)
+pnpm setup
 ```
+
+> `pnpm setup` is equivalent to `pnpm install && pnpm -F @flow/api run setup`.
+> Re-run `pnpm setup:api` whenever `uv.lock` changes (e.g. after a pull) to refresh the Python virtual environment.
 
 ### 2. Configure Environment Variables
 
@@ -191,8 +200,11 @@ supabase status
 #### Start Other Docker Services
 
 ```bash
-cd apps/api
-make docker.up
+# From the repo root
+pnpm dev:services
+
+# (or directly via Make from apps/api)
+cd apps/api && make docker.up
 ```
 
 This will start the following services:
@@ -208,7 +220,7 @@ On first run or whenever the database schema changes:
 cd apps/api
 
 # Run in a Python interpreter
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()
@@ -219,13 +231,11 @@ This automatically creates the required tables based on SQLAlchemy model definit
 ### 5. Start the Backend (API)
 
 ```bash
-cd apps/api
+# Only the first time: dependencies are already installed via `pnpm setup`.
+# If you skipped `pnpm setup`, run `pnpm setup:api` to install Python deps.
 
-# Only the first time: install Poetry dependencies
-make configure
-
-# Start the development server
-make run
+# Start the development server (Docker services + FastAPI)
+pnpm dev:api
 ```
 
 API Documentation:
@@ -238,16 +248,14 @@ API Documentation:
 Open a new terminal:
 
 ```bash
-cd apps/reader
-
-# Generate TypeScript types from OpenAPI schema (first time or after API changes)
-pnpm openapi:ts
-
-# Start the development server
-pnpm dev
+# From the repo root
+pnpm openapi        # Regenerate OpenAPI types (first time / after API schema changes)
+pnpm dev:reader     # Start the Next.js dev server
 ```
 
 Frontend: http://localhost:7127
+
+> ✨ Or, run **`pnpm dev`** at the repo root once and Turborepo will start Docker services, FastAPI, and Next.js together.
 
 ### 7. Verify Everything Works
 
@@ -274,8 +282,12 @@ Frontend: http://localhost:7127
 2. **Type Check & Lint**
 
    ```bash
-   cd apps/api
-   make lint  # MyPy + pre-commit
+   # From the repo root (covers both api & reader)
+   pnpm typecheck
+   pnpm lint
+   pnpm lint:fix   # auto-fix
+   # API only
+   cd apps/api && make lint  # MyPy + pre-commit
    ```
 
 3. **Restart API**
@@ -296,8 +308,8 @@ Frontend: http://localhost:7127
 2. **Type Check**
 
    ```bash
-   cd apps/reader
-   pnpm ts:check
+   pnpm typecheck                       # cross-workspace
+   pnpm -F @flow/reader run typecheck   # reader only
    ```
 
 3. **Hot Reload**
@@ -308,15 +320,18 @@ Frontend: http://localhost:7127
 #### Full Build
 
 ```bash
-# From repository root
+# From repository root (excludes the vendored @flow/epubjs package)
 pnpm build
 ```
 
-#### Run Linters
+#### Run Tests / Linters
 
 ```bash
 # Entire workspace
+pnpm test
 pnpm lint
+pnpm lint:fix
+pnpm typecheck
 
 # API only
 cd apps/api && make lint
@@ -325,14 +340,22 @@ cd apps/api && make lint
 cd apps/reader && pnpm lint
 ```
 
+#### Cleanup caches
+
+```bash
+pnpm clean   # remove .next / .turbo / __pycache__ / .mypy_cache etc.
+```
+
 ### Update OpenAPI Schema
 
 If you change the API types:
 
 ```bash
-# Make sure the API server is running
-cd apps/reader
-pnpm openapi:ts
+# 1) Make sure the API server is running (in another terminal)
+pnpm dev:api
+
+# 2) Regenerate types from the repo root
+pnpm openapi
 ```
 
 ## 🔧 Troubleshooting
@@ -368,10 +391,10 @@ make docker.up
 #### 3. API Fails to Start
 
 ```bash
-# Rebuild Poetry environment
+# Rebuild uv environment
 cd apps/api
-poetry env remove python
-poetry install --no-root
+rm -rf .venv
+uv sync --frozen
 
 # Verify environment variables
 cat src/config/.env  # Check API keys
@@ -418,7 +441,7 @@ supabase start
 ```bash
 # Initialize the database
 cd apps/api
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()

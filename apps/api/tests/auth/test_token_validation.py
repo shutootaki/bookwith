@@ -34,7 +34,7 @@ def _build_unauthenticated_app(monkeypatch):
     setup_exception_handlers(app)
 
     @app.get("/protected")
-    async def protected(user_id: str = Depends(auth_dep.require_user_id)):  # noqa: ANN001
+    async def protected(user_id: str = Depends(auth_dep.require_user_id)):
         return {"user_id": user_id}
 
     return app

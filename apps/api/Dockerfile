@@ -1,25 +1,26 @@
 # M-14: API 用の多段ビルド Dockerfile（非 root 実行）。
-# Python 3.13 + Poetry。
+# Python 3.13 + uv。
 
 FROM python:3.13-slim AS builder
 
-ENV POETRY_VERSION=1.8.3 \
-    POETRY_HOME=/opt/poetry \
-    POETRY_VIRTUALENVS_CREATE=false \
-    PIP_NO_CACHE_DIR=on \
-    PIP_DISABLE_PIP_VERSION_CHECK=on
+# uv の公式 distroless イメージから CLI バイナリを取得（pip 不要・SHA pin 容易）。
+COPY --from=ghcr.io/astral-sh/uv:0.6.0 /uv /uvx /usr/local/bin/
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PROJECT_ENVIRONMENT=/usr/local
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl build-essential libpq-dev \
+ && apt-get install -y --no-install-recommends build-essential libpq-dev \
  && rm -rf /var/lib/apt/lists/*
-
-RUN curl -sSL https://install.python-poetry.org | python3 - --version ${POETRY_VERSION}
-ENV PATH="${POETRY_HOME}/bin:${PATH}"
 
 WORKDIR /build
 
-COPY pyproject.toml poetry.lock /build/
-RUN poetry install --no-root --without dev
+# ロックされた本番依存だけをシステム Python に同期する（dev/プロジェクト本体は除外）。
+COPY pyproject.toml uv.lock /build/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
 COPY src /build/src
 

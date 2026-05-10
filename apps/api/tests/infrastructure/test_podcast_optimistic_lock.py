@@ -91,7 +91,7 @@ def test_optimistic_lock_includes_audio_url_when_provided() -> None:
 
 
 @pytest.mark.parametrize(
-    "expected,new",
+    ("expected", "new"),
     [
         (PodcastStatus.failed(), PodcastStatus.pending()),
         (PodcastStatus.processing(), PodcastStatus.completed()),
@@ -99,17 +99,11 @@ def test_optimistic_lock_includes_audio_url_when_provided() -> None:
         (PodcastStatus.pending(), PodcastStatus.processing()),
     ],
 )
-def test_optimistic_lock_supports_all_state_transitions(
-    expected: PodcastStatus, new: PodcastStatus
-) -> None:
+def test_optimistic_lock_supports_all_state_transitions(expected: PodcastStatus, new: PodcastStatus) -> None:
     """すべての主要状態遷移で楽観的ロックが機能する."""
     session = _make_session(rowcount=1)
     repo = PodcastRepositoryImpl(session)
 
-    result = asyncio.run(
-        repo.update_status_with_optimistic_lock(
-            PODCAST_ID, expected_status=expected, new_status=new
-        )
-    )
+    result = asyncio.run(repo.update_status_with_optimistic_lock(PODCAST_ID, expected_status=expected, new_status=new))
 
     assert result is True

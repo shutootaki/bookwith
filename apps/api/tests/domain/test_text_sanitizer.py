@@ -21,10 +21,7 @@ def test_strips_html_tags():
 
 
 def test_strips_attribute_with_quotes():
-    assert (
-        sanitize_plain_text('<a href="javascript:alert(1)">click</a>', max_length=100)
-        == "click"
-    )
+    assert sanitize_plain_text('<a href="javascript:alert(1)">click</a>', max_length=100) == "click"
 
 
 def test_keeps_plain_text_with_newlines_and_tabs():

@@ -14,6 +14,9 @@
     "lint:ts": "tsc --noEmit",
     "lint:ts:watch": "tsc --noEmit -w",
     "lint": "next lint && pnpm lint:prettier && pnpm lint:eslint && pnpm lint:ts",
+    "lint:fix": "pnpm fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .next .turbo node_modules/.cache",
     "openapi:ts": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/lib/openapi-schema/schema.ts",
     "start": "next start"
   },

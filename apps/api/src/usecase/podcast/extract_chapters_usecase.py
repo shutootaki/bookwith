@@ -21,8 +21,9 @@ _ALLOWED_SCHEMES = {"http", "https"}
 
 
 def _fetch_max_bytes() -> int:
-    """remote fetch のサイズ上限。ローカルアップロードと同じ `max_upload_bytes` に揃え、
-    アップロード経路と remote 経路で受入サイズが乖離するのを防ぐ。"""
+    """Remote fetch のサイズ上限。ローカルアップロードと同じ `max_upload_bytes` に揃え、
+    アップロード経路と remote 経路で受入サイズが乖離するのを防ぐ。
+    """
     return AppConfig.get_config().max_upload_bytes
 
 
@@ -44,14 +45,7 @@ async def _is_private_address(host: str) -> bool:
             ip = ipaddress.ip_address(addr)
         except ValueError:
             return True
-        if (
-            ip.is_private
-            or ip.is_loopback
-            or ip.is_link_local
-            or ip.is_multicast
-            or ip.is_reserved
-            or ip.is_unspecified
-        ):
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
             return True
     return False
 
@@ -74,9 +68,7 @@ async def _is_safe_remote_url(url: str) -> bool:
         return False
     if parsed.hostname not in allowed:
         return False
-    if await _is_private_address(parsed.hostname):
-        return False
-    return True
+    return not await _is_private_address(parsed.hostname)
 
 
 async def _download_remote_epub(url: str) -> bytes:
@@ -85,21 +77,20 @@ async def _download_remote_epub(url: str) -> bytes:
         raise ValueError("Refusing to fetch untrusted URL")
 
     max_bytes = _fetch_max_bytes()
-    async with aiohttp.ClientSession(timeout=_FETCH_TIMEOUT) as session:
-        async with session.get(url, allow_redirects=False) as resp:
-            resp.raise_for_status()
+    async with aiohttp.ClientSession(timeout=_FETCH_TIMEOUT) as session, session.get(url, allow_redirects=False) as resp:
+        resp.raise_for_status()
 
-            # Content-Length 事前チェック。
-            content_length = resp.headers.get("Content-Length")
-            if content_length and int(content_length) > max_bytes:
+        # Content-Length 事前チェック。
+        content_length = resp.headers.get("Content-Length")
+        if content_length and int(content_length) > max_bytes:
+            raise ValueError("Remote EPUB exceeds size limit")
+
+        buffer = bytearray()
+        async for chunk in resp.content.iter_chunked(64 * 1024):
+            buffer.extend(chunk)
+            if len(buffer) > max_bytes:
                 raise ValueError("Remote EPUB exceeds size limit")
-
-            buffer = bytearray()
-            async for chunk in resp.content.iter_chunked(64 * 1024):
-                buffer.extend(chunk)
-                if len(buffer) > max_bytes:
-                    raise ValueError("Remote EPUB exceeds size limit")
-            return bytes(buffer)
+        return bytes(buffer)
 
 
 class ExtractChaptersUseCase:
@@ -158,7 +149,7 @@ class ExtractChaptersUseCase:
                     raise ValueError("file:// scheme is not allowed")
                 assert_epub_is_safe(epub_path)
                 book = epub.read_epub(epub_path)
-            chapters = []
+            chapters: list[Chapter] = []
 
             for item in book.get_items_of_type(ITEM_DOCUMENT):
                 content = item.get_content().decode("utf-8", errors="ignore")
@@ -186,7 +177,7 @@ class ExtractChaptersUseCase:
             raise
 
     def _split_long_chapters(self, chapters: list[Chapter]) -> list[Chapter]:
-        processed_chapters = []
+        processed_chapters: list[Chapter] = []
 
         for chapter in chapters:
             text = chapter.get_text_content()
@@ -194,7 +185,7 @@ class ExtractChaptersUseCase:
             if len(text) <= self.max_chapter_length:
                 processed_chapters.append(chapter)
             else:
-                chunks = []
+                chunks: list[str] = []
                 words = text.split()
                 current_chunk: list[str] = []
                 current_length = 0

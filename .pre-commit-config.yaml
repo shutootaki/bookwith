@@ -5,12 +5,13 @@ repos:
       - id: ruff
         args: [--fix, --unsafe-fixes]
       - id: ruff-format
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.2
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.6.0
     hooks:
-      - id: poetry-check
-      - id: poetry-lock
-        files: ^(pyproject\.toml|poetry\.lock)$
+      - id: uv-lock
+        # apps/api がモノレポ内のサブプロジェクトのため、project ルートを明示する。
+        args: ['--project', 'apps/api']
+        files: ^apps/api/(pyproject\.toml|uv\.lock)$
   # H-18 / 1.2: コミット時にシークレット（OpenAI / Gemini / LangSmith / GitHub PAT 等）の混入を阻止する。
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.18.4

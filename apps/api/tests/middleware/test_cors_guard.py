@@ -25,7 +25,7 @@ def test_main_rejects_wildcard_origins(monkeypatch):
 
     # main.py のリロードで RuntimeError が起きることを確認
     with pytest.raises(RuntimeError):
-        from src import main  # noqa: F401
+        from src import main
 
         importlib.reload(main)
 

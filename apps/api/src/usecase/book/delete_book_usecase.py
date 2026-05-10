@@ -51,7 +51,7 @@ class DeleteBookUseCaseImpl(DeleteBookUseCase):
 
         # 楽観的に user_id 付き削除。並列削除でも所有者でなければ false が返る。
         if not self.book_repository.delete_for_user(book_id_obj, user_id):
-            raise BookPermissionDeniedException()
+            raise BookPermissionDeniedException
 
         _delete_book_objects(self.gcs_client, book)
 
@@ -99,8 +99,6 @@ class BulkDeleteBooksUseCaseImpl(BulkDeleteBooksUseCase):
             try:
                 self.memory_service.delete_book_memories(user_id=book.user_id, book_id=book.id.value)
             except Exception:
-                logger.exception(
-                    "Failed to delete book memories for %s", book.id.value
-                )
+                logger.exception("Failed to delete book memories for %s", book.id.value)
 
         return [book_id.value for book_id in deleted_book_ids]

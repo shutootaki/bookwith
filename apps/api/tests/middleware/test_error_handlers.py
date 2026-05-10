@@ -41,15 +41,15 @@ def _build_app() -> FastAPI:
 
     @app.get("/raise-401")
     async def raise_401() -> dict:
-        raise UnauthorizedException()
+        raise UnauthorizedException
 
     @app.get("/raise-403")
     async def raise_403() -> dict:
-        raise ForbiddenException()
+        raise ForbiddenException
 
     @app.get("/raise-404")
     async def raise_404() -> dict:
-        raise NotFoundException()
+        raise NotFoundException
 
     @app.get("/raise-generic")
     async def raise_generic() -> dict:

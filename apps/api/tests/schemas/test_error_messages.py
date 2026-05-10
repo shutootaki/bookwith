@@ -12,7 +12,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:
 os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
 os.environ.setdefault("CORS_ALLOW_ORIGINS", "http://localhost:7127")
 
-from src.presentation.api.error_messages import book_error_message  # noqa: E402
+from src.presentation.api.error_messages import book_error_message
 
 
 def test_no_format_placeholders_in_error_messages() -> None:

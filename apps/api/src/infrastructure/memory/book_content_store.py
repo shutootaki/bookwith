@@ -16,14 +16,6 @@ from src.infrastructure.external.epub import assert_epub_is_safe
 from src.infrastructure.memory.base_vector_store import BaseVectorStore
 from src.infrastructure.memory.retry_decorator import retry_on_error
 
-# CR-6: defusedxml を import するだけに留める。`defuse_stdlib()` のグローバル副作用は
-# 他ライブラリの内部 XML 利用に影響を与えるため、ここでは `xml.etree` 系のみ参照を上書きしない。
-# 代わりに、本ファイル内で XML を扱う場合は `defusedxml.ElementTree` を直接使う。
-try:
-    import defusedxml.ElementTree as _DEFUSED_ET  # noqa: F401  pyright: ignore[reportMissingImports]
-except Exception:  # pragma: no cover
-    _DEFUSED_ET = None  # type: ignore[assignment]
-
 logger = logging.getLogger(__name__)
 
 

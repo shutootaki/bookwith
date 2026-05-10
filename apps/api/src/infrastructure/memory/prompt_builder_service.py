@@ -79,9 +79,7 @@ class PromptBuilderService:
 
         if buffer:
             history_items = [
-                f"{'ユーザー' if msg.sender_type.value == 'user' else 'AI'}: {msg.content.value}"
-                for msg in reversed(buffer)
-                if not msg.is_deleted
+                f"{'ユーザー' if msg.sender_type.value == 'user' else 'AI'}: {msg.content.value}" for msg in reversed(buffer) if not msg.is_deleted
             ]
             prompt_parts.append(safe_xml_block("recent_history", "\n".join(history_items)))
 

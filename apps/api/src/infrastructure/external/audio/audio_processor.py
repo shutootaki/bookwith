@@ -225,7 +225,6 @@ class AudioProcessor:
 
     async def save_to_file(self, audio_data: bytes, file_path: str) -> str:
         """Save audio data to a file (出力先は AUDIO_OUTPUT_DIRS 配下に限定)."""
-
         # 任意パス書き込み防止。AUDIO_OUTPUT_DIRS 配下のみ許可。
         if not _is_safe_output_path(file_path):
             raise PermissionError("Refusing to write outside of AUDIO_OUTPUT_DIRS")

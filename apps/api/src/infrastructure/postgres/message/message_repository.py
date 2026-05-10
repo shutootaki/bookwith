@@ -32,11 +32,7 @@ class MessageRepositoryImpl(MessageRepository):
             raise
 
     def find_by_id(self, message_id: MessageId) -> Message | None:
-        message_orm = (
-            self._session.query(MessageDTO)
-            .filter(MessageDTO.id == message_id.value, MessageDTO.deleted_at == None)
-            .first()
-        )
+        message_orm = self._session.query(MessageDTO).filter(MessageDTO.id == message_id.value, MessageDTO.deleted_at == None).first()
 
         if not message_orm:
             return None
@@ -132,9 +128,7 @@ class MessageRepositoryImpl(MessageRepository):
             if owned_id is None:
                 return False
 
-            self._session.query(MessageDTO).filter(MessageDTO.id == message_id.value).update(
-                {"deleted_at": now, "updated_at": now}
-            )
+            self._session.query(MessageDTO).filter(MessageDTO.id == message_id.value).update({"deleted_at": now, "updated_at": now})
             self._session.commit()
             return True
         except Exception:
@@ -150,9 +144,7 @@ class MessageRepositoryImpl(MessageRepository):
             id_values = [message_id.value for message_id in message_ids]
 
             # 所有チェック (chat 経由) と論理削除を 1 回の UPDATE ... RETURNING に纏める。
-            owned_chat_ids = self._session.query(ChatDTO.id).filter(
-                ChatDTO.user_id == user_id, ChatDTO.deleted_at == None
-            )
+            owned_chat_ids = self._session.query(ChatDTO.id).filter(ChatDTO.user_id == user_id, ChatDTO.deleted_at == None)
             stmt = (
                 update(MessageDTO)
                 .where(

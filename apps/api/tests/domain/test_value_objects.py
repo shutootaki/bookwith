@@ -21,7 +21,6 @@ from src.domain.book.value_objects.book_title import BookTitle
 from src.domain.chat.value_objects.chat_title import ChatTitle
 from src.domain.message.value_objects.message_content import MessageContent
 
-
 # ----------------------------------------
 # BookId / AnnotationId
 # ----------------------------------------

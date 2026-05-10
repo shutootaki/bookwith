@@ -40,7 +40,7 @@ packages:
 **Directory Structure**
 
 - **apps/api/**: FastAPI backend (Python 3.13+)
-  - Dependency management with Poetry
+  - Dependency management with uv
   - DDD layered architecture
   - Automatic OpenAPI generation
 - **apps/reader/**: Next.js frontend (TypeScript/React)
@@ -66,64 +66,48 @@ DDD (Domain-Driven Design) layered architecture:
 ### Environment Setup
 
 ```bash
-# 1. Install dependencies (repo root)
-pnpm i
+# 1. Install all dependencies (JS via pnpm + Python via uv)
+pnpm setup
 
-# 2. Set environment variables
-cd apps/api
-cp src/config/.env.example src/config/.env
-# Edit .env (set API keys, etc.)
+# 2. Configure API env vars
+cp apps/api/src/config/.env.example apps/api/src/config/.env
+# Edit apps/api/src/config/.env (set API keys, etc.)
 
-# 3. Start Docker services (Weaviate + GCS emulator)
-make docker.up
-
-# 4. Launch API in dev mode
-make configure  # poetry install --no-root
-make run        # FastAPI on port 8000
-
-# 5. Launch frontend in another terminal
-cd apps/reader
-pnpm dev        # Next.js on port 7127
-
-# Or launch everything at once (repo root)
-pnpm dev        # turbo run dev --parallel
+# 3. Launch everything from repo root (Docker services + FastAPI + Next.js)
+pnpm dev
 ```
 
-### Build & Test
+> Prerequisites: `pnpm`, `uv`, `docker`, and (optionally) the `supabase` CLI must be installed before running `pnpm setup`.
 
-```bash
-# Build all
-pnpm build      # turbo run build
+### One-shot Commands (run from repo root)
 
-# Lint all
-pnpm lint       # turbo run lint
+| Command | What it runs |
+| --- | --- |
+| `pnpm setup` | Install JS deps + Python deps (`pnpm install` + `uv sync --frozen`) |
+| `pnpm setup:api` | Re-install Python deps only (when `uv.lock` changes) |
+| `pnpm dev` | Docker services + FastAPI (8000) + Next.js (7127) all in parallel |
+| `pnpm dev:reader` | Next.js only |
+| `pnpm dev:api` | Docker services + FastAPI only |
+| `pnpm dev:services` | Docker services (Weaviate + GCS emulator) only |
+| `pnpm build` | Build all workspaces |
+| `pnpm lint` | Run all linters |
+| `pnpm lint:fix` | Auto-fix lint issues across the workspace |
+| `pnpm typecheck` | Type-check all workspaces (mypy + tsc) |
+| `pnpm test` | Run all tests |
+| `pnpm clean` | Clean caches and build artifacts |
+| `pnpm openapi` | Regenerate frontend OpenAPI types from running API |
 
-# API lint & type-check
-cd apps/api
-make lint       # mypy + pre-commit
+Selective execution (any task) is available via Turborepo filters, e.g. `pnpm exec turbo run lint --filter=@flow/reader`.
 
-# Frontend type-check
-cd apps/reader
-pnpm ts:check   # tsc --noEmit
-```
-
-### API Development
+### API-only Workflow
 
 ```bash
 cd apps/api
-
-# Start dev server
-make run
-
-# Lint & type-check
-make lint
-
-# Run via Docker
-make docker.up
-
-# Generate OpenAPI schema (for frontend)
-cd ../reader
-pnpm openapi:ts
+make run          # FastAPI dev server (loopback)
+make lint         # mypy + pre-commit
+make typecheck    # mypy only
+make test         # pytest
+make clean        # remove __pycache__, .pytest_cache, etc.
 ```
 
 ## Key Tech Stack
@@ -230,7 +214,9 @@ stage 3: Runner    – production run (non-root)
 **Docker Commands**
 
 ```bash
-# Start dev services
+# Start dev services (recommended)
+pnpm dev:services      # via Turborepo from repo root
+# or directly via Make
 cd apps/api && make docker.up
 
 # Build frontend

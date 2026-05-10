@@ -60,9 +60,7 @@ def test_message_bulk_delete_max_count():
 
     # 201 件は弾く
     with pytest.raises(ValidationError):
-        MessageBulkDelete(
-            message_ids=[f"{i:08x}-0000-0000-0000-000000000000" for i in range(201)]
-        )
+        MessageBulkDelete(message_ids=[f"{i:08x}-0000-0000-0000-000000000000" for i in range(201)])
 
 
 def test_message_bulk_delete_empty_rejected():

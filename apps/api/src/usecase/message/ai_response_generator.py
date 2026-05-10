@@ -58,10 +58,7 @@ class AIResponseGenerator:
 
         highlight_texts = self.highlight_searcher.search_relevant_highlights(question, user_id, book_id)
         # search_relevant_highlights は list[str] を返すため、文字列に整形してから safe_block 化する。
-        if isinstance(highlight_texts, list):
-            joined_highlights = "\n\n".join(str(h) for h in highlight_texts)
-        else:
-            joined_highlights = str(highlight_texts or "")
+        joined_highlights = "\n\n".join(str(h) for h in highlight_texts) if isinstance(highlight_texts, list) else str(highlight_texts or "")
         safe_highlight_block = safe_xml_block("user_highlights", joined_highlights)
 
         hybrid_chain: RunnableSerializable[Any, str] = (

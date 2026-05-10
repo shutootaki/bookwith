@@ -37,7 +37,7 @@ class BaseVectorStore:
 
     def __init__(self) -> None:
         """基底ベクトルストアの初期化."""
-        self.config = AppConfig.get_config()
+        self.config: AppConfig = AppConfig.get_config()
 
         # double-checked locking で 2 重生成を防ぐ。
         if BaseVectorStore._shared_client is None:

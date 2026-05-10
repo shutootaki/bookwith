@@ -55,7 +55,7 @@ BookWith 是一个由 AI 驱动的下一代基于浏览器的 ePub 阅读器。�
 | Node.js        | ≥ 18.0.0  | `node -v`                |
 | pnpm           | 9.15.4    | `pnpm -v`                |
 | Python         | ≥ 3.13    | `python --version`       |
-| Poetry         | 最新版    | `poetry --version`       |
+| uv             | 最新版    | `uv --version`           |
 | Docker         | 最新版    | `docker --version`       |
 | Docker Compose | v2 或更高 | `docker compose version` |
 
@@ -70,13 +70,13 @@ yarn global add pnpm@9.15.4
 brew install pnpm
 ```
 
-#### 安装 Poetry
+#### 安装 uv
 
 ```bash
 # 官方安装器
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 # 或使用Homebrew (macOS)
-brew install poetry
+brew install uv
 ```
 
 ## 🚀 快速开始
@@ -88,25 +88,30 @@ brew install poetry
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# 2. 安装依赖
-pnpm i
+# 2. 一次性安装所有依赖（JS via pnpm + Python via uv）
+pnpm setup
 
 # 3. 设置环境变量
-cd apps/api
-cp src/config/.env.example src/config/.env
-# 编辑.env文件并添加您的API密钥
+cp apps/api/src/config/.env.example apps/api/src/config/.env
+# 编辑 apps/api/src/config/.env 并添加您的 API 密钥
 
 # 4. 启动Supabase (需要单独安装)
 supabase start
 
-# 5. 启动Docker服务
-cd apps/api
-make docker.up
-
-# 6. 启动开发服务器 (返回到仓库根目录)
-cd ../..
+# 5. 在仓库根目录一键启动（Turborepo 并行启动 Docker services + FastAPI + Next.js）
 pnpm dev
 ```
+
+#### 选择性启动 / 安装
+
+| 命令 | 启动 / 执行内容 |
+| --- | --- |
+| `pnpm setup` | 一次性安装 JS + Python 依赖（首次 checkout 时运行） |
+| `pnpm setup:api` | 仅重新安装 Python 依赖（`uv.lock` 变更时） |
+| `pnpm dev` | Docker services + FastAPI + Next.js |
+| `pnpm dev:reader` | 仅 Next.js |
+| `pnpm dev:api` | 仅 Docker services + FastAPI |
+| `pnpm dev:services` | 仅 Docker services（Weaviate + GCS emulator） |
 
 可访问的端点：
 
@@ -123,9 +128,12 @@ pnpm dev
 git clone https://github.com/your-org/bookwith.git
 cd bookwith
 
-# 安装monorepo依赖
-pnpm i
+# 一次性安装所有依赖（JS via pnpm + Python via uv）
+pnpm setup
 ```
+
+> `pnpm setup` 内部执行 `pnpm install && pnpm -F @flow/api run setup`。
+> 当 `uv.lock` 变更后（例如 git pull 之后），可使用 `pnpm setup:api` 仅重新同步 Python 依赖。
 
 ### 2. 配置环境变量
 
@@ -191,8 +199,11 @@ supabase status
 #### 启动其他 Docker 服务
 
 ```bash
-cd apps/api
-make docker.up
+# 在仓库根目录（推荐）
+pnpm dev:services
+
+# 或直接调用 Make
+cd apps/api && make docker.up
 ```
 
 这将启动以下服务：
@@ -208,7 +219,7 @@ make docker.up
 cd apps/api
 
 # 在Python解释器中运行
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()
@@ -219,13 +230,11 @@ poetry run python
 ### 5. 启动后端(API)
 
 ```bash
-cd apps/api
+# 依赖已通过 `pnpm setup` 安装。
+# 如果跳过了 `pnpm setup`，可运行 `pnpm setup:api` 仅安装 Python 依赖。
 
-# 仅首次：安装Poetry依赖
-make configure
-
-# 启动开发服务器
-make run
+# 启动开发服务器（Docker services + FastAPI）
+pnpm dev:api
 ```
 
 API 文档：
@@ -238,16 +247,14 @@ API 文档：
 打开新终端：
 
 ```bash
-cd apps/reader
-
-# 从OpenAPI模式生成TypeScript类型 (首次或API更改后)
-pnpm openapi:ts
-
-# 启动开发服务器
-pnpm dev
+# 从仓库根目录
+pnpm openapi        # 重新生成 OpenAPI 类型（首次 / API schema 变更后）
+pnpm dev:reader     # 启动 Next.js 开发服务器
 ```
 
 前端：http://localhost:7127
+
+> ✨ 或者只需在仓库根目录运行 **`pnpm dev`**，Turborepo 会一起启动 Docker services / FastAPI / Next.js。
 
 ### 7. 验证一切正常工作
 
@@ -274,8 +281,12 @@ pnpm dev
 2. **类型检查和代码检查**
 
    ```bash
-   cd apps/api
-   make lint  # MyPy + pre-commit
+   # 在仓库根目录（覆盖 api & reader）
+   pnpm typecheck
+   pnpm lint
+   pnpm lint:fix     # 自动修复
+   # 仅 API
+   cd apps/api && make lint  # MyPy + pre-commit
    ```
 
 3. **重启 API**
@@ -296,8 +307,8 @@ pnpm dev
 2. **类型检查**
 
    ```bash
-   cd apps/reader
-   pnpm ts:check
+   pnpm typecheck                       # 跨工作区
+   pnpm -F @flow/reader run typecheck   # 仅 reader
    ```
 
 3. **热重载**
@@ -308,21 +319,30 @@ pnpm dev
 #### 完整构建
 
 ```bash
-# 从仓库根目录
+# 从仓库根目录（不包含 vendored 的 @flow/epubjs）
 pnpm build
 ```
 
-#### 运行代码检查器
+#### 运行测试 / 代码检查
 
 ```bash
 # 整个工作空间
+pnpm test
 pnpm lint
+pnpm lint:fix
+pnpm typecheck
 
-# 仅API
+# 仅 API
 cd apps/api && make lint
 
 # 仅前端
 cd apps/reader && pnpm lint
+```
+
+#### 清理缓存
+
+```bash
+pnpm clean   # 删除 .next / .turbo / __pycache__ / .mypy_cache 等
 ```
 
 ### 更新 OpenAPI 模式
@@ -330,9 +350,11 @@ cd apps/reader && pnpm lint
 如果您更改了 API 类型：
 
 ```bash
-# 确保API服务器正在运行
-cd apps/reader
-pnpm openapi:ts
+# 1) 在另一个终端启动 API
+pnpm dev:api
+
+# 2) 从仓库根目录重新生成类型
+pnpm openapi
 ```
 
 ## 🔧 故障排除
@@ -368,10 +390,10 @@ make docker.up
 #### 3. API 启动失败
 
 ```bash
-# 重建Poetry环境
+# 重建 uv 环境
 cd apps/api
-poetry env remove python
-poetry install --no-root
+rm -rf .venv
+uv sync --frozen
 
 # 验证环境变量
 cat src/config/.env  # 检查API密钥
@@ -418,7 +440,7 @@ supabase start
 ```bash
 # 初始化数据库
 cd apps/api
-poetry run python
+uv run python
 >>> from src.config.db import init_db
 >>> init_db()
 >>> exit()

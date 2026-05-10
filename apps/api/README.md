@@ -5,8 +5,12 @@ FastAPI / Python 3.13 ベースのバックエンド。Supabase（Postgres + Aut
 ## クイックスタート
 
 ```bash
-# 1) 依存インストール
-make configure
+# 1) 依存インストール（推奨：リポジトリルートから JS + Python を一括）
+cd ../.. && pnpm setup
+# Python 依存だけ再同期したいなら
+pnpm setup:api
+# apps/api 単独でやるなら
+make configure          # uv sync --frozen と等価
 
 # 2) 環境変数の用意（src/config/.env を編集）
 cp src/config/.env.example src/config/.env
@@ -15,17 +19,28 @@ cp src/config/.env.example src/config/.env
 # - DATABASE_URL
 # - CORS_ALLOW_ORIGINS
 
-# 3) Docker（Weaviate + GCS emulator）を起動
+# 3) ルートから一括起動を推奨（Docker services + API + Reader を並列）
+cd ../.. && pnpm dev:api    # API + Docker のみ起動したい場合
+# 全部起動するなら
+cd ../.. && pnpm dev
+
+# --- ここから単独操作（apps/api 配下） ---
+
+# Docker（Weaviate + GCS emulator）のみ起動
 make docker.up
 
-# 4) API 起動
+# API のみ起動
 make run
 
-# 5) テスト
-make test
+# テスト
+make test               # または ルートから `pnpm test`
+make typecheck          # mypy 単独 / または ルートから `pnpm typecheck`
+make lint               # mypy + pre-commit
+make lint.fix           # ruff --fix + ruff format
+make clean              # __pycache__ / .mypy_cache 等を削除
 
-# 6) Alembic
-make migrate          # 適用
+# Alembic
+make migrate            # 適用
 make migrate.gen MSG="describe change"  # 自動生成
 ```
 
@@ -104,4 +119,4 @@ alembic/                        # スキーマ migration
 
 ## セキュリティチェックリスト
 
-[SECURITY.md](./SECURITY.md) を参照。`pre-commit run --all-files` と `make test` をデプロイ前に必ず実行する。
+[SECURITY.md](./SECURITY.md) を参照。`pre-commit run --all-files` と `pnpm test`（または `make test`）をデプロイ前に必ず実行する。

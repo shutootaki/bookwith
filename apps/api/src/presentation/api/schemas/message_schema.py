@@ -6,7 +6,6 @@ from pydantic import Field, field_validator
 from src.domain.message.value_objects.sender_type import SenderTypeEnum
 from src.presentation.api.schemas.base_schema import BaseRequestSchemaModel, BaseSchemaModel
 
-
 _MAX_MESSAGE_CONTENT = 30_000
 _MAX_METADATA_KEYS = 32
 

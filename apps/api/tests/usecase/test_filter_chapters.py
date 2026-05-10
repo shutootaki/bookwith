@@ -48,7 +48,8 @@ def test_filter_caps_to_max_chapters() -> None:
 
 def test_filter_uses_max_chapters_not_max_chapter_length() -> None:
     """回帰検出: 万が一 `max_chapter_length` (10000) を比較に使うと len(chapters) > 10000 で初めて
-    間引きが発火する。10001 件渡してその挙動になっていないかをテストで弾く."""
+    間引きが発火する。10001 件渡してその挙動になっていないかをテストで弾く.
+    """
     usecase = ExtractChaptersUseCase()
     usecase.max_chapters = 15
     # max_chapter_length は文字数制限なので chapter 数比較に使うのは誤り
@@ -58,8 +59,7 @@ def test_filter_uses_max_chapters_not_max_chapter_length() -> None:
     result = usecase._filter_chapters(chapters)
 
     assert len(result) == 15, (
-        "max_chapters (15) で間引かれるべき。max_chapter_length (10000) を比較に使うと "
-        "20 件すべてがそのまま返ってしまうリグレッション。"
+        "max_chapters (15) で間引かれるべき。max_chapter_length (10000) を比較に使うと 20 件すべてがそのまま返ってしまうリグレッション。"
     )
 
 

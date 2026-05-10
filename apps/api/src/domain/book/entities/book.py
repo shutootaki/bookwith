@@ -125,7 +125,7 @@ class Book(BaseModel):
         所有者でなければ `BookPermissionDeniedException` を上げる。
         """
         if self.user_id != user_id:
-            raise BookPermissionDeniedException()
+            raise BookPermissionDeniedException
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Book):

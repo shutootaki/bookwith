@@ -28,4 +28,4 @@ class DeleteChatUseCaseImpl(DeleteChatUseCase):
 
         # 楽観的削除。並列削除でも所有者でなければ false が返る。
         if not self.chat_repository.delete_for_user(chat_id, user_id):
-            raise ChatPermissionDeniedError()
+            raise ChatPermissionDeniedError

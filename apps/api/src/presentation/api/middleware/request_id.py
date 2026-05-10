@@ -10,10 +10,11 @@
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
-
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 # 受信側で受け入れる ID 形式（UUID/英数字 + ハイフンのみ、長すぎる値は弾く）
 _VALID_REQUEST_ID = re.compile(r"^[A-Za-z0-9_\-]{1,128}$")
@@ -55,10 +56,7 @@ class RequestIdMiddleware:
             if message["type"] == "http.response.start":
                 response_headers: list[tuple[bytes, bytes]] = list(message.get("headers", []))
                 # 既に付与されていれば尊重、なければ付ける
-                exists = any(
-                    h[0].decode("ascii", "ignore").lower() == "x-request-id"
-                    for h in response_headers
-                )
+                exists = any(h[0].decode("ascii", "ignore").lower() == "x-request-id" for h in response_headers)
                 if not exists:
                     response_headers.append((b"x-request-id", request_id.encode("ascii", "ignore")))
                 message["headers"] = response_headers

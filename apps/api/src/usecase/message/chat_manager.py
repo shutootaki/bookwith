@@ -80,9 +80,7 @@ class ChatManager:
         truncated = (question or "")[:8_000]
         raw_title = ""
         try:
-            raw_title = (prompt | ChatOpenAI(name="gpt-4o") | StrOutputParser()).invoke(
-                {"question": truncated}
-            )
+            raw_title = (prompt | ChatOpenAI(name="gpt-4o") | StrOutputParser()).invoke({"question": truncated})
         except Exception:  # pragma: no cover
             # LLM が落ちた・safety フィルタでブロック等。
             logger.exception("Chat title generation failed; using fallback")

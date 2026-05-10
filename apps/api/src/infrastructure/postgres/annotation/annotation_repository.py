@@ -41,9 +41,7 @@ class AnnotationRepositoryImpl(AnnotationRepository):
                     self.memory_service.delete_book_annotation(user_id=user_id_val, annotation_id=annotation_id)
                 except Exception:
                     # 1 件失敗しても他の削除を続ける。
-                    logger.exception(
-                        "Failed to delete annotation %s from vector DB", annotation_id
-                    )
+                    logger.exception("Failed to delete annotation %s from vector DB", annotation_id)
 
         to_update = [a for a in ann_objs if a.id and a.id.value and a.id.value in existing_ids]
         if to_update:

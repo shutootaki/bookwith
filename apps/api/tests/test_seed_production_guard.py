@@ -62,7 +62,7 @@ def test_seed_data_short_circuits_before_db_access(monkeypatch):
     db_called = {"flag": False}
 
     class _Boom:
-        def __call__(self, *a, **kw):  # noqa: ANN001, ANN002, ANN003
+        def __call__(self, *a, **kw):  # noqa: ANN002, ANN003
             db_called["flag"] = True
             raise AssertionError("SessionLocal must not be invoked when production guard fires")
 
@@ -71,9 +71,7 @@ def test_seed_data_short_circuits_before_db_access(monkeypatch):
     with pytest.raises(RuntimeError):
         seed.seed_data()
 
-    assert db_called["flag"] is False, (
-        "production guard must short-circuit BEFORE acquiring DB session"
-    )
+    assert db_called["flag"] is False, "production guard must short-circuit BEFORE acquiring DB session"
 
 
 def test_seed_data_runs_in_development_environment(monkeypatch):
@@ -86,16 +84,16 @@ def test_seed_data_runs_in_development_environment(monkeypatch):
 
     # SessionLocal を mock して RuntimeError 以外の問題で落ちないようにする。
     class _NoopSession:
-        def add_all(self, *a, **kw):  # noqa: ANN001, ANN002, ANN003
+        def add_all(self, *a, **kw) -> None:  # noqa: ANN002, ANN003
             pass
 
-        def commit(self):  # noqa: ANN201
+        def commit(self) -> None:
             pass
 
-        def rollback(self):  # noqa: ANN201
+        def rollback(self) -> None:
             pass
 
-        def close(self):  # noqa: ANN201
+        def close(self) -> None:
             pass
 
     monkeypatch.setattr(seed, "SessionLocal", lambda: _NoopSession())

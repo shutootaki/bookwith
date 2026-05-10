@@ -38,9 +38,7 @@ class PodcastRepositoryImpl(PodcastRepository):
 
     async def find_by_id_for_user(self, podcast_id: PodcastId, user_id: UserId) -> Podcast | None:
         # CR-3: user_id を WHERE 句に必ず含める。
-        stmt = select(PodcastDTO).where(
-            (PodcastDTO.id == podcast_id.value) & (PodcastDTO.user_id == user_id.value)
-        )
+        stmt = select(PodcastDTO).where((PodcastDTO.id == podcast_id.value) & (PodcastDTO.user_id == user_id.value))
         result = self._session.execute(stmt)
         dto = result.scalar_one_or_none()
         return dto.to_entity() if dto else None
@@ -92,7 +90,6 @@ class PodcastRepositoryImpl(PodcastRepository):
         error_message: str | None = None,
     ) -> None:
         """Update podcast status and optionally audio_url or error_message"""
-
         stmt = (
             update(PodcastDTO)
             .where(PodcastDTO.id == podcast_id.value)
@@ -126,10 +123,7 @@ class PodcastRepositoryImpl(PodcastRepository):
         # `error_message IS NULL` フィルタや UI の存在判定が誤動作するため、明示的に NULL 化する。
         stmt = (
             update(PodcastDTO)
-            .where(
-                (PodcastDTO.id == podcast_id.value)
-                & (PodcastDTO.status == expected_status.value)
-            )
+            .where((PodcastDTO.id == podcast_id.value) & (PodcastDTO.status == expected_status.value))
             .values(
                 status=new_status.value,
                 updated_at=datetime.now(UTC),
@@ -149,9 +143,7 @@ class PodcastRepositoryImpl(PodcastRepository):
         return True
 
     async def delete_for_user(self, podcast_id: PodcastId, user_id: UserId) -> bool:
-        stmt = select(PodcastDTO).where(
-            (PodcastDTO.id == podcast_id.value) & (PodcastDTO.user_id == user_id.value)
-        )
+        stmt = select(PodcastDTO).where((PodcastDTO.id == podcast_id.value) & (PodcastDTO.user_id == user_id.value))
         result = self._session.execute(stmt)
         dto = result.scalar_one_or_none()
         if not dto:

@@ -54,9 +54,9 @@ async def upload_and_process_rag(
         # CR-4: user_id は認証 principal から取得した値を渡す。
         return await usecase.execute(upload_file, user_id, body.book_id)
     except BookPermissionDeniedException:
-        raise ForbiddenException()
+        raise ForbiddenException
     except BookNotFoundException:
-        raise NotFoundException()
+        raise NotFoundException
     except ValueError as e:
         raise BadRequestException(str(e))
     except Exception:

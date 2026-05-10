@@ -25,7 +25,6 @@ class CreatePodcastUseCase:
 
     async def execute(self, book_id: BookId, user_id: UserId, title: str, language: PodcastLanguage) -> PodcastId:
         """Create a new podcast for a book (with ownership verification)."""
-
         resolve_owned_or_raise(
             find_for_user=lambda: self.book_repository.find_by_id_for_user(book_id, user_id.value),
             find_any=lambda: self.book_repository.find_by_id(book_id),

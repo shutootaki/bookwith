@@ -25,9 +25,7 @@ def _looks_like_image(data: bytes) -> bool:
     if data[:8] == b"\x89PNG\r\n\x1a\n":
         return True
     # WebP: "RIFF....WEBP"
-    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return True
-    return False
+    return bool(data[:4] == b"RIFF" and data[8:12] == b"WEBP")
 
 
 class CreateBookUseCase(ABC):

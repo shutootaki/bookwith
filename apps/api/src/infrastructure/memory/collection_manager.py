@@ -1,6 +1,7 @@
 """Weaviateコレクション管理サービス."""
 
 import logging
+from typing import Any
 
 from weaviate.classes.config import Configure, DataType, Property
 
@@ -29,7 +30,7 @@ class CollectionManager(BaseVectorStore):
             logger.error(f"コレクション作成エラー: {str(e)}")
             raise
 
-    def _multi_tenancy_config(self) -> Configure:
+    def _multi_tenancy_config(self) -> Any:  # noqa: ANN401
         # C-04: 認証導入後は明示的にテナントを作成し、未知 user_id への自動作成は禁止する。
         return Configure.multi_tenancy(
             enabled=True,

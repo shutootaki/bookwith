@@ -16,7 +16,6 @@ import pytest
 
 from src.domain.annotation.entities.annotation import Annotation
 
-
 _BOOK_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 _BOOK_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
 
