@@ -44,12 +44,15 @@ def _make_book(book_id: str, user_id: str) -> Book:
 class FakeBookRepository(BookRepository):
     """in-memory implementation. CR-3 owner-aware メソッドが正しく動くか検証する用."""
 
-    def __init__(self, books: list[Book]):
+    def __init__(self, books: list[Book]) -> None:
         self._books = {b.id.value: b for b in books}
 
     # 必要メソッドのみ実装。残りは raise NotImplementedError
-    def save(self, book): raise NotImplementedError  # noqa: ANN001
-    def find_by_user_id(self, user_id: str): raise NotImplementedError
+    def save(self, book):
+        raise NotImplementedError
+
+    def find_by_user_id(self, user_id: str):
+        raise NotImplementedError
 
     def find_by_id(self, book_id: BookId) -> Book | None:
         return self._books.get(book_id.value)
@@ -67,7 +70,7 @@ class FakeBookRepository(BookRepository):
         del self._books[book_id.value]
         return True
 
-    def bulk_delete_for_user(self, book_ids, user_id: str):  # noqa: ANN001
+    def bulk_delete_for_user(self, book_ids, user_id: str):
         deleted = []
         for bid in book_ids:
             if self.delete_for_user(bid, user_id):

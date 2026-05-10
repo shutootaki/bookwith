@@ -10,8 +10,7 @@ session-level の環境変数は本ファイル内で `os.environ.setdefault` �
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 # ----------------------------------------
 # Session-level 環境変数（全テスト共通）
@@ -35,22 +34,24 @@ for _key, _value in _DEFAULT_ENV.items():
 
 import pytest  # noqa: E402
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
-@pytest.fixture()
+
+@pytest.fixture
 def app() -> Iterator[Any]:
     """FastAPI app を返す。`init_db` 等の startup は呼ばずに直接生成する.
 
     lifespan を回避するため、`main.app` を直接 import する。
     ASGI ライフスパンが回らない代わりに、routes と middleware だけ動作する。
     """
-
     from src.main import app as fastapi_app
 
-    yield fastapi_app
+    return fastapi_app
 
 
-@pytest.fixture()
-def client(app):  # noqa: ANN001
+@pytest.fixture
+def client(app):
     from fastapi.testclient import TestClient
 
     with TestClient(app) as c:

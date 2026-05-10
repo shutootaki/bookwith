@@ -14,21 +14,21 @@ os.environ.setdefault("AUTH_DEV_BYPASS", "true")
 os.environ.setdefault("AUTH_DEV_BYPASS_USER_ID", "11111111-1111-1111-1111-111111111111")
 
 
-def test_health_returns_ok_without_auth(client):  # noqa: ANN001
+def test_health_returns_ok_without_auth(client):
     """認証ヘッダーなしでも 200 OK を返す."""
     res = client.get("/health")
     assert res.status_code == 200
     assert res.json() == {"status": "ok"}
 
 
-def test_health_response_has_security_headers(client):  # noqa: ANN001
+def test_health_response_has_security_headers(client):
     """SecurityHeadersMiddleware が ヘルスチェックにも適用される."""
     res = client.get("/health")
     assert res.headers.get("x-content-type-options") == "nosniff"
     assert res.headers.get("x-frame-options") == "DENY"
 
 
-def test_health_not_in_openapi_schema(app):  # noqa: ANN001
+def test_health_not_in_openapi_schema(app):
     """`include_in_schema=False` のため OpenAPI には現れない（公開ドキュメント上は隠す）."""
     schema = app.openapi()
     paths = schema.get("paths", {})

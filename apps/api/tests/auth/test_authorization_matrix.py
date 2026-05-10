@@ -14,17 +14,17 @@
 from __future__ import annotations
 
 
-def test_unauthenticated_books_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_books_returns_401(client):
     response = client.get("/books/me")
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_chats_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_chats_returns_401(client):
     response = client.get("/chats/me")
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_post_message_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_post_message_returns_401(client):
     response = client.post(
         "/messages",
         json={"content": "hi", "chat_id": "00000000-0000-0000-0000-000000000000"},
@@ -32,7 +32,7 @@ def test_unauthenticated_post_message_returns_401(client):  # noqa: ANN001
     assert response.status_code == 401, response.text
 
 
-def test_invalid_bearer_token_returns_401(client):  # noqa: ANN001
+def test_invalid_bearer_token_returns_401(client):
     response = client.get(
         "/books/me",
         headers={"Authorization": "Bearer not-a-real-jwt"},
@@ -40,7 +40,7 @@ def test_invalid_bearer_token_returns_401(client):  # noqa: ANN001
     assert response.status_code == 401, response.text
 
 
-def test_cors_does_not_use_wildcard(app):  # noqa: ANN001
+def test_cors_does_not_use_wildcard(app):
     """CR-2 の回帰検出: CORS ミドルウェアの allow_origins が `*` になっていないこと."""
     from starlette.middleware.cors import CORSMiddleware
 
@@ -51,13 +51,12 @@ def test_cors_does_not_use_wildcard(app):  # noqa: ANN001
             break
 
     assert cors_options is not None, "CORS middleware is not registered"
-    assert "*" not in cors_options.get("allow_origins", []), (
-        "allow_origins must not include '*' when allow_credentials is True"
-    )
+    assert "*" not in cors_options.get("allow_origins", []), "allow_origins must not include '*' when allow_credentials is True"
     # allow_credentials は True であってよいが、その場合は allow_origins が明示リストでなければならない。
     if cors_options.get("allow_credentials"):
         origins = cors_options.get("allow_origins")
-        assert origins and origins != ["*"]
+        assert origins
+        assert origins != ["*"]
 
 
 # ============================================================
@@ -67,7 +66,7 @@ def test_cors_does_not_use_wildcard(app):  # noqa: ANN001
 # 沿って annotations / podcasts / rag も 401 で弾かれることを保証する。
 
 
-def test_unauthenticated_post_podcasts_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_post_podcasts_returns_401(client):
     """CR-1: 未認証で POST /podcasts は 401（高額課金エンドポイントの保護）."""
     response = client.post(
         "/podcasts",
@@ -76,12 +75,12 @@ def test_unauthenticated_post_podcasts_returns_401(client):  # noqa: ANN001
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_get_podcasts_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_get_podcasts_returns_401(client):
     response = client.get("/podcasts/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_post_rag_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_post_rag_returns_401(client):
     """CR-1: 未認証で POST /rag は 401（Embedding 大量呼出の保護）."""
     response = client.post(
         "/rag",
@@ -90,7 +89,7 @@ def test_unauthenticated_post_rag_returns_401(client):  # noqa: ANN001
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_put_annotations_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_put_annotations_returns_401(client):
     """CR-1 + H-17: 未認証で PUT /books/{id}/annotations は 401（Mass Assignment 経路の遮断）."""
     response = client.put(
         "/books/00000000-0000-0000-0000-000000000000/annotations",
@@ -99,12 +98,12 @@ def test_unauthenticated_put_annotations_returns_401(client):  # noqa: ANN001
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_delete_book_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_delete_book_returns_401(client):
     response = client.delete("/books/00000000-0000-0000-0000-000000000000")
     assert response.status_code == 401, response.text
 
 
-def test_unauthenticated_bulk_delete_books_returns_401(client):  # noqa: ANN001
+def test_unauthenticated_bulk_delete_books_returns_401(client):
     response = client.delete(
         "/books/bulk-delete",
         json={"book_ids": ["00000000-0000-0000-0000-000000000000"]},

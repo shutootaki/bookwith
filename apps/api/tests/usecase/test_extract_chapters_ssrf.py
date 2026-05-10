@@ -81,8 +81,10 @@ def test_fetch_timeout_is_bounded():
     """B-1: 接続/読み取りに無限待機させない."""
     timeout = ec._FETCH_TIMEOUT
     # connect / total が None でない（=無限待機ではない）こと
-    assert timeout.connect is not None and timeout.connect > 0
-    assert timeout.total is not None and timeout.total > 0
+    assert timeout.connect is not None
+    assert timeout.connect > 0
+    assert timeout.total is not None
+    assert timeout.total > 0
     # 攻撃時の滞留を最小化するため、5 分以下を期待する
     assert timeout.total <= 300
 
@@ -97,7 +99,7 @@ def test_fetch_max_bytes_is_capped():
 
 def test_fetch_only_allows_http_https_schemes():
     """B-1: http/https 以外のスキームを禁止."""
-    assert ec._ALLOWED_SCHEMES == {"http", "https"}
+    assert {"http", "https"} == ec._ALLOWED_SCHEMES
 
 
 def test_download_calls_session_get_with_redirects_disabled(monkeypatch):
@@ -106,7 +108,7 @@ def test_download_calls_session_get_with_redirects_disabled(monkeypatch):
     aiohttp.ClientSession.get の引数を捕捉して `allow_redirects` を確認する。
     """
     import asyncio
-    from unittest.mock import AsyncMock, MagicMock
+    from unittest.mock import MagicMock
 
     captured: dict = {}
 
@@ -114,31 +116,33 @@ def test_download_calls_session_get_with_redirects_disabled(monkeypatch):
         def __init__(self) -> None:
             self.headers = {"Content-Length": "10"}
             self.content = MagicMock()
+
             # iter_chunked は async generator を返す
-            async def _gen(_size):  # noqa: ANN001
+            async def _gen(_size):
                 yield b"x" * 10
+
             self.content.iter_chunked = _gen
 
         def raise_for_status(self) -> None:
             return None
 
-        async def __aenter__(self):  # noqa: ANN204
+        async def __aenter__(self):
             return self
 
-        async def __aexit__(self, *a, **kw):  # noqa: ANN001, ANN002, ANN003
+        async def __aexit__(self, *a, **kw):  # noqa: ANN002, ANN003
             return False
 
     class _FakeSession:
-        def __init__(self, *a, **kw):  # noqa: ANN001, ANN002, ANN003
+        def __init__(self, *a, **kw) -> None:  # noqa: ANN002, ANN003
             pass
 
-        async def __aenter__(self):  # noqa: ANN204
+        async def __aenter__(self):
             return self
 
-        async def __aexit__(self, *a, **kw):  # noqa: ANN001, ANN002, ANN003
+        async def __aexit__(self, *a, **kw):  # noqa: ANN002, ANN003
             return False
 
-        def get(self, url, **kwargs):  # noqa: ANN001, ANN003
+        def get(self, url, **kwargs):  # noqa: ANN003
             captured["url"] = url
             captured["kwargs"] = kwargs
             return _FakeResp()
@@ -146,12 +150,12 @@ def test_download_calls_session_get_with_redirects_disabled(monkeypatch):
     # _is_safe_remote_url を素通しさせる (現在は async なので awaitable を返す)
     async def _always_safe(_url: str) -> bool:
         return True
+
     monkeypatch.setattr(ec, "_is_safe_remote_url", _always_safe)
     monkeypatch.setattr(ec.aiohttp, "ClientSession", _FakeSession)
 
     asyncio.run(ec._download_remote_epub("https://allowed.example/book.epub"))
 
     assert captured["kwargs"].get("allow_redirects") is False, (
-        "_download_remote_epub must pass allow_redirects=False to prevent "
-        "metadata-endpoint redirects"
+        "_download_remote_epub must pass allow_redirects=False to prevent metadata-endpoint redirects"
     )

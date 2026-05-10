@@ -13,7 +13,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:
 os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
 
 
-def _build_app(monkeypatch, environment: str):  # noqa: ANN001
+def _build_app(monkeypatch, environment: str):
     monkeypatch.setenv("ENVIRONMENT", environment)
     monkeypatch.setenv("CORS_ALLOW_ORIGINS", "https://app.example.com")
 

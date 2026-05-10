@@ -10,6 +10,7 @@ from src.domain.podcast.exceptions.podcast_exceptions import (
     PodcastNotFoundError,
     PodcastPermissionDeniedError,
 )
+from src.domain.podcast.repositories.podcast_repository import PodcastRepository
 from src.domain.podcast.value_objects.podcast_id import PodcastId
 from src.domain.podcast.value_objects.podcast_status import PodcastStatus, PodcastStatusEnum
 from src.infrastructure.di.injection import (
@@ -61,7 +62,9 @@ async def create_podcast(
 
         background_tasks.add_task(generate_usecase.execute, podcast_id)
 
-        return CreatePodcastResponse(id=podcast_id.value, status=PodcastStatusEnum.PENDING, message="Podcast creation started. Generation is in progress.")
+        return CreatePodcastResponse(
+            id=podcast_id.value, status=PodcastStatusEnum.PENDING, message="Podcast creation started. Generation is in progress."
+        )
 
     except BookPermissionDeniedException as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden") from e
@@ -155,7 +158,7 @@ async def retry_podcast(
     user_id_str: str = Depends(require_user_id),
     find_usecase: FindPodcastByIdUseCase = Depends(get_find_podcast_by_id_usecase),
     generate_usecase: GeneratePodcastUseCase = Depends(get_generate_podcast_usecase),
-    podcast_repository=Depends(get_podcast_repository),
+    podcast_repository: PodcastRepository = Depends(get_podcast_repository),
 ):
     """Retry failed podcast generation (with ownership verification + optimistic lock)."""
     try:
@@ -179,7 +182,9 @@ async def retry_podcast(
 
         background_tasks.add_task(generate_usecase.execute, podcast_domain_id)
 
-        return CreatePodcastResponse(id=podcast_domain_id.value, status=PodcastStatusEnum.PENDING, message="Podcast retry started. Generation is in progress.")
+        return CreatePodcastResponse(
+            id=podcast_domain_id.value, status=PodcastStatusEnum.PENDING, message="Podcast retry started. Generation is in progress."
+        )
 
     except PodcastPermissionDeniedError:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")

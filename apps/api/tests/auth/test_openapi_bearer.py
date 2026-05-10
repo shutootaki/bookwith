@@ -16,7 +16,7 @@ os.environ.setdefault("AUTH_DEV_BYPASS_USER_ID", "11111111-1111-1111-1111-111111
 os.environ.setdefault("ENVIRONMENT", "development")
 
 
-def test_openapi_includes_bearer_security_scheme(app):  # noqa: ANN001
+def test_openapi_includes_bearer_security_scheme(app):
     schema = app.openapi()
     components = schema.get("components", {})
     schemes = components.get("securitySchemes", {})
@@ -28,15 +28,13 @@ def test_openapi_includes_bearer_security_scheme(app):  # noqa: ANN001
     assert bearer["bearerFormat"] == "JWT"
 
 
-def test_openapi_global_security_requires_bearer(app):  # noqa: ANN001
+def test_openapi_global_security_requires_bearer(app):
     schema = app.openapi()
     security = schema.get("security", [])
-    assert any("BearerAuth" in entry for entry in security), (
-        "global security must reference BearerAuth"
-    )
+    assert any("BearerAuth" in entry for entry in security), "global security must reference BearerAuth"
 
 
-def test_openapi_schema_caches(app):  # noqa: ANN001
+def test_openapi_schema_caches(app):
     """`_custom_openapi` は 1 回計算したらキャッシュを返すこと."""
     first = app.openapi()
     second = app.openapi()

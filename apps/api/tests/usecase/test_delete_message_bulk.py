@@ -13,6 +13,8 @@ os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
 os.environ.setdefault("CORS_ALLOW_ORIGINS", "http://localhost:7127")
 
 
+from typing import Never
+
 from src.domain.message.repositories.message_repository import MessageRepository
 from src.domain.message.value_objects.message_id import MessageId
 from src.usecase.message.delete_message_usecase import DeleteMessageUseCaseImpl
@@ -21,20 +23,37 @@ from src.usecase.message.delete_message_usecase import DeleteMessageUseCaseImpl
 class _FakeMessageRepository(MessageRepository):
     """owner ID と message_id の組合せで所有を判定する fake."""
 
-    def __init__(self, owned: dict[str, str]):
+    def __init__(self, owned: dict[str, str]) -> None:
         # owned: {message_id: owner_user_id}
         self._owned = owned
 
     # 必須抽象メソッドだけ実装。残りは raise する。
-    def save(self, message): raise NotImplementedError  # noqa: ANN001
-    def find_by_id(self, mid): raise NotImplementedError  # noqa: ANN001
-    def find_by_id_for_user(self, mid, user_id): raise NotImplementedError  # noqa: ANN001
-    def find_by_chat_id(self, chat_id): raise NotImplementedError  # noqa: ANN001
-    def find_by_chat_id_for_user(self, chat_id, user_id): raise NotImplementedError  # noqa: ANN001
-    def find_latest_by_chat_id(self, chat_id, limit): raise NotImplementedError  # noqa: ANN001
-    def find_latest_by_chat_id_for_user(self, chat_id, limit, user_id): raise NotImplementedError  # noqa: ANN001
-    def delete_for_user(self, mid, user_id): raise NotImplementedError  # noqa: ANN001
-    def count_by_chat_id(self, chat_id): raise NotImplementedError  # noqa: ANN001
+    def save(self, message) -> Never:
+        raise NotImplementedError
+
+    def find_by_id(self, mid) -> Never:
+        raise NotImplementedError
+
+    def find_by_id_for_user(self, mid, user_id) -> Never:
+        raise NotImplementedError
+
+    def find_by_chat_id(self, chat_id) -> Never:
+        raise NotImplementedError
+
+    def find_by_chat_id_for_user(self, chat_id, user_id) -> Never:
+        raise NotImplementedError
+
+    def find_latest_by_chat_id(self, chat_id, limit) -> Never:
+        raise NotImplementedError
+
+    def find_latest_by_chat_id_for_user(self, chat_id, limit, user_id) -> Never:
+        raise NotImplementedError
+
+    def delete_for_user(self, mid, user_id) -> Never:
+        raise NotImplementedError
+
+    def count_by_chat_id(self, chat_id) -> Never:
+        raise NotImplementedError
 
     def bulk_delete_for_user(self, message_ids, user_id):
         return [mid for mid in message_ids if self._owned.get(mid.value) == user_id]
@@ -64,9 +83,7 @@ def test_bulk_delete_returns_failed_ids_only():
 
 
 def test_bulk_delete_all_failed_when_no_ownership():
-    repo = _FakeMessageRepository(
-        owned={"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa": "other-user"}
-    )
+    repo = _FakeMessageRepository(owned={"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa": "other-user"})
     usecase = DeleteMessageUseCaseImpl(repo)
 
     failed = usecase.execute_bulk(

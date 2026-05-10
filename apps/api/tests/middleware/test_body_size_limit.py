@@ -80,21 +80,21 @@ def test_middleware_class_signature():
 
 
 def test_non_http_scope_passes_through():
-    """websocket / lifespan scope は素通しすること."""
+    """Websocket / lifespan scope は素通しすること."""
     import asyncio
 
     received: list[dict] = []
 
-    async def fake_app(scope, receive, send):  # noqa: ANN001
+    async def fake_app(scope, receive, send) -> None:
         received.append(scope)
 
     middleware = BodySizeLimitMiddleware(fake_app)
     ws_scope = {"type": "websocket"}
 
-    async def _noop_receive():  # noqa: ANN202
+    async def _noop_receive():
         return {}
 
-    async def _noop_send(_):  # noqa: ANN001
+    async def _noop_send(_) -> None:
         return None
 
     asyncio.run(middleware(ws_scope, _noop_receive, _noop_send))

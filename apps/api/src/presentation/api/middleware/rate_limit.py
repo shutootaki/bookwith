@@ -6,10 +6,14 @@ slowapi を使用。`Limiter` の key は認証 user_id を優先し、未認証
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
-from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from fastapi import FastAPI, Request
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +26,8 @@ def _user_key(request: Request) -> str:
 
 
 try:
-    from slowapi import Limiter  # type: ignore[import-untyped]
-    from slowapi.errors import RateLimitExceeded  # type: ignore[import-untyped]
+    from slowapi import Limiter
+    from slowapi.errors import RateLimitExceeded
 
     limiter: Limiter | None = Limiter(key_func=_user_key, default_limits=["120/minute"])
 except ImportError:  # pragma: no cover
@@ -58,7 +62,7 @@ def register_rate_limit(app: FastAPI) -> None:
 
     # SlowAPIMiddleware: ASGI middleware
     try:
-        from slowapi.middleware import SlowAPIMiddleware  # type: ignore[import-untyped]
+        from slowapi.middleware import SlowAPIMiddleware
 
         app.state.limiter = limiter
         app.add_middleware(SlowAPIMiddleware)
@@ -67,26 +71,26 @@ def register_rate_limit(app: FastAPI) -> None:
         logger.exception("Failed to register slowapi middleware")
 
 
-def _noop_decorator(*_: Any, **__: Any):  # pragma: no cover
-    def decorator(func):
+def _noop_decorator() -> Callable[[Callable[..., object]], Callable[..., object]]:  # pragma: no cover
+    def decorator(func: Callable[..., object]) -> Callable[..., object]:
         return func
 
     return decorator
 
 
-def expensive_limit():  # pragma: no cover
+def expensive_limit() -> Callable[[Callable[..., object]], Callable[..., object]]:  # pragma: no cover
     if limiter is None:
         return _noop_decorator()
     return limiter.limit(EXPENSIVE_LIMIT)
 
 
-def upload_limit():  # pragma: no cover
+def upload_limit() -> Callable[[Callable[..., object]], Callable[..., object]]:  # pragma: no cover
     if limiter is None:
         return _noop_decorator()
     return limiter.limit(UPLOAD_LIMIT)
 
 
-def general_limit():  # pragma: no cover
+def general_limit() -> Callable[[Callable[..., object]], Callable[..., object]]:  # pragma: no cover
     if limiter is None:
         return _noop_decorator()
     return limiter.limit(GENERAL_LIMIT)

@@ -8,10 +8,12 @@ FastAPI 内に全部メモリ展開される前に落とせる。
 from __future__ import annotations
 
 import logging
-
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from typing import TYPE_CHECKING
 
 from src.config.app_config import AppConfig
+
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +66,12 @@ class BodySizeLimitMiddleware:
                 received += len(body)
                 if received > max_bytes:
                     # 長すぎる場合はそのまま 413 をクライアントに返す。
-                    raise _PayloadTooLarge()
+                    raise _PayloadTooLargeError
             return message
 
         try:
             await self.app(scope, limited_receive, send)
-        except _PayloadTooLarge:
+        except _PayloadTooLargeError:
             await self._reject(send)
 
     @staticmethod
@@ -88,7 +90,7 @@ class BodySizeLimitMiddleware:
         await send({"type": "http.response.body", "body": body})
 
 
-class _PayloadTooLarge(Exception):
+class _PayloadTooLargeError(Exception):
     """累積受信が上限を超えた時に内部で raise する."""
 
 

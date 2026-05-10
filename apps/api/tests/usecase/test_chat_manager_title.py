@@ -45,10 +45,10 @@ def _patch_pipeline(returned_title: str | None):
         def __init__(self, result: str | None) -> None:
             self._result = result
 
-        def __or__(self, other):  # noqa: ANN001
+        def __or__(self, other):
             return self
 
-        def __ror__(self, other):  # noqa: ANN001
+        def __ror__(self, other):
             return self
 
         def invoke(self, _: dict) -> str:
@@ -61,10 +61,12 @@ def _patch_pipeline(returned_title: str | None):
 
 def test_title_strip_quotes_and_prefix():
     cm = _build_chat_manager()
-    chain = _patch_pipeline('「タイトル: 朝のルーティン」')
-    with patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl, patch(
-        "src.usecase.message.chat_manager.ChatOpenAI"
-    ), patch("src.usecase.message.chat_manager.StrOutputParser"):
+    chain = _patch_pipeline("「タイトル: 朝のルーティン」")
+    with (
+        patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl,
+        patch("src.usecase.message.chat_manager.ChatOpenAI"),
+        patch("src.usecase.message.chat_manager.StrOutputParser"),
+    ):
         ptmpl.from_messages.return_value = chain
         title = cm._generate_chat_title("朝のルーティンを教えて")
     assert "タイトル:" not in title
@@ -76,9 +78,11 @@ def test_title_strip_quotes_and_prefix():
 def test_title_fallback_on_empty_output():
     cm = _build_chat_manager()
     chain = _patch_pipeline("")
-    with patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl, patch(
-        "src.usecase.message.chat_manager.ChatOpenAI"
-    ), patch("src.usecase.message.chat_manager.StrOutputParser"):
+    with (
+        patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl,
+        patch("src.usecase.message.chat_manager.ChatOpenAI"),
+        patch("src.usecase.message.chat_manager.StrOutputParser"),
+    ):
         ptmpl.from_messages.return_value = chain
         title = cm._generate_chat_title("これは質問本文の冒頭部分")
     assert title  # 空文字でない
@@ -88,9 +92,11 @@ def test_title_fallback_on_empty_output():
 def test_title_fallback_on_llm_exception():
     cm = _build_chat_manager()
     chain = _patch_pipeline(None)  # invoke で例外
-    with patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl, patch(
-        "src.usecase.message.chat_manager.ChatOpenAI"
-    ), patch("src.usecase.message.chat_manager.StrOutputParser"):
+    with (
+        patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl,
+        patch("src.usecase.message.chat_manager.ChatOpenAI"),
+        patch("src.usecase.message.chat_manager.StrOutputParser"),
+    ):
         ptmpl.from_messages.return_value = chain
         title = cm._generate_chat_title("LLM 失敗のテスト")
     assert title
@@ -99,9 +105,11 @@ def test_title_fallback_on_llm_exception():
 def test_title_fallback_when_question_is_empty():
     cm = _build_chat_manager()
     chain = _patch_pipeline(None)
-    with patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl, patch(
-        "src.usecase.message.chat_manager.ChatOpenAI"
-    ), patch("src.usecase.message.chat_manager.StrOutputParser"):
+    with (
+        patch("src.usecase.message.chat_manager.ChatPromptTemplate") as ptmpl,
+        patch("src.usecase.message.chat_manager.ChatOpenAI"),
+        patch("src.usecase.message.chat_manager.StrOutputParser"),
+    ):
         ptmpl.from_messages.return_value = chain
         title = cm._generate_chat_title("")
     assert title == "Untitled"

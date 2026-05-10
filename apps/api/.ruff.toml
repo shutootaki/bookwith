@@ -113,9 +113,34 @@ pep8-naming.classmethod-decorators = [
   "sqlalchemy.ext.declarative.declared_attr",
 ]
 
+# テストコードでは pytest フィクスチャや fake 実装の都合で型注釈の付与負荷が高く、
+# また `pytest.raises(ValueError)` のような粒度の検証も妥当なため、
+# テスト固有のノイズ系ルールは抑制する。alembic/env.py は Alembic が直接実行する
+# スクリプトでありパッケージ化しないため INP001 を除外。
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+  "ANN001",  # フィクスチャ引数 (monkeypatch / tmp_path 等) の型注釈
+  "ANN202",  # テスト内ヘルパー / fake のプライベート関数戻り値型
+  "ANN204",  # __aexit__ 等の特殊メソッド戻り値型 (fake context manager)
+  "ANN401",  # テスト用 fake で **kwargs: Any を許容
+  "PT011",   # pytest.raises(ValueError) 系の許容
+  "PT012",   # pytest.raises ブロック内に複数文があるテスト
+  "PT018",   # 複合 assert
+  "B017",    # pytest.raises(Exception) を許容 (汎用例外検証)
+  "SIM117",  # ネスト with (テスト見やすさ優先)
+  "C901",    # テスト関数の複雑度
+]
+"alembic/env.py" = ["INP001"]  # Alembic が直接実行する設定スクリプト
+
 # Enable stricter type checks (Ruff + MyPy integration)
 [lint.flake8-type-checking]
 strict = true
+
+# C901 の上限を緩める。本プロジェクトのバリデーション系 (assert_production_ready /
+# assert_epub_is_safe / _sanitize_metadata 等) や ASGI ミドルウェアの __call__ は
+# 分岐が本質的に多く、無理に分割しても可読性が下がるため 15 まで許容する。
+[lint.mccabe]
+max-complexity = 15
 
 [format]
 # Like Black, use double quotes for strings.

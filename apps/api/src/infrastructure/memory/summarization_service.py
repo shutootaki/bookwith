@@ -1,5 +1,6 @@
 """要約生成サービス."""
 
+import contextlib
 import logging
 import threading
 import weakref
@@ -111,11 +112,9 @@ class SummarizationService:
         except Exception as e:
             logger.error(f"チャット要約中にエラーが発生: {str(e)}", exc_info=True)
         finally:
-            try:
+            # 既に release 済みの場合 (RuntimeError) は無視する。
+            with contextlib.suppress(RuntimeError):  # pragma: no cover
                 lock.release()
-            except RuntimeError:  # pragma: no cover
-                # 既に release 済みの場合は無視。
-                pass
 
     def _convert_sender_to_japanese(self, sender: str) -> str:
         """送信者を日本語に変換."""

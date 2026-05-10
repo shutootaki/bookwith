@@ -1,11 +1,13 @@
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import ConfigDict, Field
 
 from src.presentation.api.schemas.annotation_schema import AnnotationSchema
 from src.presentation.api.schemas.base_schema import BaseRequestSchemaModel, BaseSchemaModel
 
+if TYPE_CHECKING:
+    from src.domain.book.entities.book import Book
 
 # CR-4 / M-3: クライアント由来の user_id / sender_id / book_id を排除し、
 # 認証 principal とパス引数から導出する。
@@ -93,7 +95,7 @@ class BookDetail(BaseSchemaModel):
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def from_entity(cls, book: Any) -> "BookDetail":
+    def from_entity(cls, book: "Book") -> "BookDetail":
         return cls(**book.model_dump(mode="json"))
 
 

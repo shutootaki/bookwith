@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Generator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,8 +38,7 @@ async def lifespan(app: FastAPI):
     # 開発バイパスが有効な場合は誤った staging 投入を検知できるよう、起動ログで明示的に警告する。
     if _config.auth_dev_bypass:
         logging.warning(
-            "AUTH_DEV_BYPASS is enabled (env=%s). All requests will be authenticated as %s. "
-            "Disable this in staging / production deployments.",
+            "AUTH_DEV_BYPASS is enabled (env=%s). All requests will be authenticated as %s. Disable this in staging / production deployments.",
             _config.environment,
             _config.auth_dev_bypass_user_id,
         )
@@ -106,7 +106,7 @@ async def readiness() -> dict[str, str]:
 setup_exception_handlers(app)
 
 
-def _custom_openapi():
+def _custom_openapi() -> dict[str, Any]:
     """OpenAPI スキーマに Bearer 認証を明示する.
 
     CR-1 補強: フロントの型生成（`pnpm openapi:ts`）時に `Authorization: Bearer <jwt>`

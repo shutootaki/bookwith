@@ -33,14 +33,14 @@ def _reload_auth() -> tuple[object, object]:
     return app_config, auth_dep
 
 
-def _build_app(auth_dep) -> FastAPI:  # noqa: ANN001
+def _build_app(auth_dep) -> FastAPI:
     from src.presentation.api.error_messages.error_handlers import setup_exception_handlers
 
     app = FastAPI()
     setup_exception_handlers(app)
 
     @app.get("/whoami")
-    async def whoami(user_id: str = Depends(auth_dep.require_user_id)):  # noqa: ANN001
+    async def whoami(user_id: str = Depends(auth_dep.require_user_id)):
         return {"user_id": user_id}
 
     return app
